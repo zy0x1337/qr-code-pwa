@@ -76,7 +76,7 @@ class QRProApp {
     this.showLoadingScreen();
     this.setupEventListeners();
     this.initializeData();
-    await this.waitForLibraries();
+    await this.loadLibraries();
     this.registerServiceWorker();
   }
 
@@ -864,48 +864,40 @@ saveSettings() {
   }
 
   // Separate Preview-Funktion
-  async generateQRCodePreview() {
+  async generateQRCode() {
     const content = document.getElementById('qr-content')?.value.trim();
-    if (!content) return;
-
-    // Prüfen ob QRCode verfügbar ist
-    if (typeof QRCode === 'undefined') {
-      console.log('QRCode library not loaded yet');
-      return;
+    
+    if (!content) {
+        this.showToast('Bitte geben Sie Inhalt ein', 'warning');
+        return;
     }
-
-    const preview = document.getElementById('qr-preview');
-    if (!preview) return;
-
+    
+    if (!this.librariesLoaded || !window.QRCode) {
+        this.showToast('QR-Bibliothek wird geladen...', 'info');
+        await this.loadLibraries();
+    }
+    
     try {
-      const options = {
-        width: 250,
-        height: 250,
-        margin: 1,
-        color: {
-          dark: document.getElementById('qr-color')?.value || '#000000',
-          light: document.getElementById('qr-bg-color')?.value || '#ffffff'
-        }
-      };
-
-      // Canvas für Preview erstellen
-      const canvas = document.createElement('canvas');
-      await QRCode.toCanvas(canvas, content, options);
-      canvas.className = 'qr-code-preview';
-
-      preview.innerHTML = '';
-      preview.appendChild(canvas);
-
+        const canvas = document.createElement('canvas');
+        await QRCode.toCanvas(canvas, content, {
+            width: 300,
+            color: {
+                dark: document.getElementById('qr-color')?.value || '#000000',
+                light: document.getElementById('qr-bg-color')?.value || '#FFFFFF'
+            }
+        });
+        
+        const preview = document.querySelector('.qr-preview');
+        preview.innerHTML = '';
+        preview.appendChild(canvas);
+        
+        this.showToast('QR Code erfolgreich generiert', 'success');
+        
     } catch (error) {
-      console.error('Preview Error:', error);
-      preview.innerHTML = `
-        <div class="preview-error">
-          <div class="error-icon">⚠️</div>
-          <div class="error-text">Vorschau konnte nicht geladen werden</div>
-        </div>
-      `;
+        console.error('QR Generation failed:', error);
+        this.showToast('QR Code Generierung fehlgeschlagen', 'error');
     }
-  }
+}
 
   // QR Code Generation
   // Korrigierte generateQRCode Methode
@@ -977,6 +969,42 @@ saveSettings() {
       this.showToast('Fehler beim Generieren des QR Codes: ' + error.message, 'error');
     }
   }
+
+  async loadLibraries() {
+    try {
+        // QRCode.js für Generierung
+        if (!window.QRCode) {
+            await this.loadScript('https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js');
+        }
+        
+        // Html5Qrcode für Scanning (bereits geladen laut Console)
+        if (!window.Html5Qrcode) {
+            await this.loadScript('https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js');
+        }
+        
+        console.log('✅ Libraries loaded successfully');
+        this.librariesLoaded = true;
+        
+    } catch (error) {
+        console.error('❌ Failed to load libraries:', error);
+        this.showToast('Bibliotheken konnten nicht geladen werden', 'error');
+    }
+}
+
+loadScript(src) {
+    return new Promise((resolve, reject) => {
+        if (document.querySelector(`script[src="${src}"]`)) {
+            resolve();
+            return;
+        }
+        
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+}
 
 // Download-Funktion hinzufügen
 downloadQRCode() {

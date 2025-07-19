@@ -360,80 +360,43 @@
 <div id="scanner-page" class="page">
     <div class="page-header">
         <h1>QR Scanner</h1>
-        <p>QR Code in den grünen Rahmen positionieren</p>
+        <p>Scannen Sie QR Codes mit Ihrer Kamera</p>
     </div>
 
     <div class="scanner-container">
-        <!-- Hauptscanner-Bereich mit korrekter ID -->
+        <!-- WICHTIG: Dieses Element muss existieren für Html5Qrcode -->
         <div id="scanner-container" class="scanner-viewport">
-            <!-- Scanner-Placeholder (wird angezeigt bevor Scanner startet) -->
-            <div class="scanner-placeholder" id="scanner-placeholder">
+            <div class="scanner-placeholder">
                 <div class="scanner-icon">📷</div>
                 <h3>Scanner starten</h3>
                 <p>Klicken Sie auf "Scannen", um Ihre Kamera zu aktivieren</p>
                 <button id="start-scanner" class="btn btn--primary">
-                    📷 Scanner starten
+                    Scanner starten
                 </button>
             </div>
-            
-            <!-- Scanner-Overlay (wird während des Scannens angezeigt) -->
-            <div class="scanner-overlay hidden" id="scanner-overlay">
-                <div class="scan-frame">
-                    <div class="corner top-left"></div>
-                    <div class="corner top-right"></div>
-                    <div class="corner bottom-left"></div>
-                    <div class="corner bottom-right"></div>
+        </div>
+
+        <!-- KORRIGIERTE Element-IDs -->
+        <div id="scan-result" class="scanner-result hidden">
+            <div class="result-content">
+                <h3>QR Code erkannt</h3>
+                <div id="result-text" class="result-data"></div>
+                <div class="result-actions">
+                    <button id="copy-result" class="btn btn--secondary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                            <path d="M5 15H4C3.46957 15 2.96086 14.7893 2.58579 14.4142C2.21071 14.0391 2 13.5304 2 13V4C2 3.46957 2.21071 2.96086 2.58579 2.58579C2.96086 2.21071 3.46957 2 4 2H13C13.5304 2 14.0391 2.21071 14.4142 2.58579C14.7893 2.96086 15 3.46957 15 4V5" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                        Kopieren
+                    </button>
+                    <button id="open-result" class="btn btn--primary">Öffnen</button>
                 </div>
-                <div class="scan-line"></div>
             </div>
         </div>
-    </div>
 
-    <!-- Scanner-Hinweise -->
-    <div class="scanner-tips" id="scanner-tips">
-        <h4>💡 Scanning-Tipps:</h4>
-        <ul>
-            <li>Halten Sie das Gerät 15-30 cm vom QR-Code entfernt</li>
-            <li>Sorgen Sie für gute Beleuchtung</li>
-            <li>Halten Sie die Kamera ruhig</li>
-            <li>Der QR-Code sollte den grünen Rahmen vollständig ausfüllen</li>
-            <li>Vermeiden Sie Spiegelungen und Schatten</li>
-        </ul>
-    </div>
-
-    <!-- Scanner-Ergebnis mit korrigierten IDs -->
-    <div id="scan-result" class="scanner-result hidden">
-        <div class="result-content">
-            <h3>✅ QR Code erkannt</h3>
-            <div id="result-text" class="result-data"></div>
-            <div class="result-actions" id="scan-actions">
-                <button id="copy-result" class="btn btn--secondary">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
-                        <path d="M5 15H4C3.46957 15 2.96086 14.7893 2.58579 14.4142C2.21071 14.0391 2 13.5304 2 13V4C2 3.46957 2.21071 2.96086 2.58579 2.58579C2.96086 2.21071 3.46957 2 4 2H13C13.5304 2 14.0391 2.21071 14.4142 2.58579C14.7893 2.96086 15 3.46957 15 4V5" stroke="currentColor" stroke-width="2"/>
-                    </svg>
-                    Kopieren
-                </button>
-                <button id="open-result" class="btn btn--primary hidden">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <path d="M18 13V19C18 19.5304 17.7893 20.0391 17.4142 20.4142C17.0391 20.7893 16.5304 21 16 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V8C3 7.46957 3.21071 6.96086 3.58579 6.58579C3.96086 6.21071 4.46957 6 5 6H11" stroke="currentColor" stroke-width="2"/>
-                        <path d="M15 3H21V9" stroke="currentColor" stroke-width="2"/>
-                        <path d="M10 14L21 3" stroke="currentColor" stroke-width="2"/>
-                    </svg>
-                    Website öffnen
-                </button>
-            </div>
+        <div class="scanner-controls">
+            <button id="stop-scanner" class="btn btn--outline hidden">Scanner stoppen</button>
         </div>
-    </div>
-
-    <!-- Scanner-Kontrollen -->
-    <div class="scanner-controls">
-        <button id="stop-scanner" class="btn btn--outline hidden">
-            🛑 Scanner stoppen
-        </button>
-        <button id="scan-again" class="btn btn--secondary hidden">
-            🔄 Erneut scannen
-        </button>
     </div>
 </div>
 

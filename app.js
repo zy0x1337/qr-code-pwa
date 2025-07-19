@@ -534,7 +534,7 @@ class QRProApp {
   });
 }
 
-// Fügen Sie diese Methode zu Ihrer QRProApp Klasse hinzu (temporär für Testing)
+// (temporär für Testing)
 testQRRecognition() {
   console.log('🧪 Teste QR-Erkennung...');
   

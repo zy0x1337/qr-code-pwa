@@ -2468,12 +2468,53 @@ select.form-control {
     box-shadow: 0 8px 24px rgba(245, 158, 11, 0.25);
 }
 
+.action-card--history .action-icon {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.25);
+}
+
 /* Focus States */
 .action-card:focus {
     outline: none;
     box-shadow: 
         0 20px 50px rgba(31, 38, 135, 0.15),
         0 0 0 3px rgba(99, 102, 241, 0.3);
+}
+
+/* Dark Mode - NUR GRAU BACKGROUNDS */
+@media (prefers-color-scheme: dark) {
+    .action-card {
+        background: rgba(31, 41, 55, 0.95); /* Dunkelgrau statt Blau */
+        border-color: rgba(75, 85, 99, 0.3); /* Grauer Border */
+        box-shadow: 
+            0 8px 32px rgba(0, 0, 0, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+    
+    .action-card:hover {
+        background: rgba(55, 65, 81, 0.95); /* Helleres Grau beim Hover */
+        border-color: rgba(99, 102, 241, 0.4);
+        box-shadow: 
+            0 20px 50px rgba(0, 0, 0, 0.4),
+            0 0 0 1px rgba(99, 102, 241, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+    
+    .action-card h3 {
+        color: #f9fafb; /* Helles Grau für Text */
+    }
+    
+    .action-card:hover h3 {
+        color: #60a5fa; /* Nur Text-Hover bleibt farbig */
+    }
+    
+    .action-card p {
+        color: #d1d5db; /* Mittleres Grau für Beschreibung */
+    }
+    
+    .action-card:hover p {
+        color: #e5e7eb; /* Helleres Grau beim Hover */
+    }
 }
 
 /* Stats Container */
@@ -2692,75 +2733,158 @@ select.form-control {
     transform: scaleY(1.1);
 }
 
-/* Dark Mode Variants */
+/* Dark Mode - NUR GRAU BACKGROUNDS */
 @media (prefers-color-scheme: dark) {
-    .action-card {
-        background: rgba(15, 23, 42, 0.95);
-        border-color: rgba(51, 65, 85, 0.3);
+    .stat-card {
+        background: linear-gradient(135deg, rgba(31, 41, 55, 0.95) 0%, rgba(17, 24, 39, 0.95) 100%); /* Grau statt Blau */
+        border-color: rgba(75, 85, 99, 0.3);
         box-shadow: 
-            0 8px 32px rgba(0, 0, 0, 0.3),
+            0 4px 20px rgba(0, 0, 0, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-3px);
+        background: linear-gradient(135deg, rgba(55, 65, 81, 0.95) 0%, rgba(31, 41, 55, 0.95) 100%); /* Helleres Grau */
+        border-color: rgba(99, 102, 241, 0.3);
+        box-shadow: 
+            0 12px 32px rgba(0, 0, 0, 0.4),
+            0 0 0 1px rgba(99, 102, 241, 0.1),
             inset 0 1px 0 rgba(255, 255, 255, 0.1);
     }
     
-    .action-card:hover {
-        background: rgba(30, 41, 59, 0.95);
-        border-color: rgba(99, 102, 241, 0.4);
+    .stat-icon {
+        background: linear-gradient(135deg, rgba(55, 65, 81, 0.5) 0%, rgba(75, 85, 99, 0.5) 100%); /* Grauer Icon-BG */
+        border-color: rgba(107, 114, 128, 0.3);
     }
     
-    .action-card h3 {
-        color: #f1f5f9;
-    }
-    
-    .action-card p {
-        color: #94a3b8;
-    }
-    
-    .stat-card {
-        background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
-        border-color: rgba(51, 65, 85, 0.3);
+    .stat-icon svg {
+        color: #9ca3af; /* Grauer Icon */
     }
     
     .stat-number {
-        background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%);
+        background: linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%); /* Helle Grautöne für Zahlen */
         background-clip: text;
         -webkit-background-clip: text;
     }
-}
-
-/* Mobile Optimization */
-@media (max-width: 768px) {
-    .quick-actions,
-    .stats-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-        padding: 0 1rem;
+    
+    .stat-label {
+        color: #9ca3af; /* Grauer Text */
     }
     
-    .action-card,
-    .stat-card {
-        padding: 1.5rem;
-        border-radius: 16px;
+    .stat-card:hover .stat-label {
+        color: #d1d5db; /* Helleres Grau beim Hover */
     }
     
-    .action-icon {
-        width: 48px;
-        height: 48px;
-        margin-bottom: 1rem;
+    .stat-subtitle {
+        color: #6b7280; /* Dunkleres Grau für Subtitle */
     }
     
-    .stat-number {
-        font-size: 2rem;
+    .stat-card:hover .stat-subtitle {
+        color: #9ca3af; /* Helleres Grau beim Hover */
+    }
+    
+    /* Progress Bar Dark Mode */
+    .stat-progress {
+        background: rgba(75, 85, 99, 0.3); /* Grauer Progress-BG */
     }
 }
 
-@media (max-width: 480px) {
-    .action-card,
-    .stat-card {
-        padding: 1.25rem;
+/* Section Headers Dark Mode */
+@media (prefers-color-scheme: dark) {
+    .dashboard-section {
+        margin-bottom: 3rem;
     }
     
-    .stat-trend {
-        position: static;
-        margin-top: 0.5rem;
+    .section-header h2 {
+        color: #f9fafb; /* Helles Grau für Überschriften */
+    }
+    
+    .section-header p {
+        color: #9ca3af; /* Mittleres Grau für Beschreibungen */
+    }
+    
+    /* Dashboard Header Dark Mode */
+    .dashboard-header .welcome-message h1 {
+        color: #f9fafb;
+    }
+    
+    .dashboard-header .welcome-message p {
+        color: #9ca3af;
+    }
+}
+
+/* Recent Activity Dark Mode */
+.recent-activity {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    padding: 1.5rem;
+    backdrop-filter: blur(12px);
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.activity-icon svg {
+    width: 16px;
+    height: 16px;
+    color: #64748b;
+}
+
+.activity-title {
+    font-weight: 500;
+    color: #1f2937;
+    font-size: 0.9rem;
+}
+
+.activity-time {
+    font-size: 0.8rem;
+    color: #9ca3af;
+}
+
+@media (prefers-color-scheme: dark) {
+    .recent-activity {
+        background: rgba(31, 41, 55, 0.95); /* Grauer BG */
+        border-color: rgba(75, 85, 99, 0.3);
+    }
+    
+    .activity-item {
+        border-bottom-color: rgba(75, 85, 99, 0.2);
+    }
+    
+    .activity-icon {
+        background: linear-gradient(135deg, rgba(55, 65, 81, 0.5) 0%, rgba(75, 85, 99, 0.5) 100%); /* Grauer Icon-BG */
+    }
+    
+    .activity-icon svg {
+        color: #9ca3af;
+    }
+    
+    .activity-title {
+        color: #f9fafb;
+    }
+    
+    .activity-time {
+        color: #6b7280;
     }
 }

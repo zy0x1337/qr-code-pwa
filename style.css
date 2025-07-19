@@ -2454,6 +2454,41 @@ select.form-control {
     100% { transform: rotate(360deg); }
 }
 
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.action-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.action-card:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.action-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary-color-light);
+    border-radius: 50%;
+}
+
 .action-icon svg {
     width: 24px;
     height: 24px;
@@ -2463,5 +2498,16 @@ select.form-control {
 
 .action-card:hover .action-icon svg {
     transform: scale(1.1);
-    color: var(--primary-dark);
+}
+
+.action-card h3 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+}
+
+.action-card p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
 }

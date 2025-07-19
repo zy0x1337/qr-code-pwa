@@ -11,7 +11,7 @@ const STATIC_FILES = [
   '/qr-code-pwa/manifest.json',
   '/qr-code-pwa/icons/icon-256x256.png',
   '/qr-code-pwa/icons/icon-512x512.png',
-  'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.js',
+  'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/lib/browser.js',
   'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js'
 ];
 

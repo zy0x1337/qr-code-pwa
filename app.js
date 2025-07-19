@@ -994,7 +994,7 @@ saveSettings() {
     try {
         // QRCode.js für Generierung
         if (!window.QRCode) {
-            await this.loadScript('https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.js');
+            await this.loadScript('https://cdn.jsdelivr.net/npm/qrcode@1.5.3/lib/browser.js');
         }
         
         // Html5Qrcode für Scanning (bereits geladen laut Console)

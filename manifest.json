@@ -1,0 +1,58 @@
+{
+  "name": "QR Pro - Generator & Scanner",
+  "short_name": "QR Pro",
+  "description": "Professioneller QR Code Generator und Scanner als Progressive Web App",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fcfcf9",
+  "theme_color": "#21808d",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "utilities"],
+  "lang": "de",
+  "dir": "ltr",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "QR Code generieren",
+      "short_name": "Generieren",
+      "description": "Schnell einen QR Code erstellen",
+      "url": "/?action=generate",
+      "icons": [{ "src": "icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "QR Code scannen",
+      "short_name": "Scannen",
+      "description": "QR Code mit Kamera scannen",
+      "url": "/?action=scan",
+      "icons": [{ "src": "icons/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "icons/screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "QR Pro Mobile Ansicht"
+    }
+  ]
+}

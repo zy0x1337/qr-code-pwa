@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Pro - Professioneller QR Code Generator & Scanner</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Professioneller QR Code Generator & Scanner mit erweiterten Features">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="QR Pro">
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUVIgUHJvIC0gUVIgQ29kZSBHZW5lcmF0b3IgJiBTY2FubmVyIiwic2hvcnRfbmFtZSI6IlFSIFBybyIsInN0YXJ0X3VybCI6Ii8iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjZmZmZmZmIiwidGhlbWVfY29sb3IiOiIjNjM2NmYxIiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbCwlM0NzdmcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJyB3aWR0aD0nMTkyJyBoZWlnaHQ9JzE5Micgdmlld0JveD0nMCAwIDI0IDI0JyUzRSUzQ3JlY3Qgd2lkdGg9JzI0JyBoZWlnaHQ9JzI0JyBmaWxsPSclMjM2MzY2ZjEnIC8lM0UlM0MvYWc%3D","sizes":"192x192","type":"image/svg+xml"}]}">
+    
+    <!-- Preload Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-logo">
+                <div class="qr-logo">
+                    <div class="qr-grid">
+                        <div class="qr-dot"></div>
+                        <div class="qr-dot"></div>
+                        <div class="qr-dot"></div>
+                        <div class="qr-dot"></div>
+                    </div>
+                </div>
+            </div>
+            <h2>QR Pro</h2>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Onboarding -->
+    <div id="onboarding" class="page-container hidden">
+        <div class="onboarding-content">
+            <div class="onboarding-slide active" data-slide="0">
+                <div class="slide-content">
+                    <div class="slide-icon">🎯</div>
+                    <h2>Willkommen bei QR Pro</h2>
+                    <p>Der modernste QR Code Generator & Scanner mit erweiterten Features und professionellem Design.</p>
+                </div>
+            </div>
+            <div class="onboarding-slide" data-slide="1">
+                <div class="slide-content">
+                    <div class="slide-icon">⚡</div>
+                    <h2>Schnell & Intuitiv</h2>
+                    <p>Erstelle QR Codes in Sekunden mit unserer intelligenten Eingabeerkennung und Live-Vorschau.</p>
+                </div>
+            </div>
+            <div class="onboarding-slide" data-slide="2">
+                <div class="slide-content">
+                    <div class="slide-icon">💎</div>
+                    <h2>Premium Features</h2>
+                    <p>Erweiterte Anpassungen, Batch-Generation, Analytics und vieles mehr. Starte mit einer 14-tägigen kostenlosen Testversion.</p>
+                </div>
+            </div>
+            <div class="onboarding-nav">
+                <div class="nav-dots">
+                    <span class="dot active" data-slide="0"></span>
+                    <span class="dot" data-slide="1"></span>
+                    <span class="dot" data-slide="2"></span>
+                </div>
+                <div class="nav-buttons">
+                    <button class="btn btn--secondary" id="skip-onboarding">Überspringen</button>
+                    <button class="btn btn--primary" id="next-onboarding">Weiter</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="main-app" class="app-container hidden">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="navbar-content">
+                <div class="navbar-brand">
+                    <div class="brand-logo">QR Pro</div>
+                    <div class="user-status">
+                        <span class="status-badge free-tier">Kostenlos</span>
+                    </div>
+                </div>
+                <div class="navbar-actions">
+                    <button class="btn btn--sm btn--primary" id="upgrade-btn">
+                        <span>Premium</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <a href="#dashboard" class="nav-item active" data-page="dashboard">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <span>Dashboard</span>
+            </a>
+            <a href="#generator" class="nav-item" data-page="generator">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                    <rect x="7" y="7" width="3" height="3" fill="currentColor"/>
+                    <rect x="14" y="7" width="3" height="3" fill="currentColor"/>
+                    <rect x="7" y="14" width="3" height="3" fill="currentColor"/>
+                    <rect x="14" y="14" width="3" height="3" fill="currentColor"/>
+                </svg>
+                <span>Generator</span>
+            </a>
+            <a href="#scanner" class="nav-item" data-page="scanner">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 12L11 14L15 10" stroke="currentColor" stroke-width="2"/>
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <span>Scanner</span>
+            </a>
+            <a href="#history" class="nav-item" data-page="history">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                    <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <span>Verlauf</span>
+            </a>
+            <a href="#settings" class="nav-item" data-page="settings">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                    <path d="M12 1V3M12 21V23M4.22 4.22L5.64 5.64M18.36 18.36L19.78 19.78M1 12H3M21 12H23M4.22 19.78L5.64 18.36M18.36 5.64L19.78 4.22" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <span>Einstellungen</span>
+            </a>
+        </nav>
+
+        <!-- Page Content -->
+        <main class="main-content">
+            
+            <!-- Dashboard Page -->
+            <div id="dashboard-page" class="page active">
+                <div class="page-header">
+                    <h1>Dashboard</h1>
+                    <p>Übersicht Ihrer QR Code Aktivitäten</p>
+                </div>
+
+                <div class="dashboard-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon success">📊</div>
+                        <div class="stat-content">
+                            <h3 id="total-created">0</h3>
+                            <p>QR Codes erstellt</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon primary">📱</div>
+                        <div class="stat-content">
+                            <h3 id="total-scanned">0</h3>
+                            <p>Codes gescannt</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon warning">⏰</div>
+                        <div class="stat-content">
+                            <h3 id="daily-limit">10/10</h3>
+                            <p>Heute verfügbar</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <h2>Schnellaktionen</h2>
+                    <div class="action-grid">
+                        <button class="action-card" data-action="generate-url">
+                            <div class="action-icon">🌐</div>
+                            <h3>Website</h3>
+                            <p>URL QR Code erstellen</p>
+                        </button>
+                        <button class="action-card" data-action="generate-text">
+                            <div class="action-icon">📝</div>
+                            <h3>Text</h3>
+                            <p>Text QR Code erstellen</p>
+                        </button>
+                        <button class="action-card" data-action="scan">
+                            <div class="action-icon">📷</div>
+                            <h3>Scanner</h3>
+                            <p>QR Code scannen</p>
+                        </button>
+                        <button class="action-card premium-feature" data-action="templates">
+                            <div class="action-icon">🎨</div>
+                            <h3>Templates</h3>
+                            <p>Premium Vorlagen</p>
+                            <div class="premium-badge">Pro</div>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="recent-activity">
+                    <h2>Letzte Aktivitäten</h2>
+                    <div id="recent-items" class="activity-list">
+                        <div class="empty-state">
+                            <div class="empty-icon">📋</div>
+                            <p>Noch keine QR Codes erstellt</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Generator Page -->
+            <div id="generator-page" class="page">
+                <div class="page-header">
+                    <h1>QR Code Generator</h1>
+                    <p>Erstelle professionelle QR Codes</p>
+                </div>
+
+                <div class="generator-container">
+                    <div class="generator-input">
+                        <div class="input-section">
+                            <div class="form-group">
+                                <label class="form-label">QR Code Typ</label>
+                                <select id="qr-type" class="form-control">
+                                    <option value="url">Website/URL</option>
+                                    <option value="text">Einfacher Text</option>
+                                    <option value="email">E-Mail</option>
+                                    <option value="phone">Telefon</option>
+                                    <option value="sms" class="premium-option">SMS (Premium)</option>
+                                    <option value="wifi" class="premium-option">WiFi (Premium)</option>
+                                    <option value="vcard" class="premium-option">Visitenkarte (Premium)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="qr-content">Inhalt</label>
+                                <textarea id="qr-content" class="form-control" rows="4" placeholder="Geben Sie den Inhalt für Ihren QR Code ein..."></textarea>
+                                <div class="input-helper">
+                                    <div class="helper-suggestions" id="content-suggestions"></div>
+                                </div>
+                            </div>
+
+                            <div class="customization-section">
+                                <h3>Anpassung</h3>
+                                <div class="custom-grid">
+                                    <div class="form-group">
+                                        <label class="form-label">Farbe</label>
+                                        <div class="color-picker">
+                                            <input type="color" id="qr-color" value="#000000">
+                                            <div class="color-presets">
+                                                <button class="color-preset" data-color="#000000" style="background: #000000"></button>
+                                                <button class="color-preset" data-color="#6366f1" style="background: #6366f1"></button>
+                                                <button class="color-preset" data-color="#ef4444" style="background: #ef4444"></button>
+                                                <button class="color-preset" data-color="#10b981" style="background: #10b981"></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Hintergrund</label>
+                                        <input type="color" id="qr-bg-color" value="#ffffff">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Größe</label>
+                                        <select id="qr-size" class="form-control">
+                                            <option value="200">Klein (200px)</option>
+                                            <option value="300" selected>Mittel (300px)</option>
+                                            <option value="500">Groß (500px)</option>
+                                            <option value="800" class="premium-option">Sehr groß (800px) - Premium</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="premium-features">
+                                    <h4>Premium Funktionen <span class="premium-badge">Pro</span></h4>
+                                    <div class="premium-options">
+                                        <button class="btn btn--outline premium-locked" data-feature="logo">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                                <rect x="3" y="11" width="18" height="10" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                                                <circle cx="12" cy="16" r="1" fill="currentColor"/>
+                                                <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="2"/>
+                                            </svg>
+                                            Logo hinzufügen
+                                        </button>
+                                        <button class="btn btn--outline premium-locked" data-feature="templates">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                                <rect x="3" y="11" width="18" height="10" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                                                <circle cx="12" cy="16" r="1" fill="currentColor"/>
+                                                <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="2"/>
+                                            </svg>
+                                            Premium Templates
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="generator-actions">
+                                <button id="generate-btn" class="btn btn--primary btn--full-width">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                                        <rect x="7" y="7" width="3" height="3" fill="currentColor"/>
+                                        <rect x="14" y="7" width="3" height="3" fill="currentColor"/>
+                                        <rect x="7" y="14" width="3" height="3" fill="currentColor"/>
+                                        <rect x="14" y="14" width="3" height="3" fill="currentColor"/>
+                                    </svg>
+                                    QR Code generieren
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="generator-preview">
+                        <div class="preview-container">
+                            <h3>Vorschau</h3>
+                            <div class="qr-preview" id="qr-preview">
+                                <div class="preview-placeholder">
+                                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                                        <rect x="7" y="7" width="3" height="3" fill="currentColor"/>
+                                        <rect x="14" y="7" width="3" height="3" fill="currentColor"/>
+                                        <rect x="7" y="14" width="3" height="3" fill="currentColor"/>
+                                        <rect x="14" y="14" width="3" height="3" fill="currentColor"/>
+                                    </svg>
+                                    <p>QR Code Vorschau</p>
+                                </div>
+                            </div>
+                            
+                            <div class="download-section hidden" id="download-section">
+                                <button id="download-btn" class="btn btn--secondary btn--full-width">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                        <path d="M21 15V19C21 19.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V15" stroke="currentColor" stroke-width="2"/>
+                                        <polyline points="7,10 12,15 17,10" stroke="currentColor" stroke-width="2"/>
+                                        <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                    Als PNG herunterladen
+                                </button>
+                                <div class="premium-downloads">
+                                    <p class="premium-text">Premium Formate verfügbar:</p>
+                                    <div class="format-buttons">
+                                        <button class="btn btn--sm btn--outline premium-locked">SVG</button>
+                                        <button class="btn btn--sm btn--outline premium-locked">PDF</button>
+                                        <button class="btn btn--sm btn--outline premium-locked">EPS</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scanner Page -->
+            <div id="scanner-page" class="page">
+                <div class="page-header">
+                    <h1>QR Scanner</h1>
+                    <p>Scannen Sie QR Codes mit Ihrer Kamera</p>
+                </div>
+
+                <div class="scanner-container">
+                    <div class="scanner-viewport">
+                        <video id="scanner-video" class="hidden" autoplay playsinline></video>
+                        <div class="scanner-placeholder">
+                            <div class="scanner-icon">📷</div>
+                            <h3>Scanner starten</h3>
+                            <p>Klicken Sie auf "Scannen", um Ihre Kamera zu aktivieren</p>
+                            <button id="start-scanner" class="btn btn--primary">
+                                Scanner starten
+                            </button>
+                        </div>
+                        <div class="scanner-overlay">
+                            <div class="scan-frame">
+                                <div class="corner top-left"></div>
+                                <div class="corner top-right"></div>
+                                <div class="corner bottom-left"></div>
+                                <div class="corner bottom-right"></div>
+                            </div>
+                            <div class="scan-line"></div>
+                        </div>
+                    </div>
+
+                    <div class="scanner-result hidden" id="scanner-result">
+                        <div class="result-content">
+                            <h3>QR Code erkannt</h3>
+                            <div class="result-data" id="result-data"></div>
+                            <div class="result-actions">
+                                <button id="copy-result" class="btn btn--secondary">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                                        <path d="M5 15H4C3.46957 15 2.96086 14.7893 2.58579 14.4142C2.21071 14.0391 2 13.5304 2 13V4C2 3.46957 2.21071 2.96086 2.58579 2.58579C2.96086 2.21071 3.46957 2 4 2H13C13.5304 2 14.0391 2.21071 14.4142 2.58579C14.7893 2.96086 15 3.46957 15 4V5" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                    Kopieren
+                                </button>
+                                <button id="open-result" class="btn btn--primary">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                        <path d="M18 13V19C18 19.5304 17.7893 20.0391 17.4142 20.4142C17.0391 20.7893 16.5304 21 16 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V8C3 7.46957 3.21071 6.96086 3.58579 6.58579C3.96086 6.21071 4.46957 6 5 6H11" stroke="currentColor" stroke-width="2"/>
+                                        <path d="M15 3H21V9" stroke="currentColor" stroke-width="2"/>
+                                        <path d="M10 14L21 3" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                    Öffnen
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="scanner-controls">
+                        <button id="stop-scanner" class="btn btn--outline hidden">Scanner stoppen</button>
+                        <button id="switch-camera" class="btn btn--outline premium-locked">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                <rect x="3" y="11" width="18" height="10" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                                <circle cx="12" cy="16" r="1" fill="currentColor"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                            Kamera wechseln (Premium)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Page -->
+            <div id="history-page" class="page">
+                <div class="page-header">
+                    <div class="header-content">
+                        <div>
+                            <h1>Verlauf</h1>
+                            <p>Ihre QR Code Historie</p>
+                        </div>
+                        <div class="header-actions">
+                            <button class="btn btn--outline premium-locked">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                    <rect x="3" y="11" width="18" height="10" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                                    <circle cx="12" cy="16" r="1" fill="currentColor"/>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="2"/>
+                                </svg>
+                                Exportieren (Premium)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="history-filters">
+                    <div class="filter-group">
+                        <input type="text" id="history-search" class="form-control" placeholder="Durchsuchen...">
+                        <select id="history-filter" class="form-control">
+                            <option value="all">Alle Typen</option>
+                            <option value="url">URLs</option>
+                            <option value="text">Text</option>
+                            <option value="email">E-Mail</option>
+                            <option value="phone">Telefon</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="history-list" class="history-list">
+                    <div class="empty-state">
+                        <div class="empty-icon">📋</div>
+                        <p>Keine QR Codes im Verlauf</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Page -->
+            <div id="settings-page" class="page">
+                <div class="page-header">
+                    <h1>Einstellungen</h1>
+                    <p>App-Einstellungen verwalten</p>
+                </div>
+
+                <div class="settings-sections">
+                    <div class="settings-section">
+                        <h3>Darstellung</h3>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4>Design-Modus</h4>
+                                <p>Helles oder dunkles Design wählen</p>
+                            </div>
+                            <select id="theme-selector" class="form-control">
+                                <option value="auto">Automatisch</option>
+                                <option value="light">Hell</option>
+                                <option value="dark">Dunkel</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>Account</h3>
+                        <div class="account-info">
+                            <div class="account-status">
+                                <div class="status-icon">👤</div>
+                                <div class="status-content">
+                                    <h4>Kostenloses Konto</h4>
+                                    <p>10 QR Codes pro Tag • 20 Verlaufselemente</p>
+                                </div>
+                                <button class="btn btn--primary btn--sm" id="upgrade-account">
+                                    Auf Premium upgraden
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>Premium Features</h3>
+                        <div class="premium-preview">
+                            <div class="feature-list">
+                                <div class="feature-item">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                        <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                    <span>Unbegrenzte QR Code Generierung</span>
+                                </div>
+                                <div class="feature-item">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                        <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                    <span>Premium Templates & Designs</span>
+                                </div>
+                                <div class="feature-item">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                        <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                    <span>Erweiterte Dateiformate (SVG, PDF, EPS)</span>
+                                </div>
+                                <div class="feature-item">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                        <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                    <span>Analytics & Tracking</span>
+                                </div>
+                            </div>
+                            <button class="btn btn--primary btn--full-width" id="start-trial">
+                                14-tägige kostenlose Testversion starten
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>App-Informationen</h3>
+                        <div class="app-info">
+                            <div class="info-item">
+                                <span>Version</span>
+                                <span>1.0.0</span>
+                            </div>
+                            <div class="info-item">
+                                <span>Speicher verwendet</span>
+                                <span id="storage-usage">0 MB</span>
+                            </div>
+                            <div class="info-item">
+                                <span>QR Codes erstellt</span>
+                                <span id="total-qr-created">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Premium Upgrade Modal -->
+    <div id="premium-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Auf Premium upgraden</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="pricing-comparison">
+                    <div class="pricing-card">
+                        <h3>Kostenlos</h3>
+                        <div class="price">€0<span>/Monat</span></div>
+                        <ul>
+                            <li>✓ 10 QR Codes pro Tag</li>
+                            <li>✓ Basis-Scanner</li>
+                            <li>✓ 20 Verlaufselemente</li>
+                            <li>✓ PNG Export</li>
+                            <li>✗ Premium Templates</li>
+                            <li>✗ Unbegrenzte Generation</li>
+                            <li>✗ Analytics</li>
+                        </ul>
+                    </div>
+                    <div class="pricing-card featured">
+                        <div class="popular-badge">Beliebt</div>
+                        <h3>Premium</h3>
+                        <div class="price">€9.99<span>/Monat</span></div>
+                        <ul>
+                            <li>✓ Unbegrenzte QR Codes</li>
+                            <li>✓ Erweiterte Scanner-Features</li>
+                            <li>✓ Unbegrenzter Verlauf</li>
+                            <li>✓ Alle Exportformate</li>
+                            <li>✓ Premium Templates</li>
+                            <li>✓ Custom Branding</li>
+                            <li>✓ Analytics Dashboard</li>
+                            <li>✓ Priority Support</li>
+                        </ul>
+                        <button class="btn btn--primary btn--full-width">14 Tage kostenlos testen</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>

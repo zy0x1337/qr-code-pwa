@@ -13,21 +13,16 @@
   "scope": "/qr-code-pwa/",
   "icons": [
     {
-      "src": "icons/icon-192x192.png",
+      "src": "/qr-code-pwa/icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "icons/icon-512x512.png",
+      "src": "/qr-code-pwa/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
-    },
-    {
-      "src": "icons/favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
     }
   ],
   "shortcuts": [
@@ -35,24 +30,11 @@
       "name": "QR Code generieren",
       "short_name": "Generieren",
       "description": "Schnell einen QR Code erstellen",
-      "url": "/?action=generate",
-      "icons": [{ "src": "icons/icon-192x192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "QR Code scannen",
-      "short_name": "Scannen",
-      "description": "QR Code mit Kamera scannen",
-      "url": "/?action=scan",
-      "icons": [{ "src": "icons/icon-192x192.png", "sizes": "192x192" }]
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "icons/screenshot-mobile.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "QR Pro Mobile Ansicht"
+      "url": "/qr-code-pwa/?action=generate",
+      "icons": [{ 
+        "src": "/qr-code-pwa/icons/icon-192x192.png", 
+        "sizes": "192x192" 
+      }]
     }
   ]
 }

@@ -999,40 +999,149 @@ downloadQRCode() {
 
   // QR Code Scanner
   async startScanner() {
-    try {
-      const scannerContainer = document.getElementById('scanner-container');
-      const startBtn = document.getElementById('start-scanner');
-      const stopBtn = document.getElementById('stop-scanner');
-      
-      // Initialize scanner
-      this.html5QrCode = new Html5Qrcode("scanner-container");
-      
-      const config = {
-        fps: 10,
-        qrbox: { width: 250, height: 250 },
-        aspectRatio: 1.777778
-      };
-      
-      await this.html5QrCode.start(
-        { facingMode: "environment" },
-        config,
-        (decodedText, decodedResult) => {
-          this.handleScanSuccess(decodedText, decodedResult);
-        },
-        (errorMessage) => {
-          // Handle scan failure silently
-        }
-      );
-      
-      this.isScanning = true;
-      startBtn.style.display = 'none';
-      stopBtn.style.display = 'block';
-      
-    } catch (error) {
-      console.error('Scanner Error:', error);
-      this.showToast('Kamera konnte nicht gestartet werden', 'error');
+  console.log('🔍 Scanner-Start initiiert...');
+  
+  const scannerContainer = document.getElementById('scanner-container');
+  const startBtn = document.getElementById('start-scanner');
+  const stopBtn = document.getElementById('stop-scanner');
+  
+  try {
+    // === SCHRITT 1: Umgebungsprüfung ===
+    console.log('📱 User Agent:', navigator.userAgent);
+    console.log('🌐 Protokoll:', location.protocol);
+    console.log('🏠 Hostname:', location.hostname);
+    console.log('📋 URL:', location.href);
+    
+    // === SCHRITT 2: API-Verfügbarkeit ===
+    console.log('📹 MediaDevices verfügbar:', !!navigator.mediaDevices);
+    console.log('📹 getUserMedia verfügbar:', !!navigator.mediaDevices?.getUserMedia);
+    console.log('🔧 Html5Qrcode verfügbar:', typeof Html5Qrcode !== 'undefined');
+    
+    if (!navigator.mediaDevices) {
+      throw new Error('MediaDevices API nicht unterstützt');
     }
+    
+    if (!navigator.mediaDevices.getUserMedia) {
+      throw new Error('getUserMedia nicht unterstützt');
+    }
+    
+    // === SCHRITT 3: Verfügbare Geräte auflisten ===
+    console.log('🔍 Suche verfügbare Kameras...');
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const videoDevices = devices.filter(device => device.kind === 'videoinput');
+    
+    console.log('📹 Gefundene Video-Geräte:', videoDevices.length);
+    videoDevices.forEach((device, index) => {
+      console.log(`  📹 Kamera ${index + 1}: ${device.label || 'Unbekannt'} (${device.deviceId.slice(0, 8)}...)`);
+    });
+    
+    if (videoDevices.length === 0) {
+      throw new Error('Keine Kameras gefunden');
+    }
+    
+    // === SCHRITT 4: Berechtigungen testen ===
+    console.log('🔐 Teste Kamera-Berechtigung...');
+    
+    const permissionStatus = await navigator.permissions.query({ name: 'camera' }).catch(() => null);
+    if (permissionStatus) {
+      console.log('🔐 Kamera-Berechtigung:', permissionStatus.state);
+    }
+    
+    // === SCHRITT 5: Kamera-Stream anfordern ===
+    console.log('🎥 Fordere Kamera-Stream an...');
+    
+    this.showToast('Kamera-Berechtigung wird angefordert...', 'info');
+    
+    const constraints = {
+      video: { 
+        facingMode: 'environment',
+        width: { ideal: 640, min: 320, max: 1920 },
+        height: { ideal: 480, min: 240, max: 1080 }
+      }
+    };
+    
+    console.log('🎥 Stream-Constraints:', JSON.stringify(constraints, null, 2));
+    
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    console.log('✅ Kamera-Stream erhalten');
+    console.log('🎥 Stream-Details:', {
+      id: stream.id,
+      active: stream.active,
+      tracks: stream.getVideoTracks().length
+    });
+    
+    // Stream-Details loggen
+    const videoTrack = stream.getVideoTracks()[0];
+    if (videoTrack) {
+      const settings = videoTrack.getSettings();
+      console.log('📹 Video-Track Settings:', settings);
+      console.log('📹 Video-Track Capabilities:', videoTrack.getCapabilities());
+    }
+    
+    // === SCHRITT 6: Html5Qrcode initialisieren ===
+    console.log('🔧 Initialisiere QR-Scanner...');
+    
+    if (typeof Html5Qrcode === 'undefined') {
+      // Stream stoppen falls Html5Qrcode nicht verfügbar
+      stream.getTracks().forEach(track => track.stop());
+      throw new Error('Html5Qrcode-Bibliothek nicht geladen');
+    }
+    
+    this.html5QrCode = new Html5Qrcode("scanner-container");
+    console.log('✅ Html5Qrcode-Instanz erstellt');
+    
+    // === SCHRITT 7: Scanner starten ===
+    const config = {
+      fps: 10,
+      qrbox: { width: 250, height: 250 },
+      aspectRatio: 1.0,
+      disableFlip: false
+    };
+    
+    console.log('🔧 Scanner-Config:', JSON.stringify(config, null, 2));
+    console.log('🚀 Starte Scanner...');
+    
+    await this.html5QrCode.start(
+      { facingMode: "environment" },
+      config,
+      (decodedText, decodedResult) => {
+        console.log('✅ QR-Code gescannt:', decodedText);
+        this.handleScanSuccess(decodedText, decodedResult);
+      },
+      (errorMessage) => {
+        // Diese Fehler sind normal während des Scannens
+        console.log('🔍 Scan-Versuch (normal):', errorMessage.slice(0, 50) + '...');
+      }
+    );
+    
+    console.log('🎉 Scanner erfolgreich gestartet!');
+    
+    // === UI AKTUALISIEREN ===
+    this.isScanning = true;
+    startBtn.style.display = 'none';
+    stopBtn.style.display = 'block';
+    this.showToast('Scanner gestartet! QR Code vor die Kamera halten.', 'success');
+    
+    // Stream nicht manuell stoppen - Html5Qrcode übernimmt das
+    
+  } catch (error) {
+    console.error('💥 SCANNER-FEHLER DETAILS:');
+    console.error('📛 Error Name:', error.name);
+    console.error('📛 Error Message:', error.message);
+    console.error('📛 Error Stack:', error.stack);
+    
+    // Zusätzliche Browser-spezifische Infos
+    console.error('🌐 Browser Info:', {
+      userAgent: navigator.userAgent,
+      vendor: navigator.vendor,
+      platform: navigator.platform,
+      cookieEnabled: navigator.cookieEnabled
+    });
+    
+    this.showToast(`Kamera-Fehler: ${error.message}`, 'error', 10000);
+    this.handleScannerError(error);
   }
+}
 
   async stopScanner() {
     if (this.html5QrCode && this.isScanning) {

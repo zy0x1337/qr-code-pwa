@@ -17,16 +17,32 @@ class QRProApp {
     this.isScanning = false;
     this.currentStream = null;
     this.html5QrCode = null;
+    this.previewTimeout = null;
     
     this.init();
   }
 
-  init() {
+  async init() {
     this.showLoadingScreen();
     this.setupEventListeners();
     this.initializeData();
+    await this.waitForLibraries();
     this.registerServiceWorker();
   }
+
+  // Warten bis Bibliotheken geladen sind
+waitForLibraries() {
+  return new Promise((resolve) => {
+    const checkLibraries = () => {
+      if (typeof QRCode !== 'undefined' && typeof Html5Qrcode !== 'undefined') {
+        resolve();
+      } else {
+        setTimeout(checkLibraries, 100);
+      }
+    };
+    checkLibraries();
+  });
+}
 
   async registerServiceWorker() {
   if ('serviceWorker' in navigator) {
@@ -160,6 +176,11 @@ class QRProApp {
     
     // Settings
     document.getElementById('theme-selector')?.addEventListener('change', (e) => this.changeTheme(e.target.value));
+
+    const downloadBtn = document.getElementById('download-btn');
+if (downloadBtn) {
+  downloadBtn.addEventListener('click', () => this.downloadQRCode());
+}
     
     // Quick actions
     document.querySelectorAll('.action-card').forEach(card => {
@@ -170,53 +191,74 @@ class QRProApp {
     });
   }
 
+  updatePreview() {
+  const content = document.getElementById('qr-content')?.value.trim();
+  if (content && content.length > 0) {
+    // Debounce für bessere Performance
+    clearTimeout(this.previewTimeout);
+    this.previewTimeout = setTimeout(() => {
+      this.generateQRCode(true); // true für Preview-Modus
+    }, 500);
+  }
+}
+
   // QR Code Generation
-  async generateQRCode() {
-    const content = document.getElementById('qr-content').value.trim();
-    const type = document.getElementById('qr-type').value;
-    
-    if (!content) {
+  async generateQRCode(isPreview = false) {
+  const content = document.getElementById('qr-content')?.value.trim();
+  const type = document.getElementById('qr-type')?.value;
+  
+  if (!content) {
+    if (!isPreview) {
       this.showToast('Bitte geben Sie Inhalt für den QR Code ein', 'error');
-      return;
     }
+    return;
+  }
 
-    // Check daily limit for free users
-    if (this.userTier === 'free' && this.dailyQRCount >= this.dailyLimit) {
-      this.showPremiumPrompt();
-      return;
-    }
+  // Prüfen ob QRCode Bibliothek geladen ist
+  if (typeof QRCode === 'undefined') {
+    console.log('QRCode library not loaded yet, retrying...');
+    setTimeout(() => this.generateQRCode(isPreview), 500);
+    return;
+  }
 
-    const preview = document.getElementById('qr-preview');
-    const downloadBtn = document.getElementById('download-btn');
+  if (!isPreview && this.userTier === 'free' && this.dailyQRCount >= this.dailyLimit) {
+    this.showPremiumPrompt();
+    return;
+  }
+
+  const preview = document.getElementById('qr-preview');
+  const downloadBtn = document.getElementById('download-btn');
+  
+  try {
+    // Clear previous QR code
+    if (preview) preview.innerHTML = '';
     
-    try {
-      // Clear previous QR code
-      preview.innerHTML = '';
-      
-      // Generate QR code using qrcode.js library
-      const qrCodeDataURL = await QRCode.toDataURL(content, {
-        width: 300,
-        margin: 2,
-        color: {
-          dark: document.getElementById('qr-color')?.value || '#000000',
-          light: document.getElementById('qr-bg-color')?.value || '#FFFFFF'
-        }
-      });
-      
-      const img = document.createElement('img');
-      img.src = qrCodeDataURL;
-      img.alt = 'Generated QR Code';
-      img.className = 'qr-code-image';
-      
-      preview.appendChild(img);
-      downloadBtn.style.display = 'block';
-      
-      // Save to history
+    const options = {
+      width: 300,
+      height: 300,
+      margin: 2,
+      color: {
+        dark: document.getElementById('qr-color')?.value || '#000000',
+        light: document.getElementById('qr-bg-color')?.value || '#ffffff'
+      }
+    };
+    
+    // Generate QR code using canvas
+    const canvas = document.createElement('canvas');
+    await QRCode.toCanvas(canvas, content, options);
+    
+    canvas.className = 'qr-code-image';
+    if (preview) preview.appendChild(canvas);
+    
+    if (downloadBtn && !isPreview) downloadBtn.style.display = 'block';
+    
+    if (!isPreview) {
+      // Add to history
       this.addToHistory({
         type: 'generated',
         content: content,
         qrType: type,
-        dataURL: qrCodeDataURL,
+        canvas: canvas,
         timestamp: Date.now()
       });
       
@@ -226,12 +268,27 @@ class QRProApp {
       
       this.showToast('QR Code erfolgreich generiert!', 'success');
       this.updateDashboard();
-      
-    } catch (error) {
-      console.error('QR Generation Error:', error);
-      this.showToast('Fehler beim Generieren des QR Codes', 'error');
     }
+    
+  } catch (error) {
+    console.error('QR Generation Error:', error);
+    this.showToast('Fehler beim Generieren des QR Codes: ' + error.message, 'error');
   }
+}
+
+// Download-Funktion hinzufügen
+downloadQRCode() {
+  const canvas = document.querySelector('#qr-preview canvas');
+  if (canvas) {
+    const link = document.createElement('a');
+    link.download = `qr-code-${Date.now()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    this.showToast('QR Code heruntergeladen!', 'success');
+  } else {
+    this.showToast('Kein QR Code zum Herunterladen verfügbar', 'error');
+  }
+}
 
   // QR Code Scanner
   async startScanner() {

@@ -1,3 +1,44 @@
+// Sofortige Debug-Konsole für Android
+if (/Android/i.test(navigator.userAgent)) {
+  // Debug-Button erstellen
+  const debugBtn = document.createElement('div');
+  debugBtn.innerHTML = '🐛';
+  debugBtn.style.cssText = `
+    position: fixed; top: 10px; right: 10px; z-index: 99999;
+    background: red; color: white; width: 50px; height: 50px;
+    border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; cursor: pointer; font-size: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+  `;
+  
+  // Debug-Panel
+  const debugPanel = document.createElement('div');
+  debugPanel.style.cssText = `
+    position: fixed; bottom: 0; left: 0; right: 0; height: 300px;
+    background: rgba(0,0,0,0.95); color: lime; font-family: monospace;
+    font-size: 12px; padding: 10px; z-index: 99998; overflow-y: auto;
+    border-top: 2px solid lime; display: none;
+  `;
+  
+  document.addEventListener('DOMContentLoaded', () => {
+    document.body.appendChild(debugBtn);
+    document.body.appendChild(debugPanel);
+  });
+  
+  // Toggle-Funktion
+  debugBtn.onclick = () => {
+    debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
+  };
+  
+  // Console hijacking
+  const originalLog = console.log;
+  console.log = function(...args) {
+    originalLog.apply(console, args);
+    debugPanel.innerHTML += `[${new Date().toLocaleTimeString()}] ${args.join(' ')}<br>`;
+    debugPanel.scrollTop = debugPanel.scrollHeight;
+  };
+}
+
 // QR Pro - Modern QR Code Generator & Scanner PWA
 class QRProApp {
   constructor() {

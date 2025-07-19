@@ -13,13 +13,13 @@
   "scope": "/qr-code-pwa/",
   "icons": [
     {
-      "src": "/qr-code-pwa/icons/icon-192x192.png",
-      "sizes": "192x192",
+      "src": "/qr-code-pwa/icons/icon-256.png",
+      "sizes": "256x256",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/qr-code-pwa/icons/icon-512x512.png",
+      "src": "/qr-code-pwa/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -33,8 +33,8 @@
       "url": "/qr-code-pwa/?action=generate",
       "icons": [
         {
-          "src": "/qr-code-pwa/icons/icon-192x192.png",
-          "sizes": "192x192"
+          "src": "/qr-code-pwa/icons/icon-256.png",
+          "sizes": "256x256"
         }
       ]
     },
@@ -45,8 +45,8 @@
       "url": "/qr-code-pwa/?action=scan",
       "icons": [
         {
-          "src": "/qr-code-pwa/icons/icon-192x192.png",
-          "sizes": "192x192"
+          "src": "/qr-code-pwa/icons/icon-256.png",
+          "sizes": "256x256"
         }
       ]
     }

@@ -529,6 +529,17 @@ async waitForLibraries() {
     }, 250);
   });
 
+  // TEMPORÄRER TEST-BUTTON
+  const scannerPage = document.getElementById('scanner-page');
+  if (scannerPage) {
+    const testBtn = document.createElement('button');
+    testBtn.textContent = '🧪 Test Scan';
+    testBtn.className = 'btn btn--outline';
+    testBtn.onclick = () => this.testQRRecognition();
+    testBtn.style.margin = '1rem';
+    scannerPage.appendChild(testBtn);
+    }
+
   // Paste Event für schnelles QR Code generieren
   document.addEventListener('paste', (e) => {
     if (this.currentPage === 'generator') {
@@ -543,6 +554,18 @@ async waitForLibraries() {
       }
     }
   });
+}
+
+// Fügen Sie diese Methode zu Ihrer QRProApp Klasse hinzu (temporär für Testing)
+testQRRecognition() {
+  console.log('🧪 Teste QR-Erkennung...');
+  
+  // Simuliere erfolgreichen QR-Scan
+  setTimeout(() => {
+    this.onScanSuccess('https://www.google.com', null);
+  }, 2000);
+  
+  this.showToast('🧪 Test-Scan in 2 Sekunden...', 'info');
 }
 
 goToSlide(index) {
@@ -999,147 +1022,218 @@ downloadQRCode() {
 
   // QR Code Scanner
   async startScanner() {
-  console.log('🔍 Starting scanner with improved error handling...');
+  console.log('🔍 === STARTE SCANNER (EINFACHE VERSION) ===');
   
-  // === SCHRITT 1: Element-Validierung ===
   const scannerContainer = document.getElementById('scanner-container');
   const startBtn = document.getElementById('start-scanner');
   const stopBtn = document.getElementById('stop-scanner');
   
-  // Prüfung ob alle erforderlichen Elemente existieren
   if (!scannerContainer) {
-    console.error('❌ Scanner-Container Element nicht gefunden!');
-    this.showToast('Scanner-Container fehlt in HTML', 'error');
+    console.error('❌ Scanner container nicht gefunden');
+    this.showToast('Scanner container fehlt', 'error');
     return;
   }
-  
-  if (!startBtn || !stopBtn) {
-    console.error('❌ Scanner-Buttons nicht gefunden!');
-    this.showToast('Scanner-Buttons fehlen in HTML', 'error');
-    return;
-  }
-  
-  console.log('✅ Alle HTML-Elemente gefunden');
   
   try {
-    // === SCHRITT 2: Umgebungsprüfung ===
-    console.log('📱 User Agent:', navigator.userAgent);
-    console.log('🌐 Protokoll:', location.protocol);
-    console.log('🏠 Hostname:', location.hostname);
-    console.log('📋 URL:', location.href);
-    
-    // === SCHRITT 3: API-Verfügbarkeit prüfen ===
-    console.log('📹 MediaDevices verfügbar:', !!navigator.mediaDevices);
-    console.log('📹 getUserMedia verfügbar:', !!navigator.mediaDevices?.getUserMedia);
-    
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      throw new Error('MediaDevices API nicht unterstützt. Bitte Browser aktualisieren.');
-    }
-    
-    // Secure Context prüfen
-    if (!window.isSecureContext) {
-      throw new Error('Unsichere Verbindung - HTTPS erforderlich für Kamera-Zugriff');
-    }
-    
-    // === SCHRITT 4: Html5Qrcode Library prüfen ===
-    console.log('🔧 Html5Qrcode verfügbar:', typeof Html5Qrcode !== 'undefined');
-    
+    // Warten bis Html5Qrcode verfügbar ist
     if (typeof Html5Qrcode === 'undefined') {
-      throw new Error('Html5Qrcode-Bibliothek nicht geladen');
+      console.log('⏳ Warte auf Html5Qrcode...');
+      await this.waitForHtml5Qrcode();
     }
     
-    // === SCHRITT 5: Verfügbare Geräte auflisten ===
-    console.log('🔍 Suche verfügbare Kameras...');
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const videoDevices = devices.filter(device => device.kind === 'videoinput');
+    console.log('✅ Html5Qrcode verfügbar');
     
-    console.log('📹 Gefundene Video-Geräte:', videoDevices.length);
-    videoDevices.forEach((device, index) => {
-      console.log(`  📹 Kamera ${index + 1}: ${device.label || 'Unbekannt'} (${device.deviceId.slice(0, 8)}...)`);
-    });
-    
-    if (videoDevices.length === 0) {
-      throw new Error('Keine Kameras gefunden');
-    }
-    
-    // === SCHRITT 6: Berechtigungen testen ===
-    console.log('🔐 Teste Kamera-Berechtigung...');
-    
-    const permissionStatus = await navigator.permissions.query({ name: 'camera' }).catch(() => null);
-    if (permissionStatus) {
-      console.log('🔐 Kamera-Berechtigung:', permissionStatus.state);
-    }
-    
-    // === SCHRITT 7: Scanner-Status anzeigen ===
-    this.showToast('Initialisiere Scanner...', 'info', 2000);
-    
-    // Scanner-Container leeren (falls vorherige Inhalte vorhanden)
+    // Scanner-Container leeren
     scannerContainer.innerHTML = '';
     
-    // === SCHRITT 8: Html5Qrcode initialisieren ===
-    console.log('🔧 Initialisiere QR-Scanner...');
+    // Html5Qrcode-Scanner erstellen
     this.html5QrCode = new Html5Qrcode("scanner-container");
-    console.log('✅ Html5Qrcode-Instanz erstellt');
+    console.log('✅ Html5Qrcode Scanner erstellt');
     
-    // Debug-Status prüfen (falls verfügbar)
-    if (this.html5QrCode.getStatus) {
-      const status = this.html5QrCode.getStatus();
-      console.log('📊 Scanner status:', status);
-    }
-    
-    // === SCHRITT 9: Scanner-Konfiguration ===
+    // EINFACHE Konfiguration
     const config = {
       fps: 10,
-      qrbox: { width: 250, height: 250 },
-      aspectRatio: 1.0,
-      disableFlip: false
+      qrbox: { width: 250, height: 250 }
     };
     
-    console.log('🔧 Scanner-Config:', JSON.stringify(config, null, 2));
-    console.log('🚀 Starte Scanner...');
+    console.log('🚀 Starte Scanner mit config:', config);
     
-    // === SCHRITT 10: Scanner starten ===
+    // Scanner starten - EINFACHE Parameter
     await this.html5QrCode.start(
-      { facingMode: "environment" },
+      { facingMode: "environment" }, // Rückkamera
       config,
+      // SUCCESS Callback
       (decodedText, decodedResult) => {
-        console.log('✅ QR-Code erfolgreich gescannt:', decodedText);
-        this.handleScanSuccess(decodedText, decodedResult);
+        console.log('🎉 QR CODE GEFUNDEN:', decodedText);
+        this.onScanSuccess(decodedText, decodedResult);
       },
+      // ERROR Callback (wird sehr oft aufgerufen - normal!)
       (errorMessage) => {
-        // Normale Scan-Versuche (keine echten Fehler)
-        if (!errorMessage.includes('NotFoundException') && !errorMessage.includes('No QR code found')) {
-          console.warn('Scanner-Warnung:', errorMessage);
+        // Nur echte Fehler loggen, nicht "kein QR gefunden"
+        if (!errorMessage.includes('NotFoundException') && 
+            !errorMessage.includes('No QR code found')) {
+          console.warn('Scanner Warnung:', errorMessage);
         }
       }
     );
     
-    console.log('🎉 Scanner erfolgreich gestartet!');
-    
-    // === SCHRITT 11: UI aktualisieren ===
+    // UI updaten
     this.isScanning = true;
     if (startBtn) startBtn.style.display = 'none';
     if (stopBtn) stopBtn.style.display = 'block';
     
-    this.showToast('Scanner aktiv! QR Code vor Kamera halten', 'success');
+    this.showToast('📷 Scanner aktiv - QR Code vor Kamera halten!', 'success');
+    console.log('✅ Scanner erfolgreich gestartet');
     
   } catch (error) {
-    console.error('💥 SCANNER-FEHLER DETAILS:');
-    console.error('📛 Error Name:', error.name);
-    console.error('📛 Error Message:', error.message);
-    console.error('📛 Error Stack:', error.stack);
+    console.error('💥 Scanner Fehler:', error);
+    this.showToast(`Scanner Fehler: ${error.message}`, 'error');
     
-    // Zusätzliche Browser-spezifische Infos
-    console.error('🌐 Browser Info:', {
-      userAgent: navigator.userAgent,
-      vendor: navigator.vendor,
-      platform: navigator.platform,
-      cookieEnabled: navigator.cookieEnabled
-    });
-    
-    // Detaillierte Fehlerbehandlung
-    this.handleDetailedScannerError(error, scannerContainer);
+    // Spezielle Behandlung für häufige Fehler
+    if (error.message.includes('Permission denied')) {
+      this.showCameraPermissionHelp();
+    }
   }
+}
+
+// Hilfsmethode: Warten auf Html5Qrcode
+waitForHtml5Qrcode() {
+  return new Promise((resolve, reject) => {
+    let attempts = 0;
+    const maxAttempts = 50; // 5 Sekunden
+    
+    const checkLibrary = () => {
+      attempts++;
+      if (typeof Html5Qrcode !== 'undefined') {
+        resolve();
+      } else if (attempts >= maxAttempts) {
+        reject(new Error('Html5Qrcode Bibliothek konnte nicht geladen werden'));
+      } else {
+        setTimeout(checkLibrary, 100);
+      }
+    };
+    
+    checkLibrary();
+  });
+}
+
+// Vereinfachte Erfolg-Behandlung
+onScanSuccess(decodedText, decodedResult) {
+  console.log('📱 Scan erfolgreich:', decodedText);
+  
+  // Scanner stoppen
+  this.stopScanner();
+  
+  // Ergebnis anzeigen
+  const resultDiv = document.getElementById('scan-result');
+  const resultText = document.getElementById('result-text');
+  
+  if (resultText) {
+    resultText.textContent = decodedText;
+  }
+  
+  if (resultDiv) {
+    resultDiv.classList.remove('hidden');
+    resultDiv.style.display = 'block';
+  }
+  
+  // URL automatisch öffnen
+  if (this.isValidURL(decodedText)) {
+    console.log('🌐 URL erkannt, zeige Öffnen-Option');
+    this.showURLActions(decodedText);
+  }
+  
+  // Zu History hinzufügen
+  this.addToScanHistory({
+    type: 'scanned',
+    content: decodedText,
+    timestamp: Date.now()
+  });
+  
+  this.showToast('✅ QR Code gescannt!', 'success');
+  this.updateDashboard();
+}
+
+// URL-Erkennung
+isValidURL(string) {
+  try {
+    new URL(string);
+    return true;
+  } catch (_) {
+    return /^https?:\/\/.+\..+/.test(string);
+  }
+}
+
+// URL-Aktionen anzeigen
+showURLActions(url) {
+  const resultDiv = document.getElementById('scan-result');
+  if (resultDiv) {
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'scan-actions';
+    actionsDiv.innerHTML = `
+      <h4>🌐 Website gefunden</h4>
+      <div class="action-buttons">
+        <button onclick="window.open('${url}', '_blank')" class="btn btn--primary">
+          Website öffnen
+        </button>
+        <button onclick="navigator.clipboard.writeText('${url}')" class="btn btn--secondary">
+          Link kopieren
+        </button>
+      </div>
+    `;
+    resultDiv.appendChild(actionsDiv);
+  }
+}
+
+// Kamera-Berechtigung Hilfe
+showCameraPermissionHelp() {
+  const helpDiv = document.createElement('div');
+  helpDiv.className = 'permission-help';
+  helpDiv.innerHTML = `
+    <div class="help-content">
+      <h3>📷 Kamera-Berechtigung erforderlich</h3>
+      <ol>
+        <li>Klicken Sie auf das <strong>Schloss-Symbol</strong> in der Adressleiste</li>
+        <li>Wählen Sie <strong>"Kamera"</strong></li>
+        <li>Setzen Sie auf <strong>"Zulassen"</strong></li>
+        <li>Laden Sie die Seite neu</li>
+      </ol>
+      <button onclick="location.reload()" class="btn btn--primary">🔄 Seite neu laden</button>
+    </div>
+  `;
+  
+  document.body.appendChild(helpDiv);
+  
+  // Nach 10 Sekunden automatisch entfernen
+  setTimeout(() => {
+    if (helpDiv.parentNode) {
+      helpDiv.parentNode.removeChild(helpDiv);
+    }
+  }, 10000);
+}
+
+// Vereinfachte stopScanner Methode
+async stopScanner() {
+  console.log('🛑 Stoppe Scanner...');
+  
+  if (this.html5QrCode && this.isScanning) {
+    try {
+      await this.html5QrCode.stop();
+      await this.html5QrCode.clear();
+      console.log('✅ Scanner gestoppt');
+    } catch (error) {
+      console.warn('Warnung beim Scanner stoppen:', error);
+    }
+  }
+  
+  this.isScanning = false;
+  
+  // UI updaten
+  const startBtn = document.getElementById('start-scanner');
+  const stopBtn = document.getElementById('stop-scanner');
+  
+  if (startBtn) startBtn.style.display = 'block';
+  if (stopBtn) stopBtn.style.display = 'none';
 }
 
 handleScanSuccess(decodedText, decodedResult) {

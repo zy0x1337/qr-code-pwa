@@ -2259,7 +2259,7 @@ select.form-control {
   z-index: 1000;
 }
 
-.scan-action-container {
+.scan-actions {
   margin-top: 1rem;
   padding: 1rem;
   background: var(--surface-color);
@@ -2267,29 +2267,49 @@ select.form-control {
   border-left: 4px solid var(--primary-color);
 }
 
-.scan-action-content h4 {
-  margin: 0 0 0.5rem 0;
+.scan-actions h4 {
+  margin: 0 0 1rem 0;
   color: var(--primary-color);
 }
 
-.scan-url, .scan-email, .scan-phone, .scan-text {
-  background: var(--background-color);
-  padding: 0.75rem;
-  border-radius: 4px;
-  margin: 0.5rem 0;
-  word-break: break-all;
-  font-family: monospace;
-  font-size: 0.9rem;
-}
-
-.scan-actions {
+.action-buttons {
   display: flex;
   gap: 0.5rem;
-  margin-top: 1rem;
   flex-wrap: wrap;
 }
 
-.scan-actions .btn {
+.action-buttons .btn {
   flex: 1;
   min-width: 120px;
+}
+
+.permission-help {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 2rem;
+}
+
+.help-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  max-width: 400px;
+  text-align: center;
+}
+
+.help-content ol {
+  text-align: left;
+  margin: 1rem 0;
+}
+
+.help-content li {
+  margin-bottom: 0.5rem;
 }

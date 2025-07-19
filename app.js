@@ -872,7 +872,7 @@ saveSettings() {
         return;
     }
 
-    // Prüfen und sicherstellen, dass QRCode verfügbar ist
+    // Sicherstellen, dass QRCode verfügbar ist
     if (!window.QRCode) {
         console.log('QRCode not available, attempting to load...');
         this.showToast('QR-Bibliothek wird geladen...', 'info');
@@ -896,39 +896,22 @@ saveSettings() {
         console.log('🔄 Generating QR Code...');
         const preview = document.querySelector('.qr-preview');
         
-        // Loading-Zustand anzeigen
-        preview.innerHTML = '<div class="loading-spinner">Generiere QR Code...</div>';
+        // Vorherigen QR Code löschen
+        preview.innerHTML = '';
         
-        const canvas = document.createElement('canvas');
-        const options = {
+        // Neuen QR Code generieren (qrcodejs API)
+        const qr = new QRCode(preview, {
+            text: content,
             width: 300,
-            margin: 2,
-            color: {
-                dark: document.getElementById('qr-color')?.value || '#000000',
-                light: document.getElementById('qr-bg-color')?.value || '#FFFFFF'
-            }
-        };
-
-        // QRCode generieren (mit Callback-API)
-        window.QRCode.toCanvas(canvas, content, options, (error) => {
-            if (error) {
-                console.error('❌ QR Generation failed:', error);
-                this.showToast('QR Code Generierung fehlgeschlagen', 'error');
-                preview.innerHTML = '<div class="error-state">Fehler bei der QR-Generierung</div>';
-                return;
-            }
-
-            // Erfolgreiche Generierung
-            preview.innerHTML = '';
-            preview.appendChild(canvas);
-            
-            console.log('✅ QR Code generated successfully');
-            this.showToast('QR Code erfolgreich generiert', 'success');
-            
-            // QR Code in Historie speichern
-            this.saveToHistory(content, 'qr-generated');
+            height: 300,
+            colorDark: document.getElementById('qr-color')?.value || '#000000',
+            colorLight: document.getElementById('qr-bg-color')?.value || '#FFFFFF',
+            correctLevel: QRCode.CorrectLevel.H
         });
 
+        console.log('✅ QR Code generated successfully');
+        this.showToast('QR Code erfolgreich generiert', 'success');
+        
     } catch (error) {
         console.error('❌ QR Generation error:', error);
         this.showToast('QR Code Generierung fehlgeschlagen', 'error');
@@ -1003,7 +986,7 @@ generateQRCodePreview() {
         
         // QRCode.js für Generierung laden - KORREKTE URL
         if (!window.QRCode) {
-            await this.loadScript('https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js');
+            await this.loadScript('https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js');
         }
         
         // Html5Qrcode für Scanning (bereits verfügbar)

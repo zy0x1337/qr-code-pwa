@@ -1,6 +1,6 @@
-const CACHE_NAME = 'qr-pro-v1.0.3';
-const STATIC_CACHE_NAME = 'qr-pro-static-v1.0.3';
-const DYNAMIC_CACHE_NAME = 'qr-pro-dynamic-v1.0.3';
+const CACHE_NAME = 'qr-pro-v1.0.5';
+const STATIC_CACHE_NAME = 'qr-pro-static-v1.0.5';
+const DYNAMIC_CACHE_NAME = 'qr-pro-dynamic-v1.0.5';
 
 // Korrekte Pfade für GitHub Pages
 const STATIC_FILES = [
@@ -11,7 +11,7 @@ const STATIC_FILES = [
   '/qr-code-pwa/manifest.json',
   '/qr-code-pwa/icons/icon-256x256.png',
   '/qr-code-pwa/icons/icon-512x512.png',
-  'https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',
   'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js'
 ];
 

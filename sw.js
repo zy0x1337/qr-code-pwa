@@ -4,13 +4,13 @@ const DYNAMIC_CACHE_NAME = 'qr-pro-dynamic-v1.0.0';
 
 // Files to cache
 const STATIC_FILES = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/app.js',
-  '/manifest.json',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png',
+  '/qr-code-pwa/',
+  '/qr-code-pwa/index.html',
+  '/qr-code-pwa/style.css',
+  '/qr-code-pwa/app.js',
+  '/qr-code-pwa/manifest.json',
+  '/qr-code-pwa/icons/icon-192x192.png',
+  '/qr-code-pwa/icons/icon-512x512.png',
   'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js',
   'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js'
 ];

@@ -2,7 +2,7 @@
   "name": "QR Pro - Generator & Scanner",
   "short_name": "QR Pro",
   "description": "Professioneller QR Code Generator und Scanner als Progressive Web App",
-  "start_url": "/",
+  "start_url": "/qr-code-pwa/",
   "display": "standalone",
   "background_color": "#fcfcf9",
   "theme_color": "#21808d",
@@ -10,7 +10,7 @@
   "categories": ["productivity", "utilities"],
   "lang": "de",
   "dir": "ltr",
-  "scope": "/",
+  "scope": "/qr-code-pwa/",
   "icons": [
     {
       "src": "icons/icon-192x192.png",

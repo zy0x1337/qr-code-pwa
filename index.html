@@ -154,29 +154,62 @@
                     <p>Übersicht Ihrer QR Code Aktivitäten</p>
                 </div>
 
-                <div class="dashboard-stats">
-                    <div class="stat-card">
-                        <div class="stat-icon success">📊</div>
-                        <div class="stat-content">
-                            <h3 id="total-created">0</h3>
-                            <p>QR Codes erstellt</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon primary">📱</div>
-                        <div class="stat-content">
-                            <h3 id="total-scanned">0</h3>
-                            <p>Codes gescannt</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon warning">⏰</div>
-                        <div class="stat-content">
-                            <h3 id="daily-limit">10/10</h3>
-                            <p>Heute verfügbar</p>
-                        </div>
-                    </div>
-                </div>
+                <div class="stats-grid">
+    <div class="stat-card" data-stat="qr-generated">
+        <div class="stat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+                <path d="M14 14h7v7h-7z"></path>
+            </svg>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number">0</div>
+            <div class="stat-label">QR Codes erstellt</div>
+        </div>
+    </div>
+
+    <div class="stat-card" data-stat="qr-scanned">
+        <div class="stat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+            </svg>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number">0</div>
+            <div class="stat-label">QR Codes gescannt</div>
+        </div>
+    </div>
+
+    <div class="stat-card" data-stat="today-active">
+        <div class="stat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+            </svg>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number">0</div>
+            <div class="stat-label">Heute aktiv</div>
+        </div>
+    </div>
+
+    <div class="stat-card" data-stat="templates-count">
+        <div class="stat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+            </svg>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number">0</div>
+            <div class="stat-label">Templates</div>
+        </div>
+    </div>
+</div>
 
                 <div class="quick-actions">
     <!-- Generator Card -->

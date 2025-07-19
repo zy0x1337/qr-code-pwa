@@ -546,6 +546,52 @@ testQRRecognition() {
   this.showToast('🧪 Test-Scan in 2 Sekunden...', 'info');
 }
 
+// Stat Cards mit echten Daten aktualisieren
+updateStatsCards() {
+    const stats = {
+        qrGenerated: this.getGeneratedCount(),
+        qrScanned: this.getScannedCount(),
+        todayActive: this.getTodayActivity(),
+        templatesCount: this.getTemplatesCount()
+    };
+
+    // Karten aktualisieren
+    this.updateStatCard('qr-generated', stats.qrGenerated);
+    this.updateStatCard('qr-scanned', stats.qrScanned);
+    this.updateStatCard('today-active', stats.todayActive);
+    this.updateStatCard('templates-count', stats.templatesCount);
+}
+
+updateStatCard(cardId, value) {
+    const card = document.querySelector(`[data-stat="${cardId}"]`);
+    if (card) {
+        const numberEl = card.querySelector('.stat-number');
+        if (numberEl) {
+            this.animateNumber(numberEl, value);
+        }
+    }
+}
+
+animateNumber(element, targetValue) {
+    const startValue = parseInt(element.textContent) || 0;
+    const duration = 1000;
+    const startTime = performance.now();
+    
+    const animate = (currentTime) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        const currentValue = Math.floor(startValue + (targetValue - startValue) * progress);
+        element.textContent = currentValue;
+        
+        if (progress < 1) {
+            requestAnimationFrame(animate);
+        }
+    };
+    
+    requestAnimationFrame(animate);
+}
+
 goToSlide(index) {
   const slides = document.querySelectorAll('.onboarding-slide');
   const dots = document.querySelectorAll('.dot');

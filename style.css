@@ -2453,3 +2453,15 @@ select.form-control {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+.action-icon svg {
+    width: 24px;
+    height: 24px;
+    color: var(--primary-color);
+    transition: transform 0.2s ease;
+}
+
+.action-card:hover .action-icon svg {
+    transform: scale(1.1);
+    color: var(--primary-dark);
+}

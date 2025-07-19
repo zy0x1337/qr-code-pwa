@@ -1163,26 +1163,190 @@ downloadQRCode() {
   }
 
   handleScanSuccess(decodedText, decodedResult) {
-    // Stop scanner
-    this.stopScanner();
-    
-    // Show result
-    const resultDiv = document.getElementById('scan-result');
-    const resultText = document.getElementById('result-text');
-    
-    resultText.textContent = decodedText;
-    resultDiv.style.display = 'block';
-    
-    // Add to scan history
-    this.addToScanHistory({
-      type: 'scanned',
-      content: decodedText,
-      timestamp: Date.now()
-    });
-    
-    this.showToast('QR Code erfolgreich gescannt!', 'success');
-    this.updateDashboard();
+  console.log('📱 QR-Code Rohdaten:', decodedText);
+  
+  // Scanner stoppen
+  this.stopScanner();
+  
+  // Validierung ob es wirklich ein QR-Code ist
+  if (!decodedText || decodedText.length < 3) {
+    console.log('❌ Ungültige QR-Code Daten, ignoriere...');
+    this.restartScanner(); // Scanner wieder starten
+    return;
   }
+  
+  // UI aktualisieren
+  const resultDiv = document.getElementById('scan-result');
+  const resultText = document.getElementById('result-text');
+  
+  if (resultText) {
+    resultText.textContent = decodedText;
+  }
+  
+  if (resultDiv) {
+    resultDiv.style.display = 'block';
+  }
+  
+  // Gescannte Daten analysieren und entsprechende Aktion ausführen
+  this.handleScannedData(decodedText);
+  
+  // Zu Scan-History hinzufügen
+  this.addToScanHistory({
+    type: 'scanned',
+    content: decodedText,
+    timestamp: Date.now()
+  });
+  
+  this.showToast('QR Code erfolgreich gescannt!', 'success');
+  this.updateDashboard();
+}
+
+// Neue Methode für Datenbehandlung
+handleScannedData(data) {
+  console.log('🔍 Analysiere gescannte Daten:', data);
+  
+  // URL-Erkennung
+  if (this.isValidURL(data)) {
+    console.log('🌐 URL erkannt:', data);
+    this.showURLAction(data);
+  }
+  // E-Mail Erkennung  
+  else if (this.isValidEmail(data)) {
+    console.log('📧 E-Mail erkannt:', data);
+    this.showEmailAction(data);
+  }
+  // Telefonnummer Erkennung
+  else if (this.isValidPhone(data)) {
+    console.log('📞 Telefon erkannt:', data);
+    this.showPhoneAction(data);
+  }
+  // Einfacher Text
+  else {
+    console.log('📝 Text erkannt:', data);
+    this.showTextAction(data);
+  }
+}
+
+// URL-Validierung
+isValidURL(string) {
+  try {
+    new URL(string);
+    return true;
+  } catch (_) {
+    return string.match(/^https?:\/\/.+\..+/i) !== null;
+  }
+}
+
+// E-Mail Validierung
+isValidEmail(string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(string);
+}
+
+// Telefon Validierung
+isValidPhone(string) {
+  return /^[\+]?[0-9\s\-\(\)]{10,}$/.test(string);
+}
+
+// URL-Aktion anzeigen
+showURLAction(url) {
+  const actionDiv = this.createActionDiv();
+  actionDiv.innerHTML = `
+    <div class="scan-action-content">
+      <h4>🌐 Website gefunden</h4>
+      <p class="scan-url">${url}</p>
+      <div class="scan-actions">
+        <button class="btn btn--primary" onclick="window.open('${url}', '_blank')">
+          Website öffnen
+        </button>
+        <button class="btn btn--secondary" onclick="navigator.clipboard.writeText('${url}')">
+          Link kopieren
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+// E-Mail-Aktion anzeigen
+showEmailAction(email) {
+  const actionDiv = this.createActionDiv();
+  actionDiv.innerHTML = `
+    <div class="scan-action-content">
+      <h4>📧 E-Mail-Adresse gefunden</h4>
+      <p class="scan-email">${email}</p>
+      <div class="scan-actions">
+        <button class="btn btn--primary" onclick="window.open('mailto:${email}')">
+          E-Mail senden
+        </button>
+        <button class="btn btn--secondary" onclick="navigator.clipboard.writeText('${email}')">
+          Adresse kopieren
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+// Telefon-Aktion anzeigen
+showPhoneAction(phone) {
+  const actionDiv = this.createActionDiv();
+  actionDiv.innerHTML = `
+    <div class="scan-action-content">
+      <h4>📞 Telefonnummer gefunden</h4>
+      <p class="scan-phone">${phone}</p>
+      <div class="scan-actions">
+        <button class="btn btn--primary" onclick="window.open('tel:${phone}')">
+          Anrufen
+        </button>
+        <button class="btn btn--secondary" onclick="navigator.clipboard.writeText('${phone}')">
+          Nummer kopieren
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+// Text-Aktion anzeigen
+showTextAction(text) {
+  const actionDiv = this.createActionDiv();
+  actionDiv.innerHTML = `
+    <div class="scan-action-content">
+      <h4>📝 Text gefunden</h4>
+      <p class="scan-text">${text.length > 100 ? text.substring(0, 100) + '...' : text}</p>
+      <div class="scan-actions">
+        <button class="btn btn--primary" onclick="navigator.clipboard.writeText('${text}')">
+          Text kopieren
+        </button>
+        <button class="btn btn--secondary" onclick="navigator.share({text: '${text}'}).catch(() => {})">
+          Teilen
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+// Action-Div erstellen
+createActionDiv() {
+  let actionDiv = document.getElementById('scan-action-div');
+  if (!actionDiv) {
+    actionDiv = document.createElement('div');
+    actionDiv.id = 'scan-action-div';
+    actionDiv.className = 'scan-action-container';
+    
+    const resultDiv = document.getElementById('scan-result');
+    if (resultDiv) {
+      resultDiv.appendChild(actionDiv);
+    }
+  }
+  return actionDiv;
+}
+
+// Scanner neu starten (bei Fehlerkennungen)
+restartScanner() {
+  setTimeout(() => {
+    if (!this.isScanning) {
+      this.startScanner();
+    }
+  }, 1000);
+}
 
   // Data Management
   addToHistory(entry) {

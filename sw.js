@@ -2,7 +2,7 @@ const CACHE_NAME = 'qr-pro-v1.0.0';
 const STATIC_CACHE_NAME = 'qr-pro-static-v1.0.0';
 const DYNAMIC_CACHE_NAME = 'qr-pro-dynamic-v1.0.0';
 
-// Files to cache
+// Korrekte Pfade für GitHub Pages
 const STATIC_FILES = [
   '/qr-code-pwa/',
   '/qr-code-pwa/index.html',
@@ -54,14 +54,13 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch Strategy: Cache First with Network Fallback
+// Fetch Strategy
 self.addEventListener('fetch', event => {
-  // Skip non-GET requests
   if (event.request.method !== 'GET') {
     return;
   }
 
-  // Skip external requests
+  // Skip external requests außer CDNs
   if (!event.request.url.startsWith(self.location.origin) && 
       !event.request.url.includes('cdn.jsdelivr.net') && 
       !event.request.url.includes('unpkg.com')) {
@@ -71,24 +70,18 @@ self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        // Return cached version if found
         if (response) {
-          console.log('Serving from cache:', event.request.url);
           return response;
         }
 
-        // Otherwise fetch from network
         return fetch(event.request)
           .then(fetchResponse => {
-            // Check if response is valid
             if (!fetchResponse || fetchResponse.status !== 200 || fetchResponse.type !== 'basic') {
               return fetchResponse;
             }
 
-            // Clone response for caching
             const responseToCache = fetchResponse.clone();
 
-            // Cache dynamic content
             if (event.request.url.includes('cdn.') || event.request.url.includes('unpkg.com')) {
               caches.open(STATIC_CACHE_NAME)
                 .then(cache => {
@@ -106,56 +99,15 @@ self.addEventListener('fetch', event => {
           .catch(error => {
             console.error('Fetch failed:', error);
             
-            // Provide fallback for offline navigation
             if (event.request.destination === 'document') {
-              return caches.match('/index.html');
+              return caches.match('/qr-code-pwa/index.html');
             }
             
-            // Return error for other requests
             return new Response('Offline - Content not available', {
               status: 503,
-              statusText: 'Service Unavailable',
-              headers: new Headers({
-                'Content-Type': 'text/plain'
-              })
+              statusText: 'Service Unavailable'
             });
           });
       })
-  );
-});
-
-// Background Sync (for future implementation)
-self.addEventListener('sync', event => {
-  if (event.tag === 'background-sync') {
-    console.log('Background sync triggered');
-    event.waitUntil(doBackgroundSync());
-  }
-});
-
-function doBackgroundSync() {
-  return new Promise(resolve => {
-    // Implement background sync logic here
-    console.log('Performing background sync...');
-    resolve();
-  });
-}
-
-// Push Notifications (for future implementation)
-self.addEventListener('push', event => {
-  console.log('Push notification received');
-  
-  const options = {
-    body: event.data ? event.data.text() : 'Neue QR Pro Benachrichtigung',
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/icon-192x192.png',
-    vibrate: [100, 50, 100],
-    data: {
-      dateOfArrival: Date.now(),
-      primaryKey: 1
-    }
-  };
-
-  event.waitUntil(
-    self.registration.showNotification('QR Pro', options)
   );
 });

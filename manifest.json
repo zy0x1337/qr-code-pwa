@@ -31,10 +31,24 @@
       "short_name": "Generieren",
       "description": "Schnell einen QR Code erstellen",
       "url": "/qr-code-pwa/?action=generate",
-      "icons": [{ 
-        "src": "/qr-code-pwa/icons/icon-192x192.png", 
-        "sizes": "192x192" 
-      }]
+      "icons": [
+        {
+          "src": "/qr-code-pwa/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "QR Code scannen",
+      "short_name": "Scannen",
+      "description": "QR Code mit Kamera scannen",
+      "url": "/qr-code-pwa/?action=scan",
+      "icons": [
+        {
+          "src": "/qr-code-pwa/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }

@@ -29,25 +29,27 @@ class QRProApp {
   }
 
   async registerServiceWorker() {
-    if ('serviceWorker' in navigator) {
-      try {
-        const registration = await navigator.serviceWorker.register('/qr-code-pwa/sw.js');
-        console.log('Service Worker registered successfully:', registration);
-        
-        // Check for updates
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              this.showUpdateAvailable();
-            }
-          });
+  if ('serviceWorker' in navigator) {
+    try {
+      // Korrekter Pfad für GitHub Pages mit Repository-Name
+      const registration = await navigator.serviceWorker.register('/qr-code-pwa/sw.js', {
+        scope: '/qr-code-pwa/'
+      });
+      console.log('Service Worker registered successfully:', registration);
+      
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            this.showUpdateAvailable();
+          }
         });
-      } catch (error) {
-        console.error('Service Worker registration failed:', error);
-      }
+      });
+    } catch (error) {
+      console.error('Service Worker registration failed:', error);
     }
   }
+}
 
   showUpdateAvailable() {
     this.showToast('Update verfügbar! Seite neu laden?', 'info', 5000, [

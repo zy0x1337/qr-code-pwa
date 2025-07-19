@@ -1062,78 +1062,91 @@ downloadQRCode() {
 
   // QR Code Scanner
   async startScanner() {
-  console.log('🔍 === STARTE SCANNER (EINFACHE VERSION) ===');
-  
-  const scannerContainer = document.getElementById('scanner-container');
-  const startBtn = document.getElementById('start-scanner');
-  const stopBtn = document.getElementById('stop-scanner');
-  
-  if (!scannerContainer) {
-    console.error('❌ Scanner container nicht gefunden');
-    this.showToast('Scanner container fehlt', 'error');
-    return;
-  }
-  
-  try {
-    // Warten bis Html5Qrcode verfügbar ist
-    if (typeof Html5Qrcode === 'undefined') {
-      console.log('⏳ Warte auf Html5Qrcode...');
-      await this.waitForHtml5Qrcode();
-    }
-    
-    console.log('✅ Html5Qrcode verfügbar');
-    
-    // Scanner-Container leeren
-    scannerContainer.innerHTML = '';
-    
-    // Html5Qrcode-Scanner erstellen
-    this.html5QrCode = new Html5Qrcode("scanner-container");
-    console.log('✅ Html5Qrcode Scanner erstellt');
-    
-    // EINFACHE Konfiguration
-    const config = {
-      fps: 10,
-      qrbox: { width: 250, height: 250 }
-    };
-    
-    console.log('🚀 Starte Scanner mit config:', config);
-    
-    // Scanner starten - EINFACHE Parameter
-    await this.html5QrCode.start(
-      { facingMode: "environment" }, // Rückkamera
-      config,
-      // SUCCESS Callback
-      (decodedText, decodedResult) => {
-        console.log('🎉 QR CODE GEFUNDEN:', decodedText);
-        this.onScanSuccess(decodedText, decodedResult);
-      },
-      // ERROR Callback (wird sehr oft aufgerufen - normal!)
-      (errorMessage) => {
-        // Nur echte Fehler loggen, nicht "kein QR gefunden"
-        if (!errorMessage.includes('NotFoundException') && 
-            !errorMessage.includes('No QR code found')) {
-          console.warn('Scanner Warnung:', errorMessage);
+    try {
+        console.log('📷 Starte QR Scanner...');
+        
+        // Prüfen ob Html5Qrcode verfügbar ist
+        if (!window.Html5Qrcode) {
+            throw new Error('Html5Qrcode Library nicht verfügbar');
         }
-      }
-    );
-    
-    // UI updaten
-    this.isScanning = true;
-    if (startBtn) startBtn.style.display = 'none';
-    if (stopBtn) stopBtn.style.display = 'block';
-    
-    this.showToast('📷 Scanner aktiv - QR Code vor Kamera halten!', 'success');
-    console.log('✅ Scanner erfolgreich gestartet');
-    
-  } catch (error) {
-    console.error('💥 Scanner Fehler:', error);
-    this.showToast(`Scanner Fehler: ${error.message}`, 'error');
-    
-    // Spezielle Behandlung für häufige Fehler
-    if (error.message.includes('Permission denied')) {
-      this.showCameraPermissionHelp();
+
+        // Scanner-Container finden
+        const scannerContainer = document.getElementById('scanner-container');
+        if (!scannerContainer) {
+            throw new Error('Scanner-Container nicht gefunden');
+        }
+
+        // Scanner bereits aktiv?
+        if (this.html5QrCode && this.isScanning) {
+            console.log('Scanner bereits aktiv');
+            return;
+        }
+
+        // Html5QrCode Instanz erstellen
+        this.html5QrCode = new Html5Qrcode("scanner-container");
+
+        // Scanner-Konfiguration
+        const config = {
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0,
+            showTorchButtonIfSupported: true,
+            showZoomSliderIfSupported: true,
+            defaultZoomValueIfSupported: 2,
+            experimentalFeatures: {
+                useBarCodeDetectorIfSupported: true
+            }
+        };
+
+        // Scanner starten mit korrigierter Error-Behandlung
+        await this.html5QrCode.start(
+            { facingMode: "environment" }, // Rückkamera bevorzugen
+            config,
+            // SUCCESS CALLBACK
+            (decodedText, decodedResult) => {
+                console.log('✅ QR Code erkannt:', decodedText);
+                this.onScanSuccess(decodedText, decodedResult);
+            },
+            // ERROR CALLBACK - KORRIGIERT
+            (errorMessage) => {
+                // Sichere Error-Behandlung
+                if (errorMessage !== null && errorMessage !== undefined) {
+                    // Als String behandeln
+                    const errorStr = String(errorMessage);
+                    
+                    // Normale "Kein QR gefunden" Fehler ignorieren
+                    const normalErrors = [
+                        'No MultiFormat Readers',
+                        'NotFoundException', 
+                        'NotFoundError',
+                        'No QR code found',
+                        'QR code parse error'
+                    ];
+                    
+                    const isNormalError = normalErrors.some(err => 
+                        errorStr.includes(err)
+                    );
+                    
+                    if (!isNormalError) {
+                        console.log('Scanner Fehler:', errorStr);
+                    }
+                } else {
+                    // errorMessage ist null/undefined - ignorieren
+                    // (Das ist normal bei jedem Frame ohne QR Code)
+                }
+            }
+        );
+
+        this.isScanning = true;
+        this.updateScannerUI();
+        console.log('✅ Scanner erfolgreich gestartet');
+        this.showToast('Scanner aktiv - Halten Sie einen QR Code vor die Kamera', 'success');
+
+    } catch (error) {
+        console.error('❌ Scanner-Start fehlgeschlagen:', error);
+        this.showToast(`Scanner-Fehler: ${error.message}`, 'error');
+        this.handleScannerError(error);
     }
-  }
 }
 
 // Hilfsmethode: Warten auf Html5Qrcode

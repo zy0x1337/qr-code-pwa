@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qr-pro-v1.0.1';
+const CACHE_NAME = 'qr-pro-v1.0.2';
 const STATIC_CACHE_NAME = 'qr-pro-static-v1.0.0';
 const DYNAMIC_CACHE_NAME = 'qr-pro-dynamic-v1.0.0';
 
@@ -11,7 +11,7 @@ const STATIC_FILES = [
   '/qr-code-pwa/manifest.json',
   '/qr-code-pwa/icons/icon-256x256.png',
   '/qr-code-pwa/icons/icon-512x512.png',
-  'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js',
+  'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.js',
   'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js'
 ];
 

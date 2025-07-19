@@ -31,18 +31,27 @@ class QRProApp {
   }
 
   // Warten bis Bibliotheken geladen sind
-waitForLibraries() {
-  return new Promise((resolve) => {
-    const checkLibraries = () => {
-      if (typeof QRCode !== 'undefined' && typeof Html5Qrcode !== 'undefined') {
-        resolve();
-      } else {
-        setTimeout(checkLibraries, 100);
-      }
-    };
-    checkLibraries();
-  });
-}
+async waitForLibraries() {
+    return new Promise((resolve) => {
+      let attempts = 0;
+      const maxAttempts = 50; // 5 Sekunden warten
+
+      const checkLibraries = () => {
+        attempts++;
+        if (typeof QRCode !== 'undefined') {
+          console.log('QRCode library loaded successfully');
+          resolve(true);
+        } else if (attempts >= maxAttempts) {
+          console.error('QRCode library failed to load');
+          resolve(false);
+        } else {
+          setTimeout(checkLibraries, 100);
+        }
+      };
+      
+      checkLibraries();
+    });
+  }
 
   async registerServiceWorker() {
   if ('serviceWorker' in navigator) {
@@ -148,147 +157,532 @@ waitForLibraries() {
   }
 
   setupEventListeners() {
-    // Onboarding
-    document.getElementById('next-onboarding')?.addEventListener('click', () => this.nextSlide());
-    document.getElementById('skip-onboarding')?.addEventListener('click', () => this.skipOnboarding());
-    
-    document.querySelectorAll('.dot').forEach((dot, index) => {
-      dot.addEventListener('click', () => this.goToSlide(index));
-    });
-
-    // Navigation
-    document.querySelectorAll('.nav-item').forEach(item => {
-      item.addEventListener('click', (e) => {
-        e.preventDefault();
-        const page = item.dataset.page;
-        this.navigateToPage(page);
-      });
-    });
-
-    // Generator
-    document.getElementById('generate-btn')?.addEventListener('click', () => this.generateQRCode());
-    document.getElementById('qr-content')?.addEventListener('input', () => this.updatePreview());
-    document.getElementById('qr-type')?.addEventListener('change', () => this.updateContentPlaceholder());
-    
-    // Scanner
-    document.getElementById('start-scanner')?.addEventListener('click', () => this.startScanner());
-    document.getElementById('stop-scanner')?.addEventListener('click', () => this.stopScanner());
-    
-    // Settings
-    document.getElementById('theme-selector')?.addEventListener('change', (e) => this.changeTheme(e.target.value));
-
-    const downloadBtn = document.getElementById('download-btn');
-if (downloadBtn) {
-  downloadBtn.addEventListener('click', () => this.downloadQRCode());
-}
-    
-    // Quick actions
-    document.querySelectorAll('.action-card').forEach(card => {
-      card.addEventListener('click', () => {
-        const action = card.dataset.action;
-        this.handleQuickAction(action);
-      });
-    });
-  }
-
-  updatePreview() {
-  const content = document.getElementById('qr-content')?.value.trim();
-  if (content && content.length > 0) {
-    // Debounce für bessere Performance
-    clearTimeout(this.previewTimeout);
-    this.previewTimeout = setTimeout(() => {
-      this.generateQRCode(true); // true für Preview-Modus
-    }, 500);
-  }
-}
-
-  // QR Code Generation
-  async generateQRCode(isPreview = false) {
-  const content = document.getElementById('qr-content')?.value.trim();
-  const type = document.getElementById('qr-type')?.value;
+  // Onboarding Event Listeners
+  const nextBtn = document.getElementById('next-onboarding');
+  const skipBtn = document.getElementById('skip-onboarding');
   
-  if (!content) {
-    if (!isPreview) {
-      this.showToast('Bitte geben Sie Inhalt für den QR Code ein', 'error');
-    }
-    return;
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => this.nextSlide());
   }
-
-  // Prüfen ob QRCode Bibliothek geladen ist
-  if (typeof QRCode === 'undefined') {
-    console.log('QRCode library not loaded yet, retrying...');
-    setTimeout(() => this.generateQRCode(isPreview), 500);
-    return;
+  
+  if (skipBtn) {
+    skipBtn.addEventListener('click', () => this.skipOnboarding());
   }
+  
+  // Onboarding Dots Navigation
+  document.querySelectorAll('.dot').forEach((dot, index) => {
+    dot.addEventListener('click', () => this.goToSlide(index));
+  });
 
-  if (!isPreview && this.userTier === 'free' && this.dailyQRCount >= this.dailyLimit) {
-    this.showPremiumPrompt();
-    return;
-  }
+  // Bottom Navigation Event Listeners
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      const page = item.dataset.page;
+      this.navigateToPage(page);
+    });
+  });
 
-  const preview = document.getElementById('qr-preview');
+  // QR Code Generator Event Listeners
+  const generateBtn = document.getElementById('generate-btn');
+  const qrContent = document.getElementById('qr-content');
+  const qrType = document.getElementById('qr-type');
+  const qrColor = document.getElementById('qr-color');
+  const qrBgColor = document.getElementById('qr-bg-color');
   const downloadBtn = document.getElementById('download-btn');
   
-  try {
-    // Clear previous QR code
-    if (preview) preview.innerHTML = '';
-    
-    const options = {
-      width: 300,
-      height: 300,
-      margin: 2,
-      color: {
-        dark: document.getElementById('qr-color')?.value || '#000000',
-        light: document.getElementById('qr-bg-color')?.value || '#ffffff'
+  if (generateBtn) {
+    generateBtn.addEventListener('click', () => this.generateQRCode());
+  }
+  
+  if (qrContent) {
+    qrContent.addEventListener('input', () => this.updatePreview());
+    // Enter-Taste für schnelle Generierung
+    qrContent.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && e.ctrlKey) {
+        this.generateQRCode();
       }
-    };
+    });
+  }
+  
+  if (qrType) {
+    qrType.addEventListener('change', () => {
+      this.updateContentPlaceholder();
+      this.updatePreview();
+    });
+  }
+  
+  if (qrColor) {
+    qrColor.addEventListener('change', () => this.updatePreview());
+  }
+  
+  if (qrBgColor) {
+    qrBgColor.addEventListener('change', () => this.updatePreview());
+  }
+  
+  if (downloadBtn) {
+    downloadBtn.addEventListener('click', () => this.downloadQRCode());
+  }
+
+  // QR Code Scanner Event Listeners
+  const startScanner = document.getElementById('start-scanner');
+  const stopScanner = document.getElementById('stop-scanner');
+  const copyResult = document.getElementById('copy-result');
+  const fileInput = document.getElementById('file-input');
+  const uploadBtn = document.getElementById('upload-btn');
+  
+  if (startScanner) {
+    startScanner.addEventListener('click', () => this.startScanner());
+  }
+  
+  if (stopScanner) {
+    stopScanner.addEventListener('click', () => this.stopScanner());
+  }
+  
+  if (copyResult) {
+    copyResult.addEventListener('click', () => this.copyResult());
+  }
+  
+  if (uploadBtn) {
+    uploadBtn.addEventListener('click', () => {
+      const fileInput = document.getElementById('file-input');
+      if (fileInput) fileInput.click();
+    });
+  }
+  
+  if (fileInput) {
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        this.scanFromFile(e.target.files[0]);
+      }
+    });
+  }
+
+  // History/Verlauf Event Listeners
+  const searchHistory = document.getElementById('search-history');
+  const clearHistory = document.getElementById('clear-history');
+  const exportHistory = document.getElementById('export-history');
+  const importHistory = document.getElementById('import-history');
+  const importFile = document.getElementById('import-file');
+  
+  if (searchHistory) {
+    searchHistory.addEventListener('input', (e) => {
+      this.filterHistory(e.target.value);
+    });
     
-    // Generate QR code using canvas
-    const canvas = document.createElement('canvas');
-    await QRCode.toCanvas(canvas, content, options);
+    // Suchfeld leeren mit Escape
+    searchHistory.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        e.target.value = '';
+        this.filterHistory('');
+      }
+    });
+  }
+  
+  if (clearHistory) {
+    clearHistory.addEventListener('click', () => {
+      if (confirm('Möchten Sie den gesamten Verlauf löschen? Diese Aktion kann nicht rückgängig gemacht werden.')) {
+        this.clearHistory();
+      }
+    });
+  }
+  
+  if (exportHistory) {
+    exportHistory.addEventListener('click', () => this.exportHistory());
+  }
+  
+  if (importHistory) {
+    importHistory.addEventListener('click', () => {
+      const fileInput = document.getElementById('import-file');
+      if (fileInput) fileInput.click();
+    });
+  }
+  
+  if (importFile) {
+    importFile.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        this.importHistory(e.target.files[0]);
+      }
+    });
+  }
+
+  // Dashboard Quick Actions
+  document.querySelectorAll('.action-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const action = card.dataset.action;
+      this.handleQuickAction(action);
+    });
     
-    canvas.className = 'qr-code-image';
-    if (preview) preview.appendChild(canvas);
+    // Keyboard Navigation für Accessibility
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        const action = card.dataset.action;
+        this.handleQuickAction(action);
+      }
+    });
+  });
+
+  // Settings Event Listeners
+  const themeSelector = document.getElementById('theme-selector');
+  const notificationsToggle = document.getElementById('notifications-toggle');
+  const autoSaveToggle = document.getElementById('auto-save-toggle');
+  const resetSettings = document.getElementById('reset-settings');
+  
+  if (themeSelector) {
+    themeSelector.addEventListener('change', (e) => {
+      this.changeTheme(e.target.value);
+    });
+  }
+  
+  if (notificationsToggle) {
+    notificationsToggle.addEventListener('change', (e) => {
+      this.settings.notifications = e.target.checked;
+      this.saveSettings();
+    });
+  }
+  
+  if (autoSaveToggle) {
+    autoSaveToggle.addEventListener('change', (e) => {
+      this.settings.autoSave = e.target.checked;
+      this.saveSettings();
+    });
+  }
+  
+  if (resetSettings) {
+    resetSettings.addEventListener('click', () => {
+      if (confirm('Möchten Sie alle Einstellungen zurücksetzen?')) {
+        this.resetSettings();
+      }
+    });
+  }
+
+  // Global Keyboard Shortcuts
+  document.addEventListener('keydown', (e) => {
+    // Ctrl/Cmd + G = Generator öffnen
+    if ((e.ctrlKey || e.metaKey) && e.key === 'g') {
+      e.preventDefault();
+      this.navigateToPage('generator');
+    }
     
-    if (downloadBtn && !isPreview) downloadBtn.style.display = 'block';
+    // Ctrl/Cmd + S = Scanner öffnen
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      this.navigateToPage('scanner');
+    }
     
-    if (!isPreview) {
-      // Add to history
+    // Ctrl/Cmd + H = History/Verlauf öffnen
+    if ((e.ctrlKey || e.metaKey) && e.key === 'h') {
+      e.preventDefault();
+      this.navigateToPage('history');
+    }
+    
+    // Ctrl/Cmd + D = Dashboard öffnen
+    if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+      e.preventDefault();
+      this.navigateToPage('dashboard');
+    }
+    
+    // Escape = Scanner stoppen (falls aktiv)
+    if (e.key === 'Escape' && this.isScanning) {
+      this.stopScanner();
+    }
+  });
+
+  // Touch/Swipe Events für Mobile Navigation
+  let touchStartX = 0;
+  let touchEndX = 0;
+  
+  document.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+  });
+  
+  document.addEventListener('touchend', (e) => {
+    touchEndX = e.changedTouches[0].screenX;
+    this.handleSwipeGesture();
+  });
+
+  // PWA Installation Event Listeners
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    this.deferredPrompt = e;
+    this.showInstallPrompt();
+  });
+  
+  window.addEventListener('appinstalled', () => {
+    console.log('PWA installed successfully');
+    this.showToast('App erfolgreich installiert!', 'success');
+  });
+
+  // Online/Offline Status
+  window.addEventListener('online', () => {
+    this.showToast('Verbindung wiederhergestellt', 'success');
+    this.isOnline = true;
+  });
+  
+  window.addEventListener('offline', () => {
+    this.showToast('Offline-Modus aktiv', 'info');
+    this.isOnline = false;
+  });
+
+  // Visibility Change (Tab wechseln)
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      // Tab ist nicht mehr sichtbar - Scanner pausieren falls aktiv
+      if (this.isScanning) {
+        this.pauseScanner();
+      }
+    } else {
+      // Tab ist wieder sichtbar - Scanner fortsetzen falls pausiert
+      if (this.scannerPaused) {
+        this.resumeScanner();
+      }
+    }
+  });
+
+  // Dynamic History Event Listeners (für später hinzugefügte Elemente)
+  document.addEventListener('click', (e) => {
+    // History Item Actions
+    if (e.target.classList.contains('history-copy-btn')) {
+      const content = e.target.dataset.content;
+      this.copyToClipboard(content);
+    }
+    
+    if (e.target.classList.contains('history-regenerate-btn')) {
+      const content = e.target.dataset.content;
+      this.regenerateQRCode(content);
+    }
+    
+    if (e.target.classList.contains('history-delete-btn')) {
+      const id = e.target.dataset.id;
+      if (confirm('Diesen Eintrag löschen?')) {
+        this.deleteHistoryItem(id);
+      }
+    }
+    
+    if (e.target.classList.contains('history-share-btn')) {
+      const content = e.target.dataset.content;
+      this.shareContent(content);
+    }
+  });
+
+  // Resize Event für responsive Anpassungen
+  window.addEventListener('resize', () => {
+    clearTimeout(this.resizeTimeout);
+    this.resizeTimeout = setTimeout(() => {
+      this.handleResize();
+    }, 250);
+  });
+
+  // Paste Event für schnelles QR Code generieren
+  document.addEventListener('paste', (e) => {
+    if (this.currentPage === 'generator') {
+      const qrContent = document.getElementById('qr-content');
+      if (qrContent && document.activeElement !== qrContent) {
+        const pastedData = e.clipboardData.getData('text');
+        if (pastedData && pastedData.trim()) {
+          qrContent.value = pastedData.trim();
+          this.updatePreview();
+          qrContent.focus();
+        }
+      }
+    }
+  });
+}
+
+// Swipe Gesture Handler
+handleSwipeGesture() {
+  const threshold = 50;
+  const swipeDistance = touchEndX - touchStartX;
+  
+  if (Math.abs(swipeDistance) > threshold) {
+    const pages = ['dashboard', 'generator', 'scanner', 'history'];
+    const currentIndex = pages.indexOf(this.currentPage);
+    
+    if (swipeDistance > 0 && currentIndex > 0) {
+      // Swipe right - previous page
+      this.navigateToPage(pages[currentIndex - 1]);
+    } else if (swipeDistance < 0 && currentIndex < pages.length - 1) {
+      // Swipe left - next page
+      this.navigateToPage(pages[currentIndex + 1]);
+    }
+  }
+}
+
+// Resize Handler
+handleResize() {
+  // Scanner Größe anpassen
+  if (this.isScanning && this.html5QrCode) {
+    this.html5QrCode.getRunningTrackSettings().then(settings => {
+      // Scanner neu dimensionieren
+    }).catch(console.error);
+  }
+  
+  // QR Code Preview Größe anpassen
+  this.updatePreview();
+}
+
+// Settings speichern
+saveSettings() {
+  localStorage.setItem('qr-pro-settings', JSON.stringify(this.settings));
+}
+
+  updatePreview() {
+    const content = document.getElementById('qr-content')?.value.trim();
+    if (content && content.length > 0) {
+      // Debounce für bessere Performance
+      clearTimeout(this.previewTimeout);
+      this.previewTimeout = setTimeout(() => {
+        this.generateQRCodePreview();
+      }, 500);
+    } else {
+      // Preview leeren wenn kein Content
+      const preview = document.getElementById('qr-preview');
+      if (preview) {
+        preview.innerHTML = `
+          <div class="preview-placeholder">
+            <div class="placeholder-icon">📱</div>
+            <div class="placeholder-text">QR Code wird hier angezeigt</div>
+          </div>
+        `;
+      }
+    }
+  }
+
+  // Separate Preview-Funktion
+  async generateQRCodePreview() {
+    const content = document.getElementById('qr-content')?.value.trim();
+    if (!content) return;
+
+    // Prüfen ob QRCode verfügbar ist
+    if (typeof QRCode === 'undefined') {
+      console.log('QRCode library not loaded yet');
+      return;
+    }
+
+    const preview = document.getElementById('qr-preview');
+    if (!preview) return;
+
+    try {
+      const options = {
+        width: 250,
+        height: 250,
+        margin: 1,
+        color: {
+          dark: document.getElementById('qr-color')?.value || '#000000',
+          light: document.getElementById('qr-bg-color')?.value || '#ffffff'
+        }
+      };
+
+      // Canvas für Preview erstellen
+      const canvas = document.createElement('canvas');
+      await QRCode.toCanvas(canvas, content, options);
+      canvas.className = 'qr-code-preview';
+
+      preview.innerHTML = '';
+      preview.appendChild(canvas);
+
+    } catch (error) {
+      console.error('Preview Error:', error);
+      preview.innerHTML = `
+        <div class="preview-error">
+          <div class="error-icon">⚠️</div>
+          <div class="error-text">Vorschau konnte nicht geladen werden</div>
+        </div>
+      `;
+    }
+  }
+
+  // QR Code Generation
+  // Korrigierte generateQRCode Methode
+  async generateQRCode() {
+    const content = document.getElementById('qr-content')?.value.trim();
+    const type = document.getElementById('qr-type')?.value;
+    
+    if (!content) {
+      this.showToast('Bitte geben Sie Inhalt für den QR Code ein', 'error');
+      return;
+    }
+
+    // Warten bis QRCode verfügbar ist
+    if (typeof QRCode === 'undefined') {
+      this.showToast('QR Code Bibliothek wird geladen...', 'info');
+      setTimeout(() => this.generateQRCode(), 1000);
+      return;
+    }
+
+    // Daily limit prüfen
+    if (this.userTier === 'free' && this.dailyQRCount >= this.dailyLimit) {
+      this.showPremiumPrompt();
+      return;
+    }
+
+    const preview = document.getElementById('qr-preview');
+    const downloadBtn = document.getElementById('download-btn');
+    
+    try {
+      const options = {
+        width: 400,
+        height: 400,
+        margin: 2,
+        color: {
+          dark: document.getElementById('qr-color')?.value || '#000000',
+          light: document.getElementById('qr-bg-color')?.value || '#ffffff'
+        }
+      };
+      
+      // QR Code generieren
+      const canvas = document.createElement('canvas');
+      await QRCode.toCanvas(canvas, content, options);
+      canvas.className = 'qr-code-final';
+      
+      if (preview) {
+        preview.innerHTML = '';
+        preview.appendChild(canvas);
+      }
+      
+      if (downloadBtn) downloadBtn.style.display = 'block';
+      
+      // Zu History hinzufügen
       this.addToHistory({
         type: 'generated',
         content: content,
         qrType: type,
-        canvas: canvas,
         timestamp: Date.now()
       });
       
-      // Update daily count
+      // Daily count erhöhen
       this.dailyQRCount++;
       localStorage.setItem('qr-pro-daily-count', this.dailyQRCount.toString());
       
       this.showToast('QR Code erfolgreich generiert!', 'success');
       this.updateDashboard();
+      
+    } catch (error) {
+      console.error('QR Generation Error:', error);
+      this.showToast('Fehler beim Generieren des QR Codes: ' + error.message, 'error');
     }
-    
-  } catch (error) {
-    console.error('QR Generation Error:', error);
-    this.showToast('Fehler beim Generieren des QR Codes: ' + error.message, 'error');
   }
-}
 
 // Download-Funktion hinzufügen
 downloadQRCode() {
-  const canvas = document.querySelector('#qr-preview canvas');
-  if (canvas) {
-    const link = document.createElement('a');
-    link.download = `qr-code-${Date.now()}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-    this.showToast('QR Code heruntergeladen!', 'success');
-  } else {
-    this.showToast('Kein QR Code zum Herunterladen verfügbar', 'error');
+    const canvas = document.querySelector('#qr-preview canvas');
+    if (!canvas) {
+      this.showToast('Kein QR Code zum Herunterladen verfügbar', 'error');
+      return;
+    }
+
+    try {
+      const link = document.createElement('a');
+      link.download = `qr-code-${Date.now()}.png`;
+      link.href = canvas.toDataURL('image/png', 1.0);
+      link.click();
+      this.showToast('QR Code heruntergeladen!', 'success');
+    } catch (error) {
+      console.error('Download Error:', error);
+      this.showToast('Fehler beim Download', 'error');
+    }
   }
-}
 
   // QR Code Scanner
   async startScanner() {

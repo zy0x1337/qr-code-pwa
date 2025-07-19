@@ -1149,6 +1149,47 @@ downloadQRCode() {
     }
 }
 
+updateScannerUI() {
+    const startBtn = document.getElementById('start-scanner');
+    const stopBtn = document.getElementById('stop-scanner');
+    
+    if (this.isScanning) {
+        if (startBtn) startBtn.textContent = 'Scanner läuft...';
+        if (stopBtn) stopBtn.style.display = 'inline-block';
+    } else {
+        if (startBtn) startBtn.textContent = 'Scanner starten';
+        if (stopBtn) stopBtn.style.display = 'none';
+    }
+}
+
+handleScannerError(error) {
+    console.error('Scanner Error:', error);
+    
+    // Sichere String-Konvertierung
+    const errorMsg = error?.message || error?.name || String(error);
+    
+    // Kamera-Berechtigung verweigert
+    if (errorMsg.includes('NotAllowedError') || errorMsg.includes('Permission denied')) {
+        this.showCameraPermissionHelp();
+        return;
+    }
+    
+    // Keine Kamera gefunden
+    if (errorMsg.includes('NotFoundError') || errorMsg.includes('No camera found')) {
+        this.showToast('Keine Kamera gefunden', 'error');
+        return;
+    }
+    
+    // Kamera bereits in Verwendung
+    if (errorMsg.includes('NotReadableError') || errorMsg.includes('already in use')) {
+        this.showToast('Kamera wird bereits verwendet', 'error');
+        return;
+    }
+    
+    // Allgemeiner Fehler
+    this.showToast('Scanner konnte nicht gestartet werden', 'error');
+}
+
 // Hilfsmethode: Warten auf Html5Qrcode
 waitForHtml5Qrcode() {
   return new Promise((resolve, reject) => {

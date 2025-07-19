@@ -179,42 +179,46 @@
                 </div>
 
                 <div class="quick-actions">
-                    <h2>Schnellaktionen</h2>
-                    <div class="action-grid">
-                        <button class="action-card" data-action="generate-url">
-    <div class="action-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="7" height="7"></rect>
-            <rect x="14" y="3" width="7" height="7"></rect>
-            <rect x="3" y="14" width="7" height="7"></rect>
-            <path d="M14 14h7v7h-7z"></path>
-        </svg>
-    </div>
-    <h3>Generator</h3>
-    <p>QR Code erstellen</p>
-</button>
-                        <button class="action-card" data-action="start-scanner">
-    <div class="action-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-            <circle cx="12" cy="13" r="4"></circle>
-        </svg>
-    </div>
-    <h3>Scanner</h3>
-    <p>QR Code scannen</p>
-</button>
-                        <button class="action-card" data-action="show-templates">
-    <div class="action-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="7" height="7"></rect>
-            <rect x="14" y="3" width="7" height="7"></rect>
-            <rect x="3" y="14" width="7" height="7"></rect>
-            <rect x="14" y="14" width="7" height="7"></rect>
-        </svg>
-    </div>
-    <h3>Templates</h3>
-    <p>Vorlagen verwenden</p>
-</button>
+    <!-- Generator Card -->
+    <button class="action-card action-card--primary" data-action="open-generator">
+        <div class="action-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+                <path d="M14 14h7v7h-7z"></path>
+            </svg>
+        </div>
+        <h3>QR Generator</h3>
+        <p>Erstellen Sie professionelle QR Codes für jeden Zweck</p>
+    </button>
+
+    <!-- Scanner Card -->
+    <button class="action-card action-card--success" data-action="start-scanner">
+        <div class="action-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+            </svg>
+        </div>
+        <h3>QR Scanner</h3>
+        <p>Scannen Sie QR Codes schnell und zuverlässig</p>
+    </button>
+
+    <!-- Templates Card -->
+    <button class="action-card action-card--warning" data-action="show-templates">
+        <div class="action-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+            </svg>
+        </div>
+        <h3>Templates</h3>
+        <p>Nutzen Sie vorgefertigte QR Code Vorlagen</p>
+    </button>
+</div>
 
                 <div class="recent-activity">
                     <h2>Letzte Aktivitäten</h2>

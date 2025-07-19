@@ -608,8 +608,23 @@
     <!-- Toast Notifications -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="libs/qrcode.min.js"></script>
+    <script src="libs/qr-scanner.js"></script>
     <script src="app.js"></script>
+
+    <script>
+        // Bibliothek-Status prüfen
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🔍 Checking local libraries...');
+            console.log('QRCode available:', typeof QRCode !== 'undefined');
+            console.log('Html5Qrcode available:', typeof Html5Qrcode !== 'undefined');
+            
+            if (typeof QRCode !== 'undefined' && typeof Html5Qrcode !== 'undefined') {
+                console.log('✅ All local libraries loaded successfully!');
+            } else {
+                console.error('❌ Local libraries failed to load');
+            }
+        });
+    </script>
 </body>
 </html>

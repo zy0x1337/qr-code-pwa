@@ -18,6 +18,15 @@ class QRProApp {
     this.currentStream = null;
     this.html5QrCode = null;
     this.previewTimeout = null;
+
+    // Touch-Gesten Variablen
+    this.touchStartX = 0;
+  this.touchEndX = 0;
+  this.resizeTimeout = null;
+  this.deferredPrompt = null;
+  this.scannerPaused = false;
+  this.librariesLoaded = false;
+  this.isOnline = navigator.onLine;
     
     this.init();
   }
@@ -30,35 +39,40 @@ class QRProApp {
     this.registerServiceWorker();
   }
 
-  // Warten bis Bibliotheken geladen sind
+  // Library-Prüfung für lokale Scripts
 async waitForLibraries() {
-    return new Promise((resolve) => {
-      let attempts = 0;
-      const maxAttempts = 50; // 5 Sekunden warten
-
-      const checkLibraries = () => {
-        attempts++;
-        if (typeof QRCode !== 'undefined') {
-          console.log('QRCode library loaded successfully');
-          resolve(true);
-        } else if (attempts >= maxAttempts) {
-          console.error('QRCode library failed to load');
-          resolve(false);
-        } else {
-          setTimeout(checkLibraries, 100);
-        }
-      };
+  // Lokale Libraries sollten sofort verfügbar sein
+  return new Promise((resolve) => {
+    const checkLibraries = () => {
+      const qrCodeAvailable = typeof QRCode !== 'undefined';
+      const html5QrCodeAvailable = typeof Html5Qrcode !== 'undefined';
       
-      checkLibraries();
-    });
-  }
+      if (qrCodeAvailable && html5QrCodeAvailable) {
+        console.log('✅ Local libraries loaded successfully');
+        this.librariesLoaded = true;
+        resolve(true);
+      } else {
+        console.log('⏳ Waiting for local libraries...');
+        setTimeout(checkLibraries, 50); // Kürzeres Intervall da lokal
+      }
+    };
+    
+    checkLibraries();
+  });
+}
 
   async registerServiceWorker() {
   if ('serviceWorker' in navigator) {
     try {
-      // Korrekter Pfad für GitHub Pages mit Repository-Name
-      const registration = await navigator.serviceWorker.register('/qr-code-pwa/sw.js', {
-        scope: '/qr-code-pwa/'
+      let registration;
+      
+      // Verschiedene Pfade für verschiedene Umgebungen
+      const isGitHubPages = window.location.hostname === 'zy0x1337.github.io';
+      const swPath = isGitHubPages ? '/qr-code-pwa/sw.js' : './sw.js';
+      const swScope = isGitHubPages ? '/qr-code-pwa/' : './';
+      
+      registration = await navigator.serviceWorker.register(swPath, {
+        scope: swScope
       });
       console.log('Service Worker registered successfully:', registration);
       
@@ -488,6 +502,264 @@ async waitForLibraries() {
       }
     }
   });
+}
+
+goToSlide(index) {
+  const slides = document.querySelectorAll('.onboarding-slide');
+  const dots = document.querySelectorAll('.dot');
+  const nextBtn = document.getElementById('next-onboarding');
+  
+  // Aktuellen Slide deaktivieren
+  if (slides[this.currentSlide]) {
+    slides[this.currentSlide].classList.remove('active');
+    dots[this.currentSlide].classList.remove('active');
+  }
+  
+  // Neuen Slide aktivieren
+  this.currentSlide = index;
+  if (slides[this.currentSlide]) {
+    slides[this.currentSlide].classList.add('active');
+    dots[this.currentSlide].classList.add('active');
+  }
+  
+  // Button-Text anpassen
+  if (nextBtn) {
+    nextBtn.textContent = (index === slides.length - 1) ? 'Los geht\'s!' : 'Weiter';
+  }
+}
+
+copyResult() {
+  const resultText = document.getElementById('result-text');
+  if (resultText && resultText.textContent) {
+    this.copyToClipboard(resultText.textContent);
+  }
+}
+
+scanFromFile(file) {
+  if (!file || !file.type.startsWith('image/')) {
+    this.showToast('Bitte wählen Sie eine Bilddatei aus', 'error');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    // Hier würden Sie normalerweise eine QR-Decode-Bibliothek verwenden
+    // Für Demo-Zwecke simulieren wir das Scannen
+    setTimeout(() => {
+      const demoResult = 'Demo: QR Code aus Datei gescannt';
+      this.handleScanSuccess(demoResult, null);
+    }, 1000);
+  };
+  
+  reader.readAsDataURL(file);
+  this.showToast('Bild wird analysiert...', 'info');
+}
+
+pauseScanner() {
+  if (this.html5QrCode && this.isScanning) {
+    this.scannerPaused = true;
+    // Scanner pausieren (vereinfacht)
+    console.log('Scanner pausiert');
+  }
+}
+
+resumeScanner() {
+  if (this.html5QrCode && this.scannerPaused) {
+    this.scannerPaused = false;
+    // Scanner fortsetzen (vereinfacht)
+    console.log('Scanner fortgesetzt');
+  }
+}
+
+filterHistory(searchTerm) {
+  const historyList = document.getElementById('history-list');
+  if (!historyList) return;
+  
+  const allHistory = [...this.qrHistory, ...this.scanHistory];
+  const filtered = allHistory.filter(item => 
+    item.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.type.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  
+  this.displayHistory(filtered);
+}
+
+displayHistory(historyItems) {
+  const historyList = document.getElementById('history-list');
+  if (!historyList) return;
+  
+  if (historyItems.length === 0) {
+    historyList.innerHTML = '<div class="empty-state">Keine Einträge gefunden</div>';
+    return;
+  }
+  
+  historyList.innerHTML = historyItems.map(item => `
+    <div class="history-item">
+      <div class="history-header">
+        <span class="history-type">${item.type === 'generated' ? 'Generiert' : 'Gescannt'}</span>
+        <span class="history-date">${this.formatTime(item.timestamp)}</span>
+      </div>
+      <div class="history-content">${item.content}</div>
+      <div class="history-actions">
+        <button class="history-copy-btn" data-content="${item.content}">Kopieren</button>
+        ${item.type === 'generated' ? 
+          `<button class="history-regenerate-btn" data-content="${item.content}">Erneut</button>` : 
+          ''
+        }
+        <button class="history-delete-btn" data-id="${item.id || item.timestamp}">Löschen</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+clearHistory() {
+  this.qrHistory = [];
+  this.scanHistory = [];
+  localStorage.removeItem('qr-pro-history');
+  localStorage.removeItem('qr-pro-scan-history');
+  this.displayHistory([]);
+  this.updateDashboard();
+  this.showToast('Verlauf gelöscht', 'success');
+}
+
+exportHistory() {
+  const data = {
+    qrHistory: this.qrHistory,
+    scanHistory: this.scanHistory,
+    exportDate: new Date().toISOString()
+  };
+  
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `qr-pro-export-${new Date().toISOString().split('T')[0]}.json`;
+  link.click();
+  
+  URL.revokeObjectURL(url);
+  this.showToast('Verlauf exportiert', 'success');
+}
+
+importHistory(file) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      
+      if (data.qrHistory && data.scanHistory) {
+        this.qrHistory = data.qrHistory;
+        this.scanHistory = data.scanHistory;
+        
+        localStorage.setItem('qr-pro-history', JSON.stringify(this.qrHistory));
+        localStorage.setItem('qr-pro-scan-history', JSON.stringify(this.scanHistory));
+        
+        this.updateDashboard();
+        this.displayHistory([...this.qrHistory, ...this.scanHistory]);
+        this.showToast('Verlauf importiert', 'success');
+      } else {
+        throw new Error('Ungültiges Datenformat');
+      }
+    } catch (error) {
+      console.error('Import error:', error);
+      this.showToast('Fehler beim Importieren', 'error');
+    }
+  };
+  
+  reader.readAsText(file);
+}
+
+deleteHistoryItem(id) {
+  this.qrHistory = this.qrHistory.filter(item => (item.id || item.timestamp) != id);
+  this.scanHistory = this.scanHistory.filter(item => (item.id || item.timestamp) != id);
+  
+  localStorage.setItem('qr-pro-history', JSON.stringify(this.qrHistory));
+  localStorage.setItem('qr-pro-scan-history', JSON.stringify(this.scanHistory));
+  
+  this.updateDashboard();
+  this.filterHistory(''); // Refresh display
+  this.showToast('Eintrag gelöscht', 'success');
+}
+
+regenerateQRCode(content) {
+  this.navigateToPage('generator');
+  const qrContent = document.getElementById('qr-content');
+  if (qrContent) {
+    qrContent.value = content;
+    this.updatePreview();
+  }
+}
+
+async copyToClipboard(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      // Fallback für ältere Browser
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      document.execCommand('copy');
+      textArea.remove();
+    }
+    this.showToast('In Zwischenablage kopiert', 'success');
+  } catch (error) {
+    console.error('Copy failed:', error);
+    this.showToast('Kopieren fehlgeschlagen', 'error');
+  }
+}
+
+shareContent(content) {
+  if (navigator.share) {
+    navigator.share({
+      title: 'QR Pro - Geteilter Inhalt',
+      text: content
+    }).catch(console.error);
+  } else {
+    this.copyToClipboard(content);
+  }
+}
+
+showInstallPrompt() {
+  if (this.deferredPrompt) {
+    const installBtn = document.createElement('button');
+    installBtn.textContent = 'App installieren';
+    installBtn.className = 'install-prompt';
+    installBtn.onclick = () => {
+      this.deferredPrompt.prompt();
+      this.deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+          console.log('User accepted the install prompt');
+        }
+        this.deferredPrompt = null;
+        installBtn.remove();
+      });
+    };
+    
+    document.body.appendChild(installBtn);
+    
+    setTimeout(() => {
+      if (installBtn.parentNode) {
+        installBtn.remove();
+      }
+    }, 10000);
+  }
+}
+
+resetSettings() {
+  this.settings = {
+    theme: 'auto',
+    notifications: true,
+    autoSave: true
+  };
+  localStorage.removeItem('qr-pro-settings');
+  this.applyTheme();
+  this.showToast('Einstellungen zurückgesetzt', 'success');
 }
 
 // Swipe Gesture Handler

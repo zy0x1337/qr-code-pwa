@@ -65,6 +65,12 @@
   --color-focus-ring: rgba(var(--color-teal-500-rgb), 0.4);
   --color-select-caret: rgba(var(--color-slate-900-rgb), 0.8);
 
+  /* Toast Farben */
+  --color-success: #4CAF50;
+  --color-error: #f44336;
+  --color-warning: #ff9800;
+  --color-info: #2196F3;
+
   /* Common style patterns */
   --focus-ring: 0 0 0 3px var(--color-focus-ring);
   --focus-outline: 2px solid var(--color-primary);
@@ -2205,4 +2211,50 @@ select.form-control {
 @keyframes qr-shine {
   0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
   100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+/* History Styles */
+.history-item {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.history-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.history-actions button {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--border-color);
+  background: var(--surface-color);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.install-prompt {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  z-index: 1000;
 }

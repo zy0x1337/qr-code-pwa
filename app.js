@@ -721,6 +721,17 @@ filterHistory(searchTerm = '') {
     this.updateSearchResults(allHistory.length, searchTerm);
 }
 
+updateSearchResults(count, searchTerm) {
+    const resultsCount = document.getElementById('results-count');
+    if (resultsCount) {
+        if (searchTerm) {
+            resultsCount.textContent = `${count} Ergebnisse für "${searchTerm}"`;
+        } else {
+            resultsCount.textContent = `${count} Einträge`;
+        }
+    }
+}
+
 addHistoryFilters() {
     const historyPage = document.getElementById('history-page');
     const existingFilters = document.querySelector('.history-filters');
@@ -814,6 +825,40 @@ displayHistory(historyItems = null) {
     this.updateHistoryStats(items);
 }
 
+updateHistoryStats(items) {
+    const resultsCount = document.getElementById('results-count');
+    if (resultsCount) {
+        resultsCount.textContent = `${items.length} Einträge gefunden`;
+    }
+    
+    // Statistik-Breakdown
+    const generated = items.filter(item => item.type === 'generated').length;
+    const scanned = items.filter(item => item.type === 'scanned').length;
+    
+    const statsInfo = document.querySelector('.filter-stats');
+    if (statsInfo) {
+        statsInfo.innerHTML = `
+            <span class="stat-item">📱 ${generated} generiert</span>
+            <span class="stat-item">📷 ${scanned} gescannt</span>
+        `;
+    }
+}
+
+formatDate(date) {
+    const today = new Date().toDateString();
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+    const targetDate = new Date(date).toDateString();
+    
+    if (targetDate === today) return 'Heute';
+    if (targetDate === yesterday) return 'Gestern';
+    return new Date(date).toLocaleDateString('de-DE', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    });
+}
+
 getAllHistory() {
     return [
         ...this.qrHistory.map(item => ({...item, type: 'generated'})),
@@ -864,6 +909,16 @@ createHistoryItemHTML(item) {
             </div>
         </div>
     `;
+}
+
+formatFullTime(timestamp) {
+    return new Date(timestamp).toLocaleString('de-DE', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
 }
 
 clearHistory() {
@@ -1044,6 +1099,28 @@ importHistory(file) {
     reader.readAsText(file);
 }
 
+parseCSVHistory(csvContent) {
+    const lines = csvContent.split('\n');
+    const headers = lines[0].split(',');
+    const data = [];
+    
+    for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].split(',');
+        if (line.length >= headers.length) {
+            data.push({
+                id: 'csv-' + Date.now() + '-' + i,
+                type: line[0].toLowerCase().includes('generiert') ? 'generated' : 'scanned',
+                content: line[1].replace(/"/g, ''),
+                qrType: line[2] || 'text',
+                timestamp: new Date(line[3]).getTime() || Date.now(),
+                size: line[4] || null
+            });
+        }
+    }
+    
+    return data;
+}
+
 mergeImportedHistory(importedData) {
     let newGenerated = 0;
     let newScanned = 0;
@@ -1079,6 +1156,14 @@ mergeImportedHistory(importedData) {
     this.showToast(
         `Import erfolgreich: ${newGenerated} generierte, ${newScanned} gescannte QR Codes hinzugefügt`, 
         'success'
+    );
+}
+
+findHistoryItem(content, timestamp) {
+    const allHistory = this.getAllHistory();
+    return allHistory.find(item => 
+        item.content === content && 
+        Math.abs(item.timestamp - timestamp) < 1000
     );
 }
 
@@ -1285,6 +1370,17 @@ saveSettings() {
             colorLight: document.getElementById('qr-bg-color')?.value || '#FFFFFF',
             correctLevel: QRCode.CorrectLevel.H
         });
+
+        addToHistory({
+    id: 'qr-' + Date.now(),
+    type: 'generated',
+    content: content,
+    qrType: document.getElementById('qr-type')?.value || 'text',
+    timestamp: Date.now(),
+    size: this.qrSize || 300,
+    color: this.qrColor || '#000000',
+    bgColor: this.qrBgColor || '#FFFFFF'
+});
 
         console.log('✅ QR Code generated successfully');
         this.showToast('QR Code erfolgreich generiert', 'success');
@@ -4464,63 +4560,85 @@ previewDownload() {
 
 // Download-Info aktualisieren
 updateDownloadInfo() {
-  const sizeElement = document.getElementById('download-size');
-  
-  // FRÜHE RÜCKKEHR BEI FEHLENDEM ELEMENT
-  if (!sizeElement) {
-    console.log('Download-Size Element nicht gefunden');
-    return;
-  }
-  
-  const baseSize = parseInt(this.qrSize || 300);
-  let estimatedSize;
-  
-  switch (this.selectedFormat) {
-    case 'png':
-      estimatedSize = Math.round((baseSize * baseSize * 4) / 1024) + 2;
-      break;
-    case 'jpg':
-      const quality = this.downloadQuality || 95;
-      estimatedSize = Math.round((baseSize * baseSize * (quality / 100)) / 8);
-      break;
-    case 'svg':
-      estimatedSize = Math.round((baseSize / 50) + 3);
-      break;
-    case 'pdf':
-      estimatedSize = Math.round((baseSize * baseSize * 2) / 1024) + 10;
-      break;
-    case 'eps':
-      estimatedSize = Math.round((baseSize * baseSize * 3) / 1024) + 5;
-      break;
-    default:
-      estimatedSize = Math.round((baseSize * baseSize * 4) / 1024);
-  }
-  
-  const sizeText = estimatedSize > 1024 ? 
-    `~${(estimatedSize / 1024).toFixed(1)}MB` : 
-    `~${estimatedSize}KB`;
-  
-  sizeElement.textContent = sizeText;
-  
-  // Warnung bei großen Dateien
-  if (estimatedSize > 5120) {
-    sizeElement.style.color = 'var(--color-warning)';
-    sizeElement.title = 'Große Datei - Download kann länger dauern';
-  } else {
-    sizeElement.style.color = '';
-    sizeElement.title = '';
-    }
-    
-    document.getElementById('download-size').textContent = sizeText;
-    document.getElementById('info-dimensions').textContent = `${this.qrSize}x${this.qrSize}px`;
-    
-    // Logo-Info anzeigen
+    // Alle benötigten DOM-Elemente prüfen
+    const sizeElement = document.getElementById('download-size');
+    const dimensionsElement = document.getElementById('info-dimensions');
     const logoInfo = document.getElementById('logo-info');
-    if (this.logoEnabled && this.logoFile) {
-        logoInfo.style.display = 'flex';
-    } else {
-        logoInfo.style.display = 'none';
+    
+    // FRÜHE RÜCKKEHR BEI FEHLENDEN ELEMENTEN
+    if (!sizeElement) {
+        console.log('Download-Info Elemente nicht gefunden - HTML möglicherweise nicht geladen');
+        return;
     }
+    
+    const baseSize = parseInt(this.qrSize || 300);
+    let estimatedSize;
+    const currentFormat = this.selectedFormat || 'png';
+    
+    // Dateigröße je nach Format berechnen
+    switch (currentFormat.toLowerCase()) {
+        case 'png':
+            estimatedSize = Math.round((baseSize * baseSize * 4) / 1024) + 2;
+            break;
+        case 'jpg':
+        case 'jpeg':
+            const quality = this.downloadQuality || 95;
+            estimatedSize = Math.round((baseSize * baseSize * (quality / 100)) / 8);
+            break;
+        case 'svg':
+            estimatedSize = Math.round((baseSize / 50) + 3);
+            break;
+        case 'pdf':
+            estimatedSize = Math.round((baseSize * baseSize * 2) / 1024) + 10;
+            break;
+        case 'eps':
+            estimatedSize = Math.round((baseSize * baseSize * 3) / 1024) + 5;
+            break;
+        default:
+            estimatedSize = Math.round((baseSize * baseSize * 4) / 1024);
+    }
+    
+    // Logo-Datei zur Dateigröße hinzufügen
+    if (this.logoEnabled && this.logoFile) {
+        estimatedSize += Math.round(this.logoFile.length / 1024) || 10;
+    }
+    
+    // Dateigröße formatieren
+    const sizeText = estimatedSize > 1024 ? 
+        `~${(estimatedSize / 1024).toFixed(1)}MB` : 
+        `~${estimatedSize}KB`;
+    
+    // DOM-Elemente aktualisieren (defensive Programmierung)
+    if (sizeElement) {
+        sizeElement.textContent = sizeText;
+        
+        // Warnung bei großen Dateien
+        if (estimatedSize > 5120) { // 5MB
+            sizeElement.style.color = 'var(--color-warning, #f59e0b)';
+            sizeElement.title = 'Große Datei - Download kann länger dauern';
+        } else {
+            sizeElement.style.color = '';
+            sizeElement.title = '';
+        }
+    }
+    
+    // Dimensionen aktualisieren
+    if (dimensionsElement) {
+        dimensionsElement.textContent = `${baseSize}x${baseSize}px`;
+    }
+    
+    // Logo-Info anzeigen/verstecken
+    if (logoInfo) {
+        logoInfo.style.display = (this.logoEnabled && this.logoFile) ? 'flex' : 'none';
+    }
+    
+    // Format-Info aktualisieren
+    const formatElement = document.getElementById('info-format');
+    if (formatElement) {
+        formatElement.textContent = currentFormat.toUpperCase();
+    }
+    
+    console.log(`Download-Info aktualisiert: ${sizeText} (${baseSize}px, ${currentFormat})`);
 }
 
 // Download-Fehler anzeigen

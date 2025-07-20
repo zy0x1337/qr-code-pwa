@@ -3330,23 +3330,7 @@ select.form-control {
     }
 }
 
-/* Hintergrund-Farbvorauswahl */
-.bg-color-picker {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-12);
-}
-
-.bg-color-picker input[type="color"] {
-    width: 60px;
-    height: 40px;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-base);
-    cursor: pointer;
-    background: none;
-    padding: 0;
-}
-
+/* Hintergrund-Farbpresets - Definitive Lösung */
 .bg-color-presets {
     display: flex;
     gap: var(--space-8);
@@ -3355,68 +3339,71 @@ select.form-control {
 }
 
 .bg-preset {
-    width: 32px;
-    height: 32px;
-    border: 2px solid var(--color-border);
-    border-radius: var(--radius-base);
+    width: 32px !important;
+    height: 32px !important;
+    border: 2px solid var(--color-border) !important;
+    border-radius: var(--radius-base) !important;
     cursor: pointer;
     transition: all var(--duration-fast) var(--ease-standard);
     position: relative;
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: center;
+    padding: 0 !important;
+    outline: none;
+}
+
+/* WICHTIG: Spezifische Hintergrundfarben mit !important */
+.bg-preset--white {
+    background: #ffffff !important;
+    border-color: #999 !important;
+}
+
+.bg-preset--light-gray {
+    background: #e5e7eb !important;
+}
+
+.bg-preset--cream {
+    background: #fef3c7 !important;
+}
+
+.bg-preset--light-blue {
+    background: #dbeafe !important;
+}
+
+.bg-preset--light-green {
+    background: #d1fae5 !important;
+}
+
+.bg-preset--transparent {
+    background-color: white !important;
+    background-image: 
+        linear-gradient(45deg, #bbb 25%, transparent 25%, transparent 75%, #bbb 75%),
+        linear-gradient(45deg, #bbb 25%, transparent 25%, transparent 75%, #bbb 75%) !important;
+    background-size: 6px 6px !important;
+    background-position: 0 0, 3px 3px !important;
 }
 
 .bg-preset:hover {
-    transform: scale(1.1);
-    border-color: var(--color-primary);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transform: scale(1.1) !important;
+    border-color: var(--color-primary) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
 }
 
 .bg-preset.active {
-    border-color: var(--color-primary);
-    border-width: 3px;
-    box-shadow: 0 0 0 1px var(--color-primary);
+    border-color: var(--color-primary) !important;
+    border-width: 3px !important;
+    box-shadow: 0 0 0 1px var(--color-primary) !important;
 }
 
 .bg-preset.active::after {
     content: '✓';
     position: absolute;
     color: var(--color-primary);
-    font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-bold);
+    font-size: 12px;
+    font-weight: bold;
     text-shadow: 0 0 3px rgba(255, 255, 255, 0.8);
-}
-
-/* Sichtbare Hintergrund-Farben */
-.bg-preset--white {
-    background: #ffffff;
-    border-color: #ddd;
-}
-
-.bg-preset--light-gray {
-    background: #f8f9fa;
-}
-
-.bg-preset--cream {
-    background: #fefcf3;
-}
-
-.bg-preset--light-blue {
-    background: #e0f2fe;
-}
-
-.bg-preset--light-green {
-    background: #ecfdf5;
-}
-
-.bg-preset--transparent {
-    background: white;
-    background-image: 
-        linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%),
-        linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%);
-    background-size: 8px 8px;
-    background-position: 0 0, 4px 4px;
+    pointer-events: none;
 }
 
 .bg-preset--transparent.active::after {
@@ -3428,21 +3415,6 @@ select.form-control {
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-/* Dark Mode Anpassungen */
-@media (prefers-color-scheme: dark) {
-    .bg-preset {
-        border-color: var(--color-card-border);
-    }
-    
-    .bg-preset:hover {
-        border-color: var(--color-primary);
-    }
-    
-    .bg-preset--white {
-        border-color: #666;
-    }
 }
 
 /* ==========================================

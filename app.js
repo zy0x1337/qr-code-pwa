@@ -44,7 +44,7 @@ class QRProApp {
   constructor() {
     this.currentPage = 'dashboard';
     this.currentSlide = 0;
-    this.userTier = 'premium'; // 'free', 'premium', 'trial'
+    this.userTier = 'free'; // 'free', 'premium', 'trial'
     this.trialDaysLeft = 14;
     this.dailyQRCount = 0;
     this.dailyLimit = 10;
@@ -68,9 +68,6 @@ class QRProApp {
   this.scannerPaused = false;
   this.librariesLoaded = false;
   this.isOnline = navigator.onLine;
-
-  // QRCustomization hinzufügen
-    this.qrCustomization = null;
     
     this.init();
   }
@@ -79,7 +76,6 @@ class QRProApp {
     this.showLoadingScreen();
     this.setupEventListeners();
     this.initializeData();
-    this.qrCustomization = new QRCustomization();
     await this.loadLibraries();
     this.registerServiceWorker();
   }
@@ -1910,37 +1906,12 @@ restartScanner() {
   showPremiumPrompt() {
     this.showToast('Premium Feature - Upgrade für unbegrenzte QR Codes!', 'warning', 5000);
   }
-
-  destroy() {
-    if (this.qrCustomization) {
-      this.qrCustomization.destroy();
-    }
-    
-    // Weitere Cleanup-Aktionen
-    if (this.currentStream) {
-      this.stopScanner();
-    }
-    
-    // Event Listeners cleanup
-    this.eventListeners?.clear?.();
-  }
 }
 
 // Initialize app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
   window.qrApp = new QRProApp();
 });
-
-// Export für Modulsystem - GANZ AM ENDE DER DATEI
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { QRProApp, QRCustomization };
-} else {
-  // Browser-Umgebung: Globale Verfügbarkeit
-  window.QRProApp = QRProApp;
-  if (typeof QRCustomization !== 'undefined') {
-    window.QRCustomization = QRCustomization;
-  }
-}
 
 // Additional CSS for toast notifications
 const style = document.createElement('style');
@@ -2069,842 +2040,194 @@ document.addEventListener('DOMContentLoaded', () => {
     new PWAInstaller();
 });
 
-// QR Code Customization Klasse
+// QR Code Farben & Größe Funktionalität
 class QRCustomization {
-  constructor() {
-    // Standard Farbpresets für QR-Code
-    this.colorPresets = [
-      '#3b82f6', // Modernes Blau
-      '#10b981', // Frisches Grün
-      '#f59e0b', // Warmes Orange
-      '#8b5cf6'  // Elegantes Lila
-    ];
-    
-    // Standard Hintergrund-Presets
-    this.bgPresets = [
-      '#f5f7fa', // Light cool gray
-      '#e8f0fe', // Pale blue
-      '#fef6e4', // Light warm cream
-      '#ede7f6'  // Soft lavender
-    ];
-
-    // Erweiterte Preset-Kategorien
-    this.presetCategories = {
-      color: {
-        modern: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'],
-        classic: ['#000000', '#333333', '#666666', '#999999'],
-        vibrant: ['#ff0000', '#00ff00', '#0000ff', '#ffff00'],
-        pastel: ['#fbbf24', '#34d399', '#60a5fa', '#a78bfa'],
-        dark: ['#1f2937', '#374151', '#4b5563', '#6b7280'],
-        neon: ['#00ffff', '#ff00ff', '#ffff00', '#ff6b35']
-      },
-      background: {
-        neutral: ['#f5f7fa', '#e8f0fe', '#fef6e4', '#ede7f6'],
-        warm: ['#fef7ed', '#fef3c7', '#fee2e2', '#fde2f3'],
-        cool: ['#ecfdf5', '#e0f2fe', '#ede9fe', '#f1f5f9'],
-        dark: ['#1f2937', '#111827', '#0f172a', '#1e293b'],
-        gradient: ['linear-gradient(45deg, #667eea 0%, #764ba2 100%)', 
-                   'linear-gradient(45deg, #f093fb 0%, #f5576c 100%)',
-                   'linear-gradient(45deg, #4facfe 0%, #00f2fe 100%)',
-                   'linear-gradient(45deg, #43e97b 0%, #38f9d7 100%)']
-      }
-    };
-
-    // Erweiterte Einstellungen
-    this.settings = {
-      animationEnabled: true,
-      autoPreview: true,
-      saveHistory: true,
-      keyboardShortcuts: true,
-      hapticFeedback: true
-    };
-
-    // Event-Listener Sammlung für Cleanup
-    this.eventListeners = new Map();
-    
-    // Preset-Historie für Undo/Redo
-    this.presetHistory = [];
-    this.historyIndex = -1;
-    
-    // Favoriten System
-    this.favoritePresets = this.loadFavorites();
-    
-    // Custom Presets vom Benutzer
-    this.customPresets = this.loadCustomPresets();
-
-    // Initialisierung
-    this.init();
-  }
-
-  // === HAUPTINITIALISIERUNG ===
-  init() {
-    this.initColorPresets();
-    this.initBgPresets();
-    this.setupKeyboardShortcuts();
-    this.setupTouchGestures();
-    this.loadUserPreferences();
-    this.initializeAnalytics();
-    
-    console.log('QRCustomization initialized with advanced features');
-  }
-
-  // === PRESET INITIALISIERUNG ===
-  initColorPresets() {
-    const colorPresetsContainer = document.getElementById('color-presets');
-    if (!colorPresetsContainer) return;
-
-    this.createPresetsWithCategories(colorPresetsContainer, 'color', 'qr-color');
-    this.addPresetControls(colorPresetsContainer, 'color');
-  }
-
-  initBgPresets() {
-    const bgPresetsContainer = document.getElementById('bg-presets');
-    if (!bgPresetsContainer) return;
-
-    this.createPresetsWithCategories(bgPresetsContainer, 'background', 'qr-bg-color');
-    this.addPresetControls(bgPresetsContainer, 'background');
-  }
-
-  // === ERWEITERTE PRESET-ERSTELLUNG ===
-  createPresetsWithCategories(container, type, targetInputId) {
-    // Container leeren
-    container.innerHTML = '';
-
-    // Kategorie-Selector erstellen
-    const categorySelector = this.createCategorySelector(type);
-    container.appendChild(categorySelector);
-
-    // Preset-Container erstellen
-    const presetContainer = document.createElement('div');
-    presetContainer.className = 'preset-grid';
-    presetContainer.id = `${type}-preset-grid`;
-    container.appendChild(presetContainer);
-
-    // Standard-Kategorie laden
-    this.loadPresetCategory(presetContainer, type, 'modern', targetInputId);
-    
-    // Favoriten-Sektion hinzufügen
-    this.createFavoritesSection(container, type, targetInputId);
-  }
-
-  createCategorySelector(type) {
-    const selector = document.createElement('div');
-    selector.className = 'category-selector';
-    
-    const label = document.createElement('label');
-    label.textContent = type === 'color' ? 'Farbkategorie:' : 'Hintergrund-Kategorie:';
-    label.className = 'category-label';
-    
-    const select = document.createElement('select');
-    select.className = 'category-select form-control';
-    select.id = `${type}-category-select`;
-    
-    // Kategorien hinzufügen
-    Object.keys(this.presetCategories[type]).forEach(category => {
-      const option = document.createElement('option');
-      option.value = category;
-      option.textContent = this.getCategoryDisplayName(category);
-      select.appendChild(option);
-    });
-
-    // Event Listener
-    this.addEventListenerWithCleanup(select, 'change', (e) => {
-      this.onCategoryChange(e.target.value, type);
-    });
-
-    selector.appendChild(label);
-    selector.appendChild(select);
-    return selector;
-  }
-
-  loadPresetCategory(container, type, category, targetInputId) {
-    container.innerHTML = '';
-    
-    const presets = this.presetCategories[type][category] || [];
-    
-    presets.forEach((preset, index) => {
-      const presetButton = this.createAdvancedPresetButton(preset, index, type, targetInputId, category);
-      container.appendChild(presetButton);
-    });
-  }
-
-  createAdvancedPresetButton(color, index, type, targetInputId, category) {
-    const preset = document.createElement('button');
-    preset.className = 'color-preset advanced-preset';
-    preset.type = 'button';
-    
-    // Gradient-Unterstützung
-    if (color.startsWith('linear-gradient')) {
-      preset.style.background = color;
-    } else {
-      preset.style.backgroundColor = color;
-    }
-    
-    // Erweiterte Attribute
-    preset.dataset.color = color;
-    preset.dataset.category = category;
-    preset.dataset.index = index;
-    preset.title = `${this.getCategoryDisplayName(category)} ${index + 1}: ${color}`;
-    preset.setAttribute('aria-label', `${type}farbe auf ${color} setzen`);
-
-    // Hover-Effekte
-    this.addEventListenerWithCleanup(preset, 'mouseenter', () => {
-      if (this.settings.autoPreview) {
-        this.previewColor(targetInputId, color);
-      }
-    });
-
-    this.addEventListenerWithCleanup(preset, 'mouseleave', () => {
-      if (this.settings.autoPreview) {
-        this.resetPreview(targetInputId);
-      }
-    });
-
-    // Click-Handler
-    this.addEventListenerWithCleanup(preset, 'click', (e) => {
-      e.preventDefault();
-      this.selectPresetAdvanced(targetInputId, color, preset, type);
-    });
-
-    // Rechtsklick für Favoriten
-    this.addEventListenerWithCleanup(preset, 'contextmenu', (e) => {
-      e.preventDefault();
-      this.toggleFavorite(color, type);
-    });
-
-    // Doppelklick für Custom Preset
-    this.addEventListenerWithCleanup(preset, 'dblclick', () => {
-      this.editCustomPreset(color, type);
-    });
-
-    return preset;
-  }
-
-  // === ERWEITERTE PRESET-AUSWAHL ===
-  selectPresetAdvanced(inputId, color, selectedPreset, type) {
-    const input = document.getElementById(inputId);
-    if (!input) return;
-
-    // Historie für Undo/Redo
-    this.addToHistory(inputId, input.value, color);
-
-    // Farbe setzen
-    if (color.startsWith('linear-gradient')) {
-      // Gradient-Handling
-      input.dataset.gradient = color;
-      input.style.background = color;
-    } else {
-      input.value = color;
-      input.style.backgroundColor = color;
+    constructor() {
+        this.qrColor = '#000000';
+        this.qrBgColor = '#ffffff';
+        this.qrSize = '300';
+        this.init();
     }
 
-    // Change-Event triggern
-    input.dispatchEvent(new Event('change', { bubbles: true }));
-
-    // Aktives Preset markieren
-    this.updateActivePreset(selectedPreset);
-
-    // Animations-Feedback
-    if (this.settings.animationEnabled) {
-      this.animatePresetSelection(selectedPreset);
+    init() {
+        this.setupColorPresets();
+        this.setupSizeSelector();
+        this.setupColorPickers();
     }
 
-    // Haptic Feedback (falls unterstützt)
-    if (this.settings.hapticFeedback && 'vibrate' in navigator) {
-      navigator.vibrate(50);
-    }
-
-    // Analytics
-    this.trackPresetUsage(color, type);
-  }
-
-  updateActivePreset(selectedPreset) {
-    // Alle aktiven Presets zurücksetzen
-    document.querySelectorAll('.color-preset.active').forEach(p => {
-      p.classList.remove('active');
-    });
-    
-    // Neues aktives Preset markieren
-    selectedPreset.classList.add('active');
-  }
-
-  animatePresetSelection(preset) {
-    preset.classList.add('selected-animation');
-    setTimeout(() => {
-      preset.classList.remove('selected-animation');
-    }, 300);
-  }
-
-  // === FAVORITEN-SYSTEM ===
-  createFavoritesSection(container, type, targetInputId) {
-    const favoritesSection = document.createElement('div');
-    favoritesSection.className = 'favorites-section';
-    favoritesSection.innerHTML = `
-      <h4 class="favorites-title">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-        </svg>
-        Favoriten
-      </h4>
-      <div class="favorites-grid" id="${type}-favorites"></div>
-    `;
-
-    container.appendChild(favoritesSection);
-    this.updateFavorites(type, targetInputId);
-  }
-
-  toggleFavorite(color, type) {
-    const key = `${type}-favorites`;
-    
-    if (!this.favoritePresets[key]) {
-      this.favoritePresets[key] = [];
-    }
-
-    const index = this.favoritePresets[key].indexOf(color);
-    
-    if (index > -1) {
-      this.favoritePresets[key].splice(index, 1);
-      this.showToast('Aus Favoriten entfernt', 'info');
-    } else {
-      this.favoritePresets[key].push(color);
-      this.showToast('Zu Favoriten hinzugefügt', 'success');
-    }
-
-    this.saveFavorites();
-    this.updateFavorites(type);
-  }
-
-  updateFavorites(type, targetInputId) {
-    const favoritesGrid = document.getElementById(`${type}-favorites`);
-    if (!favoritesGrid) return;
-
-    const favorites = this.favoritePresets[`${type}-favorites`] || [];
-    favoritesGrid.innerHTML = '';
-
-    if (favorites.length === 0) {
-      favoritesGrid.innerHTML = '<p class="no-favorites">Keine Favoriten gespeichert</p>';
-      return;
-    }
-
-    favorites.forEach((color, index) => {
-      const favoritePreset = this.createAdvancedPresetButton(color, index, type, targetInputId, 'favorites');
-      favoritePreset.classList.add('favorite-preset');
-      favoritesGrid.appendChild(favoritePreset);
-    });
-  }
-
-  // === PRESET-KONTROLLEN ===
-  addPresetControls(container, type) {
-    const controls = document.createElement('div');
-    controls.className = 'preset-controls';
-    controls.innerHTML = `
-      <div class="control-group">
-        <button type="button" class="btn btn--sm btn--secondary" id="${type}-add-custom">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2v20m10-10H2"/>
-          </svg>
-          Custom hinzufügen
-        </button>
-        <button type="button" class="btn btn--sm btn--secondary" id="${type}-clear-favorites">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c0-1 1-2 2-2v2"/>
-          </svg>
-          Favoriten löschen
-        </button>
-        <button type="button" class="btn btn--sm btn--secondary" id="${type}-export-presets">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4m4-5l5-5 5 5m-5-5v12"/>
-          </svg>
-          Exportieren
-        </button>
-      </div>
-      <div class="control-group">
-        <button type="button" class="btn btn--sm btn--outline" id="${type}-undo" disabled>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M3 7v6h6m6 5a9 9 0 1 1-8-9l8 9"/>
-          </svg>
-          Rückgängig
-        </button>
-        <button type="button" class="btn btn--sm btn--outline" id="${type}-redo" disabled>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M21 7v6h-6m-6 5a9 9 0 1 0 8-9l-8 9"/>
-          </svg>
-          Wiederholen
-        </button>
-      </div>
-    `;
-
-    container.appendChild(controls);
-    this.setupControlEvents(type);
-  }
-
-  setupControlEvents(type) {
-    // Custom Preset hinzufügen
-    const addCustomBtn = document.getElementById(`${type}-add-custom`);
-    if (addCustomBtn) {
-      this.addEventListenerWithCleanup(addCustomBtn, 'click', () => {
-        this.showCustomPresetDialog(type);
-      });
-    }
-
-    // Favoriten löschen
-    const clearFavBtn = document.getElementById(`${type}-clear-favorites`);
-    if (clearFavBtn) {
-      this.addEventListenerWithCleanup(clearFavBtn, 'click', () => {
-        this.clearFavorites(type);
-      });
-    }
-
-    // Export
-    const exportBtn = document.getElementById(`${type}-export-presets`);
-    if (exportBtn) {
-      this.addEventListenerWithCleanup(exportBtn, 'click', () => {
-        this.exportPresets(type);
-      });
-    }
-
-    // Undo/Redo
-    const undoBtn = document.getElementById(`${type}-undo`);
-    const redoBtn = document.getElementById(`${type}-redo`);
-    
-    if (undoBtn) {
-      this.addEventListenerWithCleanup(undoBtn, 'click', () => {
-        this.undoPresetChange();
-      });
-    }
-    
-    if (redoBtn) {
-      this.addEventListenerWithCleanup(redoBtn, 'click', () => {
-        this.redoPresetChange();
-      });
-    }
-  }
-
-  // === CUSTOM PRESET DIALOG ===
-  showCustomPresetDialog(type) {
-    const dialog = document.createElement('div');
-    dialog.className = 'custom-preset-dialog modal active';
-    dialog.innerHTML = `
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>Custom ${type === 'color' ? 'Farbe' : 'Hintergrund'} hinzufügen</h3>
-          <button type="button" class="modal-close">&times;</button>
-        </div>
-        <div class="modal-body">
-          <div class="form-group">
-            <label class="form-label">Farbe wählen:</label>
-            <input type="color" id="custom-color-input" class="form-control" value="#3b82f6">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Hex-Wert:</label>
-            <input type="text" id="custom-hex-input" class="form-control" value="#3b82f6" placeholder="#000000">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Name (optional):</label>
-            <input type="text" id="custom-name-input" class="form-control" placeholder="Meine Custom Farbe">
-          </div>
-          <div class="preview-section">
-            <div class="custom-preview" id="custom-preview"></div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn--secondary" id="cancel-custom">Abbrechen</button>
-          <button type="button" class="btn btn--primary" id="save-custom">Hinzufügen</button>
-        </div>
-      </div>
-    `;
-
-    document.body.appendChild(dialog);
-    this.setupCustomPresetDialog(dialog, type);
-  }
-
-  // === TASTATUR-SHORTCUTS ===
-  setupKeyboardShortcuts() {
-    if (!this.settings.keyboardShortcuts) return;
-
-    this.addEventListenerWithCleanup(document, 'keydown', (e) => {
-      // Nur wenn kein Input fokussiert ist
-      if (document.activeElement.tagName === 'INPUT') return;
-
-      const isModifierPressed = e.ctrlKey || e.metaKey;
-
-      // Preset Navigation mit Pfeiltasten
-      if (e.key.startsWith('Arrow')) {
-        e.preventDefault();
-        this.navigatePresets(e.key);
-        return;
-      }
-
-      // Mit Modifier-Taste
-      if (isModifierPressed) {
-        switch (e.key) {
-          case 'z':
-            e.preventDefault();
-            this.undoPresetChange();
-            break;
-          case 'y':
-            e.preventDefault();
-            this.redoPresetChange();
-            break;
-          case 's':
-            e.preventDefault();
-            this.savePresetConfiguration();
-            break;
-          case 'e':
-            e.preventDefault();
-            this.exportCurrentConfiguration();
-            break;
-        }
-      }
-
-      // Zahlen 1-9 für schnelle Preset-Auswahl
-      if (e.key >= '1' && e.key <= '9') {
-        const index = parseInt(e.key) - 1;
-        this.selectPresetByIndex(index);
-      }
-    });
-  }
-
-  // === TOUCH-GESTEN ===
-  setupTouchGestures() {
-    let touchStartX = 0;
-    let touchStartY = 0;
-    
-    document.querySelectorAll('.preset-grid').forEach(grid => {
-      this.addEventListenerWithCleanup(grid, 'touchstart', (e) => {
-        touchStartX = e.touches[0].clientX;
-        touchStartY = e.touches[0].clientY;
-      });
-
-      this.addEventListenerWithCleanup(grid, 'touchend', (e) => {
-        const touchEndX = e.changedTouches[0].clientX;
-        const touchEndY = e.changedTouches[0].clientY;
+    // Farbenvorauswahl Setup
+    setupColorPresets() {
+        const colorPresets = document.querySelectorAll('.color-preset');
+        const qrColorInput = document.getElementById('qr-color');
         
-        const deltaX = touchEndX - touchStartX;
-        const deltaY = touchEndY - touchStartY;
-        
-        // Swipe-Erkennung
-        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
-          if (deltaX > 0) {
-            this.switchToPreviousCategory();
-          } else {
-            this.switchToNextCategory();
-          }
+        colorPresets.forEach(preset => {
+            preset.addEventListener('click', () => {
+                const color = preset.dataset.color;
+                
+                // Aktiven Zustand setzen
+                colorPresets.forEach(p => p.classList.remove('active'));
+                preset.classList.add('active');
+                
+                // Farbe übernehmen
+                if (qrColorInput) {
+                    qrColorInput.value = color;
+                    this.qrColor = color;
+                    this.updatePreview();
+                }
+            });
+        });
+
+        // Standard-Preset (schwarz) als aktiv markieren
+        const defaultPreset = document.querySelector('.color-preset[data-color="#000000"]');
+        if (defaultPreset) {
+            defaultPreset.classList.add('active');
         }
-      });
+    }
+
+    // Color Picker Event Listeners
+    setupColorPickers() {
+        const qrColorInput = document.getElementById('qr-color');
+        const qrBgColorInput = document.getElementById('qr-bg-color');
+
+        if (qrColorInput) {
+            qrColorInput.addEventListener('change', (e) => {
+                this.qrColor = e.target.value;
+                
+                // Preset-Auswahl zurücksetzen wenn Custom-Color verwendet
+                document.querySelectorAll('.color-preset').forEach(preset => {
+                    if (preset.dataset.color === e.target.value) {
+                        preset.classList.add('active');
+                    } else {
+                        preset.classList.remove('active');
+                    }
+                });
+                
+                this.updatePreview();
+            });
+        }
+
+        if (qrBgColorInput) {
+            qrBgColorInput.addEventListener('change', (e) => {
+                this.qrBgColor = e.target.value;
+                this.updatePreview();
+            });
+        }
+    }
+
+    // Größenauswahl Setup
+    setupSizeSelector() {
+        const sizeSelector = document.getElementById('qr-size');
+        
+        if (sizeSelector) {
+            sizeSelector.addEventListener('change', (e) => {
+                const selectedSize = e.target.value;
+                
+                // Premium-Check für große Größen
+                if (selectedSize === '800' && !this.hasPremium()) {
+                    this.showPremiumModal();
+                    sizeSelector.value = this.qrSize; // Zurücksetzen
+                    return;
+                }
+                
+                this.qrSize = selectedSize;
+                this.updatePreview();
+                this.showSizeToast(selectedSize);
+            });
+        }
+    }
+
+    // Preview aktualisieren
+    updatePreview() {
+        const content = document.getElementById('qr-content')?.value.trim();
+        if (!content || !window.QRCode) return;
+
+        const preview = document.querySelector('.qr-preview');
+        if (!preview) return;
+
+        try {
+            // Vorherigen QR Code löschen
+            preview.innerHTML = '';
+
+            // QR Code mit aktuellen Einstellungen generieren
+            const qr = new QRCode(preview, {
+                text: content,
+                width: parseInt(this.qrSize),
+                height: parseInt(this.qrSize),
+                colorDark: this.qrColor,
+                colorLight: this.qrBgColor,
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            console.log(`QR Code aktualisiert: ${this.qrSize}px, Farbe: ${this.qrColor}`);
+
+        } catch (error) {
+            console.error('Fehler beim QR Preview Update:', error);
+        }
+    }
+
+    // Toast für Größenänderung
+    showSizeToast(size) {
+        const sizeNames = {
+            '200': 'Klein',
+            '300': 'Mittel', 
+            '500': 'Groß',
+            '800': 'Sehr groß'
+        };
+
+        if (typeof this.showToast === 'function') {
+            this.showToast(`QR Code Größe: ${sizeNames[size]} (${size}px)`, 'info');
+        }
+    }
+
+    // Premium Check (vereinfacht)
+    hasPremium() {
+        // Hier würde normalerweise der Premium-Status geprüft
+        return localStorage.getItem('premium-status') === 'active';
+    }
+
+    // Premium Modal anzeigen
+    showPremiumModal() {
+        const modal = document.getElementById('premium-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+        
+        if (typeof this.showToast === 'function') {
+            this.showToast('Premium-Feature: Große QR Codes (800px) benötigen Premium', 'warning');
+        }
+    }
+
+    // Öffentliche Methoden für externe Verwendung
+    setColor(color) {
+        this.qrColor = color;
+        const qrColorInput = document.getElementById('qr-color');
+        if (qrColorInput) qrColorInput.value = color;
+        this.updatePreview();
+    }
+
+    setSize(size) {
+        this.qrSize = size;
+        const sizeSelector = document.getElementById('qr-size');
+        if (sizeSelector) sizeSelector.value = size;
+        this.updatePreview();
+    }
+
+    getSettings() {
+        return {
+            color: this.qrColor,
+            bgColor: this.qrBgColor,
+            size: this.qrSize
+        };
+    }
+}
+
+// QR Customization in die Hauptapp integrieren
+if (typeof app !== 'undefined') {
+    // In bestehende App integrieren
+    app.qrCustomization = new QRCustomization();
+} else {
+    // Standalone initialisieren
+    document.addEventListener('DOMContentLoaded', () => {
+        window.qrCustomization = new QRCustomization();
     });
-  }
-
-  // === HISTORIE-MANAGEMENT ===
-  addToHistory(inputId, oldValue, newValue) {
-    this.presetHistory.push({
-      inputId,
-      oldValue,
-      newValue,
-      timestamp: Date.now()
-    });
-
-    // Historie begrenzen
-    if (this.presetHistory.length > 50) {
-      this.presetHistory.shift();
-    }
-
-    this.historyIndex = this.presetHistory.length - 1;
-    this.updateHistoryButtons();
-  }
-
-  undoPresetChange() {
-    if (this.historyIndex < 0) return;
-
-    const historyItem = this.presetHistory[this.historyIndex];
-    const input = document.getElementById(historyItem.inputId);
-    
-    if (input) {
-      input.value = historyItem.oldValue;
-      input.dispatchEvent(new Event('change'));
-    }
-
-    this.historyIndex--;
-    this.updateHistoryButtons();
-    this.showToast('Änderung rückgängig gemacht', 'info');
-  }
-
-  redoPresetChange() {
-    if (this.historyIndex >= this.presetHistory.length - 1) return;
-
-    this.historyIndex++;
-    const historyItem = this.presetHistory[this.historyIndex];
-    const input = document.getElementById(historyItem.inputId);
-    
-    if (input) {
-      input.value = historyItem.newValue;
-      input.dispatchEvent(new Event('change'));
-    }
-
-    this.updateHistoryButtons();
-    this.showToast('Änderung wiederhergestellt', 'success');
-  }
-
-  updateHistoryButtons() {
-    const undoBtn = document.querySelector('[id$="-undo"]');
-    const redoBtn = document.querySelector('[id$="-redo"]');
-
-    if (undoBtn) {
-      undoBtn.disabled = this.historyIndex < 0;
-    }
-    
-    if (redoBtn) {
-      redoBtn.disabled = this.historyIndex >= this.presetHistory.length - 1;
-    }
-  }
-
-  // === IMPORT/EXPORT FUNKTIONEN ===
-  exportPresets(type) {
-    const exportData = {
-      version: '1.0',
-      type: type,
-      timestamp: Date.now(),
-      presets: this.presetCategories[type],
-      favorites: this.favoritePresets[`${type}-favorites`] || [],
-      customPresets: this.customPresets[type] || []
-    };
-
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `qr-${type}-presets-${new Date().toISOString().split('T')[0]}.json`;
-    link.click();
-    
-    URL.revokeObjectURL(url);
-    this.showToast('Presets exportiert', 'success');
-  }
-
-  async importPresets(file, type) {
-    try {
-      const text = await file.text();
-      const data = JSON.parse(text);
-
-      if (data.type !== type) {
-        throw new Error('Falscher Preset-Typ');
-      }
-
-      // Presets importieren
-      if (data.presets) {
-        this.presetCategories[type] = { ...this.presetCategories[type], ...data.presets };
-      }
-
-      if (data.favorites) {
-        this.favoritePresets[`${type}-favorites`] = data.favorites;
-      }
-
-      if (data.customPresets) {
-        this.customPresets[type] = data.customPresets;
-      }
-
-      // UI aktualisieren
-      this.refreshPresets(type);
-      this.showToast('Presets erfolgreich importiert', 'success');
-
-    } catch (error) {
-      this.showToast('Fehler beim Importieren: ' + error.message, 'error');
-    }
-  }
-
-  // === ANALYTICS & TRACKING ===
-  initializeAnalytics() {
-    this.analytics = {
-      presetUsage: {},
-      sessionStart: Date.now(),
-      interactions: 0
-    };
-  }
-
-  trackPresetUsage(color, type) {
-    const key = `${type}-${color}`;
-    this.analytics.presetUsage[key] = (this.analytics.presetUsage[key] || 0) + 1;
-    this.analytics.interactions++;
-  }
-
-  getPopularPresets(type, limit = 5) {
-    const usageData = Object.entries(this.analytics.presetUsage)
-      .filter(([key]) => key.startsWith(`${type}-`))
-      .sort(([,a], [,b]) => b - a)
-      .slice(0, limit)
-      .map(([key]) => key.replace(`${type}-`, ''));
-    
-    return usageData;
-  }
-
-  // === UTILITY FUNKTIONEN ===
-  getCategoryDisplayName(category) {
-    const displayNames = {
-      modern: 'Modern',
-      classic: 'Klassisch',
-      vibrant: 'Kräftig',
-      pastel: 'Pastell',
-      dark: 'Dunkel',
-      neon: 'Neon',
-      neutral: 'Neutral',
-      warm: 'Warm',
-      cool: 'Kühl',
-      gradient: 'Verlauf'
-    };
-    
-    return displayNames[category] || category;
-  }
-
-  onCategoryChange(category, type) {
-    const targetInputId = type === 'color' ? 'qr-color' : 'qr-bg-color';
-    const container = document.getElementById(`${type}-preset-grid`);
-    
-    if (container) {
-      this.loadPresetCategory(container, type, category, targetInputId);
-    }
-  }
-
-  addEventListenerWithCleanup(element, event, handler) {
-    element.addEventListener(event, handler);
-    
-    if (!this.eventListeners.has(element)) {
-      this.eventListeners.set(element, []);
-    }
-    
-    this.eventListeners.get(element).push({ event, handler });
-  }
-
-  // === SPEICHER-FUNKTIONEN ===
-  loadFavorites() {
-    try {
-      const favorites = localStorage.getItem('qr-customization-favorites');
-      return favorites ? JSON.parse(favorites) : {};
-    } catch {
-      return {};
-    }
-  }
-
-  saveFavorites() {
-    try {
-      localStorage.setItem('qr-customization-favorites', JSON.stringify(this.favoritePresets));
-    } catch (error) {
-      console.warn('Konnte Favoriten nicht speichern:', error);
-    }
-  }
-
-  loadCustomPresets() {
-    try {
-      const customs = localStorage.getItem('qr-customization-custom');
-      return customs ? JSON.parse(customs) : { color: [], background: [] };
-    } catch {
-      return { color: [], background: [] };
-    }
-  }
-
-  saveCustomPresets() {
-    try {
-      localStorage.setItem('qr-customization-custom', JSON.stringify(this.customPresets));
-    } catch (error) {
-      console.warn('Konnte Custom Presets nicht speichern:', error);
-    }
-  }
-
-  loadUserPreferences() {
-    try {
-      const prefs = localStorage.getItem('qr-customization-settings');
-      if (prefs) {
-        this.settings = { ...this.settings, ...JSON.parse(prefs) };
-      }
-    } catch {
-      // Verwende Standard-Einstellungen
-    }
-  }
-
-  saveUserPreferences() {
-    try {
-      localStorage.setItem('qr-customization-settings', JSON.stringify(this.settings));
-    } catch (error) {
-      console.warn('Konnte Einstellungen nicht speichern:', error);
-    }
-  }
-
-  // === UI HILFSFUNKTIONEN ===
-  showToast(message, type = 'info') {
-    // Toast-Notification anzeigen (vereinfacht)
-    console.log(`[${type.toUpperCase()}] ${message}`);
-    
-    // Hier würde normalerweise eine Toast-Notification erstellt werden
-    if (window.QRProApp && window.QRProApp.showToast) {
-      window.QRProApp.showToast(message, type);
-    }
-  }
-
-  refreshPresets(type) {
-    const container = document.getElementById(`${type}-presets`);
-    if (container) {
-      if (type === 'color') {
-        this.initColorPresets();
-      } else {
-        this.initBgPresets();
-      }
-    }
-  }
-
-  // === CLEANUP ===
-  destroy() {
-    // Event Listeners entfernen
-    this.eventListeners.forEach((listeners, element) => {
-      listeners.forEach(({ event, handler }) => {
-        element.removeEventListener(event, handler);
-      });
-    });
-    
-    this.eventListeners.clear();
-    
-    // Einstellungen speichern
-    this.saveUserPreferences();
-    this.saveFavorites();
-    this.saveCustomPresets();
-    
-    console.log('QRCustomization destroyed and cleaned up');
-  }
-
-  // === ÖFFENTLICHE API ===
-  
-  // Preset programmatisch setzen
-  setPreset(type, color) {
-    const inputId = type === 'color' ? 'qr-color' : 'qr-bg-color';
-    const input = document.getElementById(inputId);
-    
-    if (input) {
-      input.value = color;
-      input.dispatchEvent(new Event('change'));
-      this.trackPresetUsage(color, type);
-    }
-  }
-
-  // Aktuellen Preset abrufen
-  getCurrentPreset(type) {
-    const inputId = type === 'color' ? 'qr-color' : 'qr-bg-color';
-    const input = document.getElementById(inputId);
-    return input ? input.value : null;
-  }
-
-  // Einstellung ändern
-  setSetting(key, value) {
-    this.settings[key] = value;
-    this.saveUserPreferences();
-  }
-
-  // Analytics-Daten abrufen
-  getAnalytics() {
-    return {
-      ...this.analytics,
-      sessionDuration: Date.now() - this.analytics.sessionStart,
-      popularPresets: {
-        color: this.getPopularPresets('color'),
-        background: this.getPopularPresets('background')
-      }
-    };
-  }
 }

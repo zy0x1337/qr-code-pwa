@@ -56,9 +56,9 @@ class QRProApp {
     this.addHistoryFilters();
     this.setupHistoryEventListeners();
     this.updateDashboard();
-    // Initial History Load - falls die App direkt auf der History-Seite startet
+    // Falls direkt auf History-Seite gestartet
     if (this.currentPage === 'history') {
-        this.loadHistoryPage();
+        setTimeout(() => this.initializeHistoryPage(), 200);
     }
   }
 
@@ -656,21 +656,112 @@ resumeScanner() {
 }
 
 setupHistoryEventListeners() {
-    // Such-Events
+    // Entfernen Sie alte Event-Listener um Duplikate zu vermeiden
+    this.removeOldHistoryListeners();
+    
+    // Such-Events mit Debouncing
     const searchInput = document.getElementById('search-history');
     if (searchInput) {
-        searchInput.addEventListener('input', debounce((e) => {
+        const debouncedSearch = this.debounce((e) => {
             this.filterHistory(e.target.value);
-        }, 300));
+        }, 300);
+        
+        searchInput.addEventListener('input', debouncedSearch);
+        
+        // Escape-Taste zum Leeren
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                e.target.value = '';
+                this.filterHistory('');
+            }
+        });
     }
 
     // Filter-Events
     ['type-filter', 'date-filter', 'sort-order'].forEach(id => {
         const element = document.getElementById(id);
         if (element) {
-            element.addEventListener('change', () => this.filterHistory(searchInput?.value || ''));
+            element.addEventListener('change', () => {
+                const searchTerm = searchInput?.value || '';
+                this.filterHistory(searchTerm);
+            });
         }
     });
+
+    // Action-Button Events
+    const clearHistory = document.getElementById('clear-history');
+    if (clearHistory) {
+        clearHistory.addEventListener('click', () => {
+            if (confirm('Möchten Sie den gesamten Verlauf löschen?')) {
+                this.clearAllHistory();
+            }
+        });
+    }
+
+    const exportHistory = document.getElementById('export-history');
+    if (exportHistory) {
+        exportHistory.addEventListener('click', () => this.exportHistory());
+    }
+
+    const importHistory = document.getElementById('import-history');
+    if (importHistory) {
+        importHistory.addEventListener('click', () => {
+            const fileInput = document.getElementById('import-file');
+            if (fileInput) fileInput.click();
+        });
+    }
+
+    // Hidden File Input für Import
+    const importFile = document.getElementById('import-file');
+    if (importFile) {
+        importFile.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                this.importHistory(e.target.files[0]);
+            }
+        });
+    }
+}
+
+clearAllHistory() {
+    // Beide Arrays leeren
+    this.qrHistory = [];
+    this.scanHistory = [];
+    
+    // LocalStorage aktualisieren
+    localStorage.setItem('qr-pro-history', JSON.stringify(this.qrHistory));
+    localStorage.setItem('qr-pro-scan-history', JSON.stringify(this.scanHistory));
+    
+    // UI aktualisieren
+    this.displayHistory([]);
+    this.updateSearchResults(0, '');
+    this.updateDashboard();
+    
+    this.showToast('Gesamter Verlauf gelöscht', 'success');
+}
+
+removeOldHistoryListeners() {
+    // Alte Listener entfernen falls vorhanden
+    const elements = ['search-history', 'type-filter', 'date-filter', 'sort-order'];
+    elements.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            // Element klonen um alle Event-Listener zu entfernen
+            const newElement = element.cloneNode(true);
+            element.parentNode.replaceChild(newElement, element);
+        }
+    });
+}
+
+debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
 }
 
 filterHistory(searchTerm = '') {
@@ -887,25 +978,35 @@ getAllHistory() {
     const combinedHistory = [];
     
     // Generierte QR Codes hinzufügen
-    this.qrHistory.forEach(item => {
-        combinedHistory.push({
-            ...item,
-            type: 'generated',
-            icon: 'qr_code'
+    if (this.qrHistory && Array.isArray(this.qrHistory)) {
+        this.qrHistory.forEach((item, index) => {
+            combinedHistory.push({
+                ...item,
+                id: item.id || `generated-${item.timestamp}-${index}`,
+                type: 'generated',
+                icon: 'qr_code'
+            });
         });
-    });
+    }
     
     // Gescannte QR Codes hinzufügen
-    this.scanHistory.forEach(item => {
-        combinedHistory.push({
-            ...item,
-            type: 'scanned',
-            icon: 'qr_code_scanner'
+    if (this.scanHistory && Array.isArray(this.scanHistory)) {
+        this.scanHistory.forEach((item, index) => {
+            combinedHistory.push({
+                ...item,
+                id: item.id || `scanned-${item.timestamp}-${index}`,
+                type: 'scanned',
+                icon: 'qr_code_scanner'
+            });
         });
-    });
+    }
     
     // Nach Datum sortieren (neueste zuerst)
-    return combinedHistory.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    return combinedHistory.sort((a, b) => {
+        const timestampA = a.timestamp || 0;
+        const timestampB = b.timestamp || 0;
+        return timestampB - timestampA;
+    });
 }
 
 groupHistoryByDate(items) {
@@ -2528,25 +2629,27 @@ getTemplatesCount() {
     
     this.currentPage = page;
 
-    // Navigation Logic
+    // Alle Seiten ausblenden
     document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
     document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.remove('active');
     });
 
+    // Zielseite anzeigen
     const targetPage = document.getElementById(`${page}-page`);
     const navItem = document.querySelector(`[data-page="${page}"]`);
     
     if (targetPage) targetPage.classList.remove('hidden');
     if (navItem) navItem.classList.add('active');
     
-    // Spezifische Aktionen für verschiedene Seiten
+    // Spezifische Seitenaktionen
     switch(page) {
         case 'dashboard':
             this.updateDashboard();
             break;
         case 'history':
-            this.loadHistoryPage();
+            // KORRIGIERT: Sofortige Initialisierung der Verlaufsseite
+            setTimeout(() => this.initializeHistoryPage(), 100);
             break;
         case 'generator':
             this.focusGenerator();
@@ -2560,6 +2663,94 @@ getTemplatesCount() {
       this.updateDashboard();
     }
   }
+
+  initializeHistoryPage() {
+    console.log('🔄 Initialisiere Verlaufsseite...');
+    
+    // 1. Filter-HTML hinzufügen falls nicht vorhanden
+    this.ensureHistoryFiltersExist();
+    
+    // 2. Event-Listener einrichten
+    this.setupHistoryEventListeners();
+    
+    // 3. Initiales Laden der History
+    this.loadInitialHistory();
+    
+    console.log('✅ Verlaufsseite initialisiert');
+}
+
+ensureHistoryFiltersExist() {
+    const historyPage = document.getElementById('history-page');
+    const existingFilters = document.querySelector('.history-filters');
+    
+    if (existingFilters || !historyPage) return;
+    
+    // Filter-HTML einfügen
+    const pageHeader = historyPage.querySelector('.page-header');
+    if (pageHeader) {
+        const filtersHTML = this.getHistoryFiltersHTML();
+        pageHeader.insertAdjacentHTML('afterend', filtersHTML);
+    }
+}
+
+getHistoryFiltersHTML() {
+    return `
+        <div class="history-filters">
+            <div class="filter-row">
+                <div class="search-group">
+                    <input type="text" id="search-history" placeholder="Durchsuchen..." class="form-control">
+                    <button id="clear-search" class="btn btn--secondary">✕</button>
+                </div>
+                <div class="filter-group">
+                    <select id="type-filter" class="form-control">
+                        <option value="all">Alle Typen</option>
+                        <option value="generated">Generiert</option>
+                        <option value="scanned">Gescannt</option>
+                    </select>
+                    <select id="date-filter" class="form-control">
+                        <option value="all">Alle Zeiten</option>
+                        <option value="today">Heute</option>
+                        <option value="week">Diese Woche</option>
+                        <option value="month">Dieser Monat</option>
+                    </select>
+                    <select id="sort-order" class="form-control">
+                        <option value="newest">Neueste zuerst</option>
+                        <option value="oldest">Älteste zuerst</option>
+                    </select>
+                </div>
+            </div>
+            <div class="filter-actions">
+                <div class="results-info">
+                    <span id="results-count">Alle Einträge</span>
+                </div>
+                <div class="action-buttons">
+                    <button id="export-history" class="btn btn--secondary">
+                        📤 Exportieren
+                    </button>
+                    <button id="import-history" class="btn btn--secondary">
+                        📥 Importieren
+                    </button>
+                    <button id="clear-history" class="btn btn--outline">
+                        🗑️ Verlauf löschen
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+loadInitialHistory() {
+    // Alle verfügbaren History-Daten laden
+    const allHistory = this.getAllHistory();
+    
+    // Sofort anzeigen
+    this.displayHistory(allHistory);
+    
+    // Counter aktualisieren
+    this.updateSearchResults(allHistory.length, '');
+    
+    console.log(`📊 ${allHistory.length} History-Einträge geladen`);
+}
 
   loadHistoryPage() {
     // Beim ersten Laden der Verlaufsseite alle Einträge anzeigen

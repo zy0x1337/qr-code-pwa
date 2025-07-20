@@ -5320,20 +5320,34 @@ input:checked + .toggle-slider:before {
 /* Toolbar */
 .template-toolbar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   padding: var(--space-20) var(--space-24);
   background: var(--color-background);
   border-bottom: 1px solid var(--color-card-border);
   flex-shrink: 0;
   gap: var(--space-16);
+  min-height: 60px;
 }
 
 .toolbar-section {
   display: flex;
-  align-items: center;
-  gap: var(--space-16);
+  flex-direction: column;
+  gap: var(--space-8);
   min-width: 0;
+}
+
+.toolbar-section:first-child {
+  flex: 1;
+}
+
+/* Breadcrumb-Bereich */
+.breadcrumb-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+  flex: 1;
 }
 
 .breadcrumb {
@@ -5347,9 +5361,17 @@ input:checked + .toggle-slider:before {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: var(--line-height-tight);
+  margin: 0;
+}
+
+/* Template-Statistiken */
+.template-stats {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
 }
 
 .results-count {
@@ -5358,7 +5380,72 @@ input:checked + .toggle-slider:before {
   background: var(--color-secondary);
   padding: var(--space-4) var(--space-8);
   border-radius: var(--radius-sm);
-  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.template-count-details {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.count-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.count-number {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.count-label {
+  text-transform: lowercase;
+}
+
+/* Desktop Layout - 1024px+ */
+@media (min-width: 1024px) {
+  .template-toolbar {
+    align-items: center;
+    min-height: auto;
+  }
+
+  .toolbar-section {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-16);
+  }
+
+  .breadcrumb-section {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-20);
+  }
+
+  .template-stats {
+    border-left: 1px solid var(--color-card-border);
+    padding-left: var(--space-16);
+    margin-left: var(--space-4);
+  }
+}
+
+/* Medium Desktop - 768px-1024px */
+@media (min-width: 769px) and (max-width: 1023px) {
+  .template-toolbar {
+    flex-wrap: wrap;
+    gap: var(--space-12);
+  }
+
+  .toolbar-section:first-child {
+    width: 100%;
+  }
+
+  .filter-controls {
+    margin-left: auto;
+  }
 }
 
 /* View Toggle */
@@ -5959,7 +6046,6 @@ input:checked + .toggle-slider:before {
     width: 32px;
     height: 32px;
   }
-}
 
 /* ==========================================
    DARK MODE RESPONSIVE ADJUSTMENTS

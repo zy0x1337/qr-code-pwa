@@ -783,53 +783,50 @@
             <main class="template-main">
                 <!-- Toolbar -->
                 <div class="template-toolbar">
-                    <div class="toolbar-section">
-                        <div class="breadcrumb">
-                            <span class="breadcrumb-item active" id="current-category">Business Templates</span>
-                            <span class="results-count" id="results-count">(12 Templates)</span>
-                        </div>
-                    </div>
+  <div class="toolbar-section breadcrumb-section">
+    <div class="breadcrumb">
+      <h2 class="breadcrumb-item">Wählen Sie ein Template aus</h2>
+    </div>
+    <div class="template-stats">
+      <div class="results-count">19 Templates</div>
+      <div class="template-count-details">
+        <div class="count-item">
+          <span class="count-number">18</span>
+          <span class="count-label">kostenlos</span>
+        </div>
+        <div class="count-item">
+          <span class="count-number">1</span>
+          <span class="count-label">premium</span>
+        </div>
+      </div>
+    </div>
+  </div>
                     
                     <div class="toolbar-section">
-                        <!-- View Toggle -->
-                        <div class="view-toggle">
-                            <button class="view-btn active" data-view="grid" title="Rasteransicht">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="3" y="3" width="7" height="7"/>
-                                    <rect x="14" y="3" width="7" height="7"/>
-                                    <rect x="3" y="14" width="7" height="7"/>
-                                    <rect x="14" y="14" width="7" height="7"/>
-                                </svg>
-                            </button>
-                            <button class="view-btn" data-view="list" title="Listenansicht">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <line x1="8" y1="6" x2="21" y2="6"/>
-                                    <line x1="8" y1="12" x2="21" y2="12"/>
-                                    <line x1="8" y1="18" x2="21" y2="18"/>
-                                    <line x1="3" y1="6" x2="3.01" y2="6"/>
-                                    <line x1="3" y1="12" x2="3.01" y2="12"/>
-                                    <line x1="3" y1="18" x2="3.01" y2="18"/>
-                                </svg>
-                            </button>
-                        </div>
+    <div class="view-toggle">
+      <button class="view-btn active" data-view="grid">
+        <i class="fas fa-th"></i>
+      </button>
+      <button class="view-btn" data-view="list">
+        <i class="fas fa-list"></i>
+      </button>
+    </div>
 
                         <!-- Filter & Sort -->
                         <div class="filter-controls">
-                            <select class="filter-select" id="template-filter">
-                                <option value="all">Alle Templates</option>
-                                <option value="recent">Zuletzt verwendet</option>
-                                <option value="popular">Beliebt</option>
-                            </select>
-                            
-                            <select class="sort-select" id="template-sort">
-                                <option value="name">Nach Name</option>
-                                <option value="popular">Nach Beliebtheit</option>
-                                <option value="newest">Neueste zuerst</option>
-                                <option value="type">Nach Typ</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
+      <select class="filter-select">
+        <option>Alle Kategorien</option>
+        <option>Business</option>
+        <option>Event</option>
+      </select>
+      <select class="sort-select">
+        <option>Neueste</option>
+        <option>Beliebteste</option>
+        <option>A-Z</option>
+      </select>
+    </div>
+  </div>
+</div>
 
                 <!-- Templates Grid -->
                 <div class="templates-container">

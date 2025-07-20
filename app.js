@@ -2046,7 +2046,7 @@ document.addEventListener('DOMContentLoaded', () => {
     new PWAInstaller();
 });
 
-// QR Customization
+// QR Customization - Finale Version (OHNE 800px)
 class QRCustomization {
     constructor() {
         this.qrColor = '#000000';
@@ -2063,7 +2063,7 @@ class QRCustomization {
         this.setupDynamicPreview();
     }
 
-    // Korrigierte Größenauswahl OHNE Premium-Beschränkung für 800px
+    // Größenauswahl - nur 200, 300, 500
     setupSizeSelector() {
         const sizeSelector = document.getElementById('qr-size');
         
@@ -2071,16 +2071,19 @@ class QRCustomization {
             sizeSelector.addEventListener('change', (e) => {
                 const selectedSize = e.target.value;
                 
-                console.log('Größe gewählt:', selectedSize);
+                // Validierung: nur erlaubte Größen
+                const allowedSizes = ['200', '300', '500'];
+                if (!allowedSizes.includes(selectedSize)) {
+                    console.warn('Ungültige Größe:', selectedSize);
+                    return;
+                }
                 
-                // ENTFERNT: Premium-Check für 800px
-                // 800px ist jetzt kostenlos verfügbar!
-                
-                // Größe setzen
                 this.qrSize = selectedSize;
                 this.updatePreviewSize(selectedSize);
                 this.updatePreview();
                 this.showSizeToast(selectedSize);
+                
+                console.log('Größe gewählt:', selectedSize);
             });
             
             // Initial-Größe setzen
@@ -2088,54 +2091,48 @@ class QRCustomization {
         }
     }
 
-    // Vorschau-Größenanpassung
-updatePreviewSize(size) {
-    const preview = document.querySelector('.qr-preview');
-    const generatorPreview = document.querySelector('.generator-preview');
-    
-    if (preview) {
-        // Alle Size-Klassen entfernen
-        const sizeClasses = ['size-200', 'size-300', 'size-500', 'size-800'];
-        sizeClasses.forEach(className => {
-            preview.classList.remove(className);
-        });
+    // Finale Vorschau-Größenanpassung
+    updatePreviewSize(size) {
+        const preview = document.querySelector('.qr-preview');
         
-        // Neue Size-Klasse hinzufügen
-        preview.classList.add(`size-${size}`);
-        
-        // Desktop: Horizontal Scroll für große Sizes aktivieren
-        if (generatorPreview) {
-            const isMobile = window.innerWidth <= 768;
-            if (!isMobile && (size === '500' || size === '800')) {
-                generatorPreview.style.overflowX = 'auto';
-                generatorPreview.style.paddingBottom = 'var(--space-16)';
+        if (preview) {
+            // Alle Size-Klassen entfernen (inklusive alte 800px)
+            const allSizeClasses = ['size-200', 'size-300', 'size-500', 'size-800'];
+            allSizeClasses.forEach(className => {
+                preview.classList.remove(className);
+            });
+            
+            // Nur gültige Größen setzen
+            const validSizes = ['200', '300', '500'];
+            if (validSizes.includes(size)) {
+                preview.classList.add(`size-${size}`);
             } else {
-                generatorPreview.style.overflowX = 'visible';
-                generatorPreview.style.paddingBottom = '0';
+                // Fallback auf Standard-Größe
+                preview.classList.add('size-300');
+                this.qrSize = '300';
+                size = '300';
             }
+            
+            // Größen-Indikator aktualisieren
+            let sizeIndicator = preview.querySelector('.size-indicator');
+            if (!sizeIndicator) {
+                sizeIndicator = document.createElement('div');
+                sizeIndicator.className = 'size-indicator';
+                preview.appendChild(sizeIndicator);
+            }
+            
+            const sizeNames = {
+                '200': 'Klein (200px)',
+                '300': 'Mittel (300px)', 
+                '500': 'Groß (500px)'
+            };
+            sizeIndicator.textContent = sizeNames[size] || `${size}px`;
+            
+            console.log(`Vorschau-Größe aktualisiert: ${size}px`);
         }
-        
-        // Größen-Indikator aktualisieren
-        let sizeIndicator = preview.querySelector('.size-indicator');
-        if (!sizeIndicator) {
-            sizeIndicator = document.createElement('div');
-            sizeIndicator.className = 'size-indicator';
-            preview.appendChild(sizeIndicator);
-        }
-        
-        const sizeNames = {
-            '200': 'Klein (200px)',
-            '300': 'Mittel (300px)', 
-            '500': 'Groß (500px)',
-            '800': 'Sehr groß (800px)'
-        };
-        sizeIndicator.textContent = sizeNames[size] || `${size}px`;
-        
-        console.log(`Vorschau-Größe aktualisiert: ${size}px`);
     }
-}
 
-    // Verbesserte Preview-Aktualisierung mit korrekter Größe
+    // Optimierte Preview-Aktualisierung
     updatePreview() {
         const content = document.getElementById('qr-content')?.value.trim();
         if (!content || !window.QRCode) return;
@@ -2155,11 +2152,8 @@ updatePreviewSize(size) {
                 height: 100% !important;
             `;
             
-            // Vorherigen QR Code löschen (aber Size-Indikator behalten)
+            // Vorherigen QR Code entfernen (Size-Indikator behalten)
             const sizeIndicator = preview.querySelector('.size-indicator');
-            const placeholder = preview.querySelector('.preview-placeholder');
-            
-            // Nur QR Code Container entfernen, nicht die UI-Elemente
             const existingQR = preview.querySelector('div:not(.size-indicator):not(.preview-placeholder)');
             if (existingQR) {
                 existingQR.remove();
@@ -2167,7 +2161,7 @@ updatePreviewSize(size) {
             
             preview.appendChild(qrContainer);
 
-            // QR Code Optionen mit korrekter Größe
+            // QR Code Optionen
             const qrOptions = {
                 text: content,
                 width: parseInt(this.qrSize),
@@ -2180,19 +2174,6 @@ updatePreviewSize(size) {
             // QR Code generieren
             const qr = new QRCode(qrContainer, qrOptions);
 
-            // Canvas-Größe verifizieren und anpassen
-            setTimeout(() => {
-                const canvas = qrContainer.querySelector('canvas');
-                if (canvas) {
-                    canvas.style.cssText = `
-                        max-width: 100% !important;
-                        height: auto !important;
-                        display: block !important;
-                        margin: 0 auto !important;
-                    `;
-                }
-            }, 100);
-
             console.log(`QR Preview aktualisiert: ${this.qrSize}px, ${this.qrColor} auf ${this.qrBgColor}`);
 
         } catch (error) {
@@ -2200,32 +2181,7 @@ updatePreviewSize(size) {
         }
     }
 
-    // Weitere Methoden bleiben unverändert...
-    setupColorPresets() {
-        const colorPresets = document.querySelectorAll('.color-preset');
-        const qrColorInput = document.getElementById('qr-color');
-        
-        colorPresets.forEach(preset => {
-            preset.addEventListener('click', () => {
-                const color = preset.dataset.color;
-                
-                colorPresets.forEach(p => p.classList.remove('active'));
-                preset.classList.add('active');
-                
-                if (qrColorInput) {
-                    qrColorInput.value = color;
-                    this.qrColor = color;
-                    this.updatePreview();
-                }
-            });
-        });
-
-        const defaultPreset = document.querySelector('.color-preset[data-color="#000000"]');
-        if (defaultPreset) {
-            defaultPreset.classList.add('active');
-        }
-    }
-
+    // Hintergrund-Presets Setup
     setupBgColorPresets() {
         const bgPresets = document.querySelectorAll('.bg-preset');
         const qrBgColorInput = document.getElementById('qr-bg-color');
@@ -2258,6 +2214,33 @@ updatePreviewSize(size) {
         }
     }
 
+    // Farb-Presets Setup
+    setupColorPresets() {
+        const colorPresets = document.querySelectorAll('.color-preset');
+        const qrColorInput = document.getElementById('qr-color');
+        
+        colorPresets.forEach(preset => {
+            preset.addEventListener('click', () => {
+                const color = preset.dataset.color;
+                
+                colorPresets.forEach(p => p.classList.remove('active'));
+                preset.classList.add('active');
+                
+                if (qrColorInput) {
+                    qrColorInput.value = color;
+                    this.qrColor = color;
+                    this.updatePreview();
+                }
+            });
+        });
+
+        const defaultPreset = document.querySelector('.color-preset[data-color="#000000"]');
+        if (defaultPreset) {
+            defaultPreset.classList.add('active');
+        }
+    }
+
+    // Color Picker Setup
     setupColorPickers() {
         const qrColorInput = document.getElementById('qr-color');
         const qrBgColorInput = document.getElementById('qr-bg-color');
@@ -2279,6 +2262,7 @@ updatePreviewSize(size) {
         }
     }
 
+    // Dynamische Vorschau Setup
     setupDynamicPreview() {
         const preview = document.querySelector('.qr-preview');
         if (preview) {
@@ -2286,6 +2270,7 @@ updatePreviewSize(size) {
         }
     }
 
+    // Hilfsmethoden
     updateColorPresetSelection(color) {
         document.querySelectorAll('.color-preset').forEach(preset => {
             if (preset.dataset.color === color) {
@@ -2310,8 +2295,7 @@ updatePreviewSize(size) {
         const sizeNames = {
             '200': 'Klein',
             '300': 'Mittel', 
-            '500': 'Groß',
-            '800': 'Sehr groß (kostenlos!)' // Hinweis dass es kostenlos ist
+            '500': 'Groß'
         };
 
         if (typeof app !== 'undefined' && app.showToast) {
@@ -2319,17 +2303,14 @@ updatePreviewSize(size) {
         }
     }
 
-    // Premium-Checks entfernt - alle Größen sind kostenlos
-    hasPremium() {
-        return true; // Alle Größen sind jetzt kostenlos
-    }
-
+    // Öffentliche API
     getSettings() {
         return {
             color: this.qrColor,
             bgColor: this.qrBgColor,
             size: this.qrSize,
-            isTransparent: this.qrBgColor === 'transparent'
+            isTransparent: this.qrBgColor === 'transparent',
+            availableSizes: ['200', '300', '500']
         };
     }
 }

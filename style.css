@@ -3418,10 +3418,10 @@ select.form-control {
 }
 
 /* ==========================================
-   QR VORSCHAU - DESKTOP/MOBILE OPTIMIERT
+                QR VORSCHAU
    ========================================== */
 
-/* Basis-Vorschau (Desktop-optimiert) */
+/* Basis-Vorschau für alle Geräte */
 .qr-preview {
     background: var(--color-surface);
     backdrop-filter: blur(12px);
@@ -3436,34 +3436,25 @@ select.form-control {
     position: relative;
     overflow: hidden;
     margin: 0 auto;
-    /* DESKTOP: Größere Standard-Dimensionen */
-    max-width: 600px;
-    min-height: 400px;
 }
 
 /* Desktop-optimierte Größenklassen */
 .qr-preview.size-200 {
-    max-width: 280px;
-    min-height: 280px;
+    width: 280px;
+    height: 280px;
     padding: var(--space-20);
 }
 
 .qr-preview.size-300 {
-    max-width: 380px;
-    min-height: 380px;
+    width: 380px;
+    height: 380px;
     padding: var(--space-24);
 }
 
 .qr-preview.size-500 {
-    max-width: 580px;
-    min-height: 580px;
+    width: 580px;
+    height: 580px;
     padding: var(--space-28);
-}
-
-.qr-preview.size-800 {
-    max-width: 880px;
-    min-height: 880px;
-    padding: var(--space-32);
 }
 
 /* QR Code Container optimiert */
@@ -3473,13 +3464,12 @@ select.form-control {
     align-items: center !important;
     width: 100% !important;
     height: 100% !important;
-    max-width: 100% !important;
 }
 
 .qr-preview canvas,
 .qr-preview img {
-    max-width: 100% !important;
-    max-height: 100% !important;
+    max-width: calc(100% - var(--space-24)) !important;
+    max-height: calc(100% - var(--space-24)) !important;
     width: auto !important;
     height: auto !important;
     display: block !important;
@@ -3514,99 +3504,85 @@ select.form-control {
    RESPONSIVE MOBILE ANPASSUNGEN
    ========================================== */
 
-/* Tablet-Ansicht */
+/* Tablet-Ansicht (1024px und kleiner) */
 @media (max-width: 1024px) {
-    .qr-preview.size-800 {
-        max-width: calc(100vw - 8rem);
-        min-height: auto;
-        aspect-ratio: 1;
-        max-height: 80vh;
+    .qr-preview.size-500 {
+        width: min(580px, calc(100vw - 6rem));
+        height: min(580px, calc(100vw - 6rem));
+        max-height: 75vh;
     }
 }
 
-/* Mobile Optimierungen */
+/* Mobile Optimierungen (768px und kleiner) */
 @media (max-width: 768px) {
-    .qr-preview {
-        max-width: calc(100vw - 4rem);
-        min-height: auto;
-    }
-    
     .qr-preview.size-200 {
-        max-width: calc(100vw - 4rem);
-        min-height: auto;
-        aspect-ratio: 1;
+        width: min(280px, calc(100vw - 4rem));
+        height: min(280px, calc(100vw - 4rem));
         max-height: 50vh;
     }
     
     .qr-preview.size-300 {
-        max-width: calc(100vw - 4rem);
-        min-height: auto;
-        aspect-ratio: 1;
+        width: min(380px, calc(100vw - 4rem));
+        height: min(380px, calc(100vw - 4rem));
         max-height: 60vh;
     }
     
     .qr-preview.size-500 {
-        max-width: calc(100vw - 4rem);
-        min-height: auto;
-        aspect-ratio: 1;
+        width: min(580px, calc(100vw - 4rem));
+        height: min(580px, calc(100vw - 4rem));
         max-height: 65vh;
-    }
-    
-    .qr-preview.size-800 {
-        max-width: calc(100vw - 4rem);
-        min-height: auto;
-        aspect-ratio: 1;
-        max-height: 70vh; /* Passt jetzt ins Bild */
     }
 }
 
-/* Sehr kleine Mobile-Geräte */
+/* Sehr kleine Mobile-Geräte (480px und kleiner) */
 @media (max-width: 480px) {
     .qr-preview {
-        max-width: calc(100vw - 2rem);
         padding: var(--space-16);
     }
     
-    .qr-preview.size-200,
-    .qr-preview.size-300,
-    .qr-preview.size-500,
-    .qr-preview.size-800 {
-        max-width: calc(100vw - 2rem);
-        min-height: auto;
-        aspect-ratio: 1;
-        max-height: 65vh; /* Optimiert für kleine Screens */
-        padding: var(--space-16);
+    .qr-preview.size-200 {
+        width: calc(100vw - 2rem);
+        height: calc(100vw - 2rem);
+        max-height: 45vh;
+    }
+    
+    .qr-preview.size-300 {
+        width: calc(100vw - 2rem);
+        height: calc(100vw - 2rem);
+        max-height: 55vh;
+    }
+    
+    .qr-preview.size-500 {
+        width: calc(100vw - 2rem);
+        height: calc(100vw - 2rem);
+        max-height: 60vh;
     }
     
     .size-indicator {
         top: var(--space-8);
         right: var(--space-8);
         padding: var(--space-4) var(--space-8);
-        font-size: var(--font-size-xs);
     }
 }
 
 /* ==========================================
-   GENERATOR-CONTAINER ANPASSUNGEN
+   GENERATOR-CONTAINER OPTIMIERUNGEN
    ========================================== */
 
-/* Generator Preview Container */
 .generator-preview {
-    transition: all var(--duration-normal) var(--ease-standard);
-    overflow-x: visible;
-    overflow-y: visible;
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 100%;
+    overflow: visible;
 }
 
 .preview-container {
-    transition: all var(--duration-normal) var(--ease-standard);
     width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    max-width: 900px; /* Desktop: Breitere Container */
+    max-width: 700px;
     margin: 0 auto;
 }
 
@@ -3617,44 +3593,10 @@ select.form-control {
     font-size: var(--font-size-lg);
 }
 
-/* Desktop: Horizontal Scrollen für sehr große QR Codes */
-@media (min-width: 769px) {
-    .generator-preview {
-        overflow-x: auto;
-    }
-    
-    .qr-preview.size-800 {
-        margin: 0; /* Zentriert im scrollbaren Container */
-    }
-}
-
-/* Scrollbar-Styling für Desktop */
-.generator-preview::-webkit-scrollbar {
-    height: 8px;
-}
-
-.generator-preview::-webkit-scrollbar-track {
-    background: var(--color-secondary);
-    border-radius: var(--radius-base);
-}
-
-.generator-preview::-webkit-scrollbar-thumb {
-    background: var(--color-border);
-    border-radius: var(--radius-base);
-}
-
-.generator-preview::-webkit-scrollbar-thumb:hover {
-    background: var(--color-primary);
-}
-
 /* Dark Mode Anpassungen */
 @media (prefers-color-scheme: dark) {
     .qr-preview {
         background: var(--color-surface);
         border-color: var(--color-card-border);
-    }
-    
-    .size-indicator {
-        background: rgba(var(--color-teal-500-rgb), 0.9);
     }
 }

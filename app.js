@@ -40,6 +40,22 @@ class QRProApp {
   this.scannerPaused = false;
   this.librariesLoaded = false;
   this.isOnline = navigator.onLine;
+
+  // SVG Icons hinzufügen
+        this.SVG_ICONS = {
+            qr_generated: `
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 11h8V3H3v8zm2-6h4v4H5V5zM3 21h8v-8H3v8zm2-6h4v4H5v-4zM13 3v8h8V3h-8zm6 6h-4V5h4v4zM19 13h2v2h-2zM13 13h2v2h-2zM15 15h2v2h-2zM13 17h2v2h-2zM15 19h2v2h-2zM17 17h2v2h-2zM17 19h2v2h-2zM19 17h2v2h-2z"/>
+                </svg>
+            `,
+            
+            qr_scanned: `
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M9.5 6.5v3h-3v-3h3M11 5H5v6h6V5zm-1.5 9.5v3h-3v-3h3M11 13H5v6h6v-6zm6.5-6.5v3h-3v-3h3M19 5h-6v6h6V5zm-6 8h1.5v1.5H13V13zm1.5 1.5H16V16h-1.5v-1.5zM16 13h1.5v1.5H16V13zm-3 3h1.5v1.5H13V16zm1.5 1.5H16V19h-1.5v-1.5zM16 16h1.5v1.5H16V16zm1.5-3H19V16h-1.5v-3zm0 4.5H19V19h-1.5v-1.5z"/>
+                    <path d="M22 16.74l-7-3.5v2.59L17.59 17 15 19.59v2.59l7-3.5V16.74z"/>
+                </svg>
+            `
+        };
     
     this.init();
   }
@@ -1072,6 +1088,7 @@ displayHistory(historyItems = null) {
     
     console.log(`🔍 Zeige ${historyItems.length} Historie-Einträge an`);
     
+    // Empty State anzeigen wenn keine Items vorhanden
     if (historyItems.length === 0) {
         historyList.innerHTML = `
             <div class="empty-state">
@@ -1091,34 +1108,46 @@ displayHistory(historyItems = null) {
         return;
     }
 
+    // Historie-Items rendern
     historyList.innerHTML = historyItems.map(item => {
-        const iconClass = item.type === 'generated' ? 'qr_code' : 'qr_code_scanner';
+        // SVG Icons verwenden
+        const iconType = item.type === 'generated' ? 'qr_generated' : 'qr_scanned';
+        const iconColor = item.type === 'generated' ? '#4CAF50' : '#2196F3';
+        const iconHtml = this.renderIcon(iconType, 24, iconColor);
+        
         const typeLabel = item.type === 'generated' ? 'Erstellt' : 'Gescannt';
         const typeClass = item.type === 'generated' ? 'type-generated' : 'type-scanned';
+        const borderColor = item.type === 'generated' ? '#4CAF50' : '#2196F3';
         const backgroundColor = item.type === 'generated' ? '#e8f5e8' : '#e8f0ff';
         
+        // Content für Buttons HTML-escaped
+        const escapedContent = this.escapeHtml(item.content || '');
+        
         return `
-            <div class="history-item" data-id="${item.id}" style="border-left: 4px solid ${item.type === 'generated' ? '#4CAF50' : '#2196F3'}">
+            <div class="history-item" data-id="${item.id}" data-type="${item.type}" style="border-left: 4px solid ${borderColor}">
                 <div class="history-icon" style="background: ${backgroundColor}">
-                    <span class="material-icons" style="color: ${item.type === 'generated' ? '#4CAF50' : '#2196F3'}">${iconClass}</span>
+                    ${iconHtml}
                 </div>
                 <div class="history-content">
                     <div class="history-header">
                         <span class="history-type ${typeClass}">${typeLabel}</span>
                         <span class="history-date">${this.formatDate(item.timestamp)}</span>
                     </div>
-                    <div class="history-text" title="${item.content}">${this.truncateText(item.content, 60)}</div>
+                    <div class="history-text" title="${escapedContent}">
+                        ${this.truncateText(item.content || '', 60)}
+                    </div>
                     ${item.qrType ? `<div class="history-qr-type">Typ: ${item.qrType}</div>` : ''}
                     ${item.size ? `<div class="history-meta">Größe: ${item.size}px</div>` : ''}
+                    ${item.color && item.color !== '#000000' ? `<div class="history-meta">Farbe: ${item.color}</div>` : ''}
                 </div>
                 <div class="history-actions">
-                    <button class="btn-icon history-copy-btn" data-content="${item.content}" title="Kopieren">
+                    <button class="btn-icon history-copy-btn" data-content="${escapedContent}" title="Kopieren">
                         <span class="material-icons">content_copy</span>
                     </button>
-                    <button class="btn-icon history-regenerate-btn" data-content="${item.content}" title="Neu generieren">
+                    <button class="btn-icon history-regenerate-btn" data-content="${escapedContent}" title="Neu generieren">
                         <span class="material-icons">refresh</span>
                     </button>
-                    <button class="btn-icon history-share-btn" data-content="${item.content}" title="Teilen">
+                    <button class="btn-icon history-share-btn" data-content="${escapedContent}" title="Teilen">
                         <span class="material-icons">share</span>
                     </button>
                     <button class="btn-icon history-delete-btn" data-id="${item.id}" title="Löschen">
@@ -1129,7 +1158,19 @@ displayHistory(historyItems = null) {
         `;
     }).join('');
     
-    console.log('✅ Historie-Anzeige aktualisiert');
+    console.log('✅ Historie-Anzeige mit SVG-Icons aktualisiert');
+}
+
+// Hilfsmethode zum HTML-Escaping
+escapeHtml(unsafe) {
+    if (typeof unsafe !== 'string') return '';
+    
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
 updateHistoryStats(items) {
@@ -1151,18 +1192,29 @@ updateHistoryStats(items) {
     }
 }
 
-formatDate(date) {
-    const today = new Date().toDateString();
-    const yesterday = new Date(Date.now() - 86400000).toDateString();
-    const targetDate = new Date(date).toDateString();
+// Hilfsmethode zum Formatieren des Datums
+formatDate(timestamp) {
+    if (!timestamp) return 'Unbekannt';
     
-    if (targetDate === today) return 'Heute';
-    if (targetDate === yesterday) return 'Gestern';
-    return new Date(date).toLocaleDateString('de-DE', { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) return 'Gerade eben';
+    if (diffMins < 60) return `vor ${diffMins} Min`;
+    if (diffHours < 24) return `vor ${diffHours} Std`;
+    if (diffDays < 7) return `vor ${diffDays} Tag${diffDays === 1 ? '' : 'en'}`;
+    
+    // Absolute Datumsformatierung für ältere Einträge
+    return date.toLocaleDateString('de-DE', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
     });
 }
 
@@ -2786,20 +2838,11 @@ updateRecentActivities() {
     recentList.innerHTML = `<div class="activity-list">${activitiesHTML}</div>`;
 }
 
-// Hilfsfunktionen
+// Hilfsmethode zum Verkürzen von Text
 truncateText(text, maxLength) {
-    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
-}
-
-formatTime(timestamp) {
-    const now = new Date();
-    const time = new Date(timestamp);
-    const diffInMinutes = Math.floor((now - time) / (1000 * 60));
-    
-    if (diffInMinutes < 1) return 'Gerade eben';
-    if (diffInMinutes < 60) return `vor ${diffInMinutes}min`;
-    if (diffInMinutes < 1440) return `vor ${Math.floor(diffInMinutes / 60)}h`;
-    return `vor ${Math.floor(diffInMinutes / 1440)} Tag(en)`;
+    if (!text || typeof text !== 'string') return '';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
 }
 
 // Statistik-Methoden für Dashboard
@@ -2865,45 +2908,6 @@ getTodayActiveCount() {
 getTemplatesCount() {
   return this.templates ? this.templates.length : 0;
 }
-
-  updateRecentActivity() {
-    const recentItems = document.getElementById('recent-items');
-    const allActivity = [...this.qrHistory, ...this.scanHistory]
-      .sort((a, b) => b.timestamp - a.timestamp)
-      .slice(0, 5);
-    
-    if (allActivity.length === 0) {
-      recentItems.innerHTML = '<div class="empty-state">Noch keine QR Codes erstellt</div>';
-      return;
-    }
-    
-    recentItems.innerHTML = allActivity.map(item => `
-      <div class="activity-item">
-        <div class="activity-icon ${item.type === 'generated' ? 'primary' : 'success'}">
-          ${item.type === 'generated' ? '📱' : '🔍'}
-        </div>
-        <div class="activity-content">
-          <div class="activity-title">${item.type === 'generated' ? 'QR Code generiert' : 'QR Code gescannt'}</div>
-          <div class="activity-text">${item.content.length > 40 ? item.content.substring(0, 40) + '...' : item.content}</div>
-        </div>
-        <div class="activity-time">${this.formatTime(item.timestamp)}</div>
-      </div>
-    `).join('');
-  }
-
-  // Utility Functions
-  formatTime(timestamp) {
-    const now = Date.now();
-    const diff = now - timestamp;
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
-    
-    if (minutes < 1) return 'Gerade eben';
-    if (minutes < 60) return `vor ${minutes}m`;
-    if (hours < 24) return `vor ${hours}h`;
-    return `vor ${days}d`;
-  }
 
   showToast(message, type = 'info', duration = 3000, actions = []) {
     const toast = document.createElement('div');
@@ -3654,6 +3658,18 @@ previewTemplate(template) {
     // Temporäre Vorschau ohne Anwendung
     this.showToast(`Vorschau: ${template.name}`, 'info');
 }
+
+// Funktion zum Rendern der SVG-Icons
+renderIcon(iconType, size = 24, color = 'currentColor') {
+        const iconSvg = this.SVG_ICONS[iconType];
+        if (!iconSvg) return '';
+        
+        return `
+            <div class="svg-icon" style="width: ${size}px; height: ${size}px; color: ${color};">
+                ${iconSvg}
+            </div>
+        `;
+    }
 }
 
 // Initialize app when DOM is loaded

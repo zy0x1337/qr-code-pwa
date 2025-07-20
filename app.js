@@ -38,6 +38,7 @@ class QRProApp {
     await this.loadLibraries();
     this.registerServiceWorker();
     this.setupQRTypeHandler();
+    this.setupDashboardActions();
   }
 
   async registerServiceWorker() {
@@ -2053,6 +2054,451 @@ clearContentSuggestions() {
         contentSuggestions.style.display = 'none';
         contentSuggestions.innerHTML = '';
     }
+}
+
+// Dashboard Schnellaktionen Setup
+setupDashboardActions() {
+    const actionCards = document.querySelectorAll('.action-card');
+    
+    actionCards.forEach(card => {
+        card.addEventListener('click', (e) => {
+            const action = card.dataset.action;
+            this.handleDashboardAction(action);
+        });
+    });
+}
+
+// Dashboard Aktionen Handler
+handleDashboardAction(action) {
+    switch (action) {
+        case 'open-generator':
+            this.openGenerator();
+            break;
+        case 'start-scanner':
+            this.startScanner();
+            break;
+        case 'show-templates':
+            this.showTemplates();
+            break;
+        case 'show-history':
+            this.showHistory();
+            break;
+        default:
+            console.log('Unbekannte Aktion:', action);
+    }
+}
+
+// QR Generator öffnen
+openGenerator() {
+    // Zur Generator-Seite wechseln
+    this.showPage('generator');
+    
+    // Optional: Focus auf Inhalt-Textarea setzen
+    setTimeout(() => {
+        const contentInput = document.getElementById('qr-content');
+        if (contentInput) {
+            contentInput.focus();
+        }
+    }, 300);
+    
+    // Toast-Feedback
+    if (typeof this.showToast === 'function') {
+        this.showToast('QR Generator geöffnet', 'info', 2000);
+    }
+}
+
+// QR Scanner starten
+startScanner() {
+    // Zur Scanner-Seite wechseln
+    this.showPage('scanner');
+    
+    // Scanner automatisch starten nach kurzer Verzögerung
+    setTimeout(() => {
+        const startScannerBtn = document.getElementById('start-scanner');
+        if (startScannerBtn && !startScannerBtn.disabled) {
+            startScannerBtn.click();
+        }
+    }, 500);
+    
+    // Toast-Feedback
+    if (typeof this.showToast === 'function') {
+        this.showToast('Scanner wird gestartet...', 'info', 2000);
+    }
+}
+
+// Templates anzeigen
+showTemplates() {
+    // Template-Modal oder Generator mit Template-Auswahl öffnen
+    this.showPage('generator');
+    
+    // Template-Button in erweiterten Features aktivieren
+    setTimeout(() => {
+        const templateBtn = document.querySelector('[data-feature="templates"]');
+        if (templateBtn) {
+            templateBtn.click();
+        }
+    }, 300);
+    
+    // Template-Modal erstellen falls nicht vorhanden
+    this.createTemplateModal();
+    
+    // Toast-Feedback
+    if (typeof this.showToast === 'function') {
+        this.showToast('Templates werden geladen...', 'info', 2000);
+    }
+}
+
+// Verlauf anzeigen
+showHistory() {
+    // Zur History-Seite wechseln
+    this.showPage('history');
+    
+    // Optional: History aktualisieren
+    this.refreshHistory();
+    
+    // Toast-Feedback
+    if (typeof this.showToast === 'function') {
+        this.showToast('Verlauf geöffnet', 'info', 2000);
+    }
+}
+
+// Template-Modal erstellen
+createTemplateModal() {
+    // Prüfen ob Modal bereits existiert
+    if (document.getElementById('template-modal')) return;
+    
+    const templateModal = document.createElement('div');
+    templateModal.id = 'template-modal';
+    templateModal.className = 'modal';
+    templateModal.innerHTML = `
+        <div class="modal-content template-modal-content">
+            <div class="modal-header">
+                <h2>QR Code Templates</h2>
+                <button class="modal-close" id="close-template-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="template-categories">
+                    <button class="template-category active" data-category="business">
+                        <span class="category-icon">💼</span>
+                        Business
+                    </button>
+                    <button class="template-category" data-category="social">
+                        <span class="category-icon">📱</span>
+                        Social Media
+                    </button>
+                    <button class="template-category" data-category="personal">
+                        <span class="category-icon">👤</span>
+                        Persönlich
+                    </button>
+                    <button class="template-category" data-category="event">
+                        <span class="category-icon">🎉</span>
+                        Events
+                    </button>
+                </div>
+                
+                <div class="template-grid" id="template-grid">
+                    ${this.generateTemplateItems('business')}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(templateModal);
+    
+    // Event Listeners für Template-Modal
+    this.setupTemplateModalEvents();
+    
+    // Modal anzeigen
+    templateModal.style.display = 'flex';
+}
+
+// Template-Items generieren
+generateTemplateItems(category) {
+    const templates = {
+        business: [
+            {
+                name: 'Visitenkarte',
+                description: 'Komplette Kontaktdaten',
+                icon: '👤',
+                type: 'vcard',
+                content: `BEGIN:VCARD
+VERSION:3.0
+FN:Max Mustermann
+ORG:Muster GmbH
+TEL:+49123456789
+EMAIL:max@beispiel.de
+URL:https://www.beispiel.de
+END:VCARD`
+            },
+            {
+                name: 'Website',
+                description: 'Firmen-Homepage',
+                icon: '🌐',
+                type: 'url',
+                content: 'https://www.ihr-unternehmen.de'
+            },
+            {
+                name: 'E-Mail Kontakt',
+                description: 'Direkte E-Mail',
+                icon: '📧',
+                type: 'email',
+                content: 'mailto:kontakt@firma.de?subject=Anfrage'
+            },
+            {
+                name: 'WiFi Zugang',
+                description: 'WLAN-Zugangsdaten',
+                icon: '📶',
+                type: 'wifi',
+                content: 'WIFI:T:WPA;S:Firma-WLAN;P:passwort123;H:false;;'
+            }
+        ],
+        social: [
+            {
+                name: 'Instagram Profil',
+                description: 'Instagram Account',
+                icon: '📷',
+                type: 'url',
+                content: 'https://instagram.com/ihr_account'
+            },
+            {
+                name: 'LinkedIn Profil',
+                description: 'Berufliches Netzwerk',
+                icon: '💼',
+                type: 'url',
+                content: 'https://linkedin.com/in/ihr-profil'
+            },
+            {
+                name: 'WhatsApp Chat',
+                description: 'Direkte Nachricht',
+                icon: '💬',
+                type: 'url',
+                content: 'https://wa.me/49123456789?text=Hallo'
+            },
+            {
+                name: 'YouTube Kanal',
+                description: 'Video-Content',
+                icon: '📺',
+                type: 'url',
+                content: 'https://youtube.com/c/ihr-kanal'
+            }
+        ],
+        personal: [
+            {
+                name: 'Persönliche Kontakte',
+                description: 'Private Visitenkarte',
+                icon: '👨‍👩‍👧‍👦',
+                type: 'vcard',
+                content: `BEGIN:VCARD
+VERSION:3.0
+FN:Max Mustermann
+TEL:+49123456789
+EMAIL:max@private.de
+END:VCARD`
+            },
+            {
+                name: 'SMS Nachricht',
+                description: 'Vordefinierte SMS',
+                icon: '💌',
+                type: 'sms',
+                content: 'sms:+49123456789?body=Hallo, hier ist meine Nachricht!'
+            }
+        ],
+        event: [
+            {
+                name: 'Event-Einladung',
+                description: 'Veranstaltungslink',
+                icon: '🎉',
+                type: 'url',
+                content: 'https://eventbrite.com/e/ihr-event'
+            },
+            {
+                name: 'Kalender-Termin',
+                description: 'Termin hinzufügen',
+                icon: '📅',
+                type: 'text',
+                content: 'Termin: Workshop am 15.12.2024 um 14:00 Uhr'
+            }
+        ]
+    };
+    
+    const categoryTemplates = templates[category] || templates.business;
+    
+    return categoryTemplates.map(template => `
+        <div class="template-item" data-template='${JSON.stringify(template)}'>
+            <div class="template-icon">${template.icon}</div>
+            <div class="template-info">
+                <h4>${template.name}</h4>
+                <p>${template.description}</p>
+            </div>
+            <button class="btn btn--sm btn--primary use-template-btn">
+                Verwenden
+            </button>
+        </div>
+    `).join('');
+}
+
+// Template-Modal Events Setup
+setupTemplateModalEvents() {
+    const templateModal = document.getElementById('template-modal');
+    
+    // Modal schließen
+    const closeBtn = document.getElementById('close-template-modal');
+    closeBtn.addEventListener('click', () => {
+        templateModal.style.display = 'none';
+    });
+    
+    // Outside-Click zum Schließen
+    templateModal.addEventListener('click', (e) => {
+        if (e.target === templateModal) {
+            templateModal.style.display = 'none';
+        }
+    });
+    
+    // Kategorie-Wechsel
+    const categoryBtns = document.querySelectorAll('.template-category');
+    categoryBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Aktive Kategorie wechseln
+            categoryBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Template-Grid aktualisieren
+            const category = btn.dataset.category;
+            const templateGrid = document.getElementById('template-grid');
+            templateGrid.innerHTML = this.generateTemplateItems(category);
+            
+            // Event Listeners für neue Template-Items
+            this.setupTemplateItemEvents();
+        });
+    });
+    
+    // Template-Item Events
+    this.setupTemplateItemEvents();
+}
+
+// Template-Item Events Setup
+setupTemplateItemEvents() {
+    const templateItems = document.querySelectorAll('.template-item');
+    
+    templateItems.forEach(item => {
+        const useBtn = item.querySelector('.use-template-btn');
+        useBtn.addEventListener('click', () => {
+            const templateData = JSON.parse(item.dataset.template);
+            this.useTemplate(templateData);
+        });
+    });
+}
+
+// Template verwenden
+useTemplate(templateData) {
+    // Modal schließen
+    const templateModal = document.getElementById('template-modal');
+    templateModal.style.display = 'none';
+    
+    // Zur Generator-Seite wechseln falls nicht bereits dort
+    this.showPage('generator');
+    
+    // Template-Daten in Generator einfügen
+    setTimeout(() => {
+        const qrTypeSelect = document.getElementById('qr-type');
+        const qrContentTextarea = document.getElementById('qr-content');
+        
+        if (qrTypeSelect) {
+            qrTypeSelect.value = templateData.type;
+            
+            // QR-Type Change Event triggern
+            const changeEvent = new Event('change', { bubbles: true });
+            qrTypeSelect.dispatchEvent(changeEvent);
+        }
+        
+        if (qrContentTextarea) {
+            qrContentTextarea.value = templateData.content;
+            
+            // Content Change Event triggern für Live-Preview
+            const inputEvent = new Event('input', { bubbles: true });
+            qrContentTextarea.dispatchEvent(inputEvent);
+        }
+        
+        // QR Code generieren
+        const generateBtn = document.getElementById('generate-btn');
+        if (generateBtn) {
+            generateBtn.click();
+        }
+        
+        // Erfolg-Toast
+        if (typeof this.showToast === 'function') {
+            this.showToast(`Template "${templateData.name}" wurde angewendet!`, 'success', 3000);
+        }
+    }, 300);
+}
+
+// History aktualisieren
+refreshHistory() {
+    // History-Daten aus localStorage laden
+    const historyItems = JSON.parse(localStorage.getItem('qr-history') || '[]');
+    const historyList = document.getElementById('history-list');
+    
+    if (!historyList) return;
+    
+    if (historyItems.length === 0) {
+        historyList.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">📋</div>
+                <p>Keine QR Codes im Verlauf</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // History-Items rendern
+    historyList.innerHTML = historyItems.map(item => `
+        <div class="history-item" data-id="${item.id}">
+            <div class="history-icon">
+                ${this.getTypeIcon(item.type)}
+            </div>
+            <div class="history-content">
+                <div class="history-title">${item.title || item.type}</div>
+                <div class="history-preview">${item.content.substring(0, 50)}${item.content.length > 50 ? '...' : ''}</div>
+                <div class="history-date">${new Date(item.timestamp).toLocaleDateString()}</div>
+            </div>
+            <div class="history-actions">
+                <button class="btn btn--sm btn--outline" onclick="app.regenerateFromHistory('${item.id}')">
+                    Erneut verwenden
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Type-Icon ermitteln
+getTypeIcon(type) {
+    const icons = {
+        url: '🌐',
+        text: '📝',
+        email: '📧',
+        phone: '📞',
+        sms: '💬',
+        wifi: '📶',
+        vcard: '👤'
+    };
+    return icons[type] || '📄';
+}
+
+// Aus History regenerieren
+regenerateFromHistory(itemId) {
+    const historyItems = JSON.parse(localStorage.getItem('qr-history') || '[]');
+    const item = historyItems.find(h => h.id === itemId);
+    
+    if (!item) return;
+    
+    // Template-ähnliche Struktur erstellen
+    const templateData = {
+        name: item.title || item.type,
+        type: item.type,
+        content: item.content
+    };
+    
+    this.useTemplate(templateData);
 }
 }
 

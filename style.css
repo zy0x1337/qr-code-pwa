@@ -3418,9 +3418,10 @@ select.form-control {
 }
 
 /* ==========================================
-   KORRIGIERTE DYNAMISCHE VORSCHAU-GRÖSSEN
+   QR VORSCHAU - DESKTOP/MOBILE OPTIMIERT
    ========================================== */
 
+/* Basis-Vorschau (Desktop-optimiert) */
 .qr-preview {
     background: var(--color-surface);
     backdrop-filter: blur(12px);
@@ -3435,50 +3436,57 @@ select.form-control {
     position: relative;
     overflow: hidden;
     margin: 0 auto;
+    /* DESKTOP: Größere Standard-Dimensionen */
+    max-width: 600px;
+    min-height: 400px;
 }
 
-/* Korrekte Größenanpassungen */
+/* Desktop-optimierte Größenklassen */
 .qr-preview.size-200 {
-    min-height: 240px;
-    max-width: 240px;
+    max-width: 280px;
+    min-height: 280px;
     padding: var(--space-20);
 }
 
 .qr-preview.size-300 {
-    min-height: 340px;
-    max-width: 340px;
+    max-width: 380px;
+    min-height: 380px;
     padding: var(--space-24);
 }
 
 .qr-preview.size-500 {
-    min-height: 540px;
-    max-width: 540px;
-    padding: var(--space-24);
+    max-width: 580px;
+    min-height: 580px;
+    padding: var(--space-28);
 }
 
 .qr-preview.size-800 {
-    min-height: 840px;
-    max-width: 840px;
+    max-width: 880px;
+    min-height: 880px;
     padding: var(--space-32);
 }
 
-/* QR Code Container innerhalb der Vorschau */
-.qr-preview > div:not(.size-indicator) {
+/* QR Code Container optimiert */
+.qr-preview > div:not(.size-indicator):not(.preview-placeholder) {
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
     width: 100% !important;
     height: 100% !important;
+    max-width: 100% !important;
 }
 
 .qr-preview canvas,
 .qr-preview img {
     max-width: 100% !important;
+    max-height: 100% !important;
+    width: auto !important;
     height: auto !important;
     display: block !important;
+    object-fit: contain !important;
 }
 
-/* Verbesserte Größen-Indikator Positionierung */
+/* Größen-Indikator */
 .size-indicator {
     position: absolute;
     top: var(--space-12);
@@ -3502,34 +3510,71 @@ select.form-control {
     transform: translateY(0);
 }
 
-/* Responsive Anpassungen für große QR Codes */
+/* ==========================================
+   RESPONSIVE MOBILE ANPASSUNGEN
+   ========================================== */
+
+/* Tablet-Ansicht */
 @media (max-width: 1024px) {
     .qr-preview.size-800 {
-        max-width: calc(100vw - 6rem);
+        max-width: calc(100vw - 8rem);
         min-height: auto;
         aspect-ratio: 1;
         max-height: 80vh;
     }
 }
 
+/* Mobile Optimierungen */
 @media (max-width: 768px) {
-    .qr-preview.size-500,
+    .qr-preview {
+        max-width: calc(100vw - 4rem);
+        min-height: auto;
+    }
+    
+    .qr-preview.size-200 {
+        max-width: calc(100vw - 4rem);
+        min-height: auto;
+        aspect-ratio: 1;
+        max-height: 50vh;
+    }
+    
+    .qr-preview.size-300 {
+        max-width: calc(100vw - 4rem);
+        min-height: auto;
+        aspect-ratio: 1;
+        max-height: 60vh;
+    }
+    
+    .qr-preview.size-500 {
+        max-width: calc(100vw - 4rem);
+        min-height: auto;
+        aspect-ratio: 1;
+        max-height: 65vh;
+    }
+    
     .qr-preview.size-800 {
         max-width: calc(100vw - 4rem);
         min-height: auto;
         aspect-ratio: 1;
-        max-height: 70vh;
+        max-height: 70vh; /* Passt jetzt ins Bild */
     }
 }
 
+/* Sehr kleine Mobile-Geräte */
 @media (max-width: 480px) {
+    .qr-preview {
+        max-width: calc(100vw - 2rem);
+        padding: var(--space-16);
+    }
+    
+    .qr-preview.size-200,
     .qr-preview.size-300,
     .qr-preview.size-500,
     .qr-preview.size-800 {
         max-width: calc(100vw - 2rem);
         min-height: auto;
         aspect-ratio: 1;
-        max-height: 60vh;
+        max-height: 65vh; /* Optimiert für kleine Screens */
         padding: var(--space-16);
     }
     
@@ -3537,14 +3582,22 @@ select.form-control {
         top: var(--space-8);
         right: var(--space-8);
         padding: var(--space-4) var(--space-8);
+        font-size: var(--font-size-xs);
     }
 }
 
-/* Generator-Container Anpassung für große Vorschauen */
+/* ==========================================
+   GENERATOR-CONTAINER ANPASSUNGEN
+   ========================================== */
+
+/* Generator Preview Container */
 .generator-preview {
     transition: all var(--duration-normal) var(--ease-standard);
-    overflow-x: auto;
+    overflow-x: visible;
     overflow-y: visible;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .preview-container {
@@ -3553,14 +3606,29 @@ select.form-control {
     display: flex;
     flex-direction: column;
     align-items: center;
+    max-width: 900px; /* Desktop: Breitere Container */
+    margin: 0 auto;
 }
 
 .preview-container h3 {
     margin-bottom: var(--space-16);
     text-align: center;
+    color: var(--color-text);
+    font-size: var(--font-size-lg);
 }
 
-/* Scrollbar-Styling für große Vorschauen */
+/* Desktop: Horizontal Scrollen für sehr große QR Codes */
+@media (min-width: 769px) {
+    .generator-preview {
+        overflow-x: auto;
+    }
+    
+    .qr-preview.size-800 {
+        margin: 0; /* Zentriert im scrollbaren Container */
+    }
+}
+
+/* Scrollbar-Styling für Desktop */
 .generator-preview::-webkit-scrollbar {
     height: 8px;
 }
@@ -3577,4 +3645,16 @@ select.form-control {
 
 .generator-preview::-webkit-scrollbar-thumb:hover {
     background: var(--color-primary);
+}
+
+/* Dark Mode Anpassungen */
+@media (prefers-color-scheme: dark) {
+    .qr-preview {
+        background: var(--color-surface);
+        border-color: var(--color-card-border);
+    }
+    
+    .size-indicator {
+        background: rgba(var(--color-teal-500-rgb), 0.9);
+    }
 }

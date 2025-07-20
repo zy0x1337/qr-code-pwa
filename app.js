@@ -2088,47 +2088,52 @@ class QRCustomization {
         }
     }
 
-    // Verbesserte dynamische Vorschau-Größe
-    updatePreviewSize(size) {
-        const preview = document.querySelector('.qr-preview');
+    // Vorschau-Größenanpassung
+updatePreviewSize(size) {
+    const preview = document.querySelector('.qr-preview');
+    const generatorPreview = document.querySelector('.generator-preview');
+    
+    if (preview) {
+        // Alle Size-Klassen entfernen
+        const sizeClasses = ['size-200', 'size-300', 'size-500', 'size-800'];
+        sizeClasses.forEach(className => {
+            preview.classList.remove(className);
+        });
         
-        if (preview) {
-            // Alle Size-Klassen entfernen
-            const sizeClasses = ['size-200', 'size-300', 'size-500', 'size-800'];
-            sizeClasses.forEach(className => {
-                preview.classList.remove(className);
-            });
-            
-            // Neue Size-Klasse hinzufügen
-            preview.classList.add(`size-${size}`);
-            
-            // Größen-Indikator hinzufügen/aktualisieren
-            let sizeIndicator = preview.querySelector('.size-indicator');
-            if (!sizeIndicator) {
-                sizeIndicator = document.createElement('div');
-                sizeIndicator.className = 'size-indicator';
-                preview.appendChild(sizeIndicator);
-            }
-            
-            const sizeNames = {
-                '200': 'Klein (200px)',
-                '300': 'Mittel (300px)', 
-                '500': 'Groß (500px)',
-                '800': 'Sehr groß (800px)' // Jetzt kostenlos!
-            };
-            sizeIndicator.textContent = sizeNames[size] || `${size}px`;
-            
-            // Container-Größe für scrolling anpassen
-            const generatorPreview = document.querySelector('.generator-preview');
-            if (generatorPreview && parseInt(size) >= 500) {
+        // Neue Size-Klasse hinzufügen
+        preview.classList.add(`size-${size}`);
+        
+        // Desktop: Horizontal Scroll für große Sizes aktivieren
+        if (generatorPreview) {
+            const isMobile = window.innerWidth <= 768;
+            if (!isMobile && (size === '500' || size === '800')) {
                 generatorPreview.style.overflowX = 'auto';
-            } else if (generatorPreview) {
+                generatorPreview.style.paddingBottom = 'var(--space-16)';
+            } else {
                 generatorPreview.style.overflowX = 'visible';
+                generatorPreview.style.paddingBottom = '0';
             }
-            
-            console.log('Vorschau-Größe aktualisiert:', size);
         }
+        
+        // Größen-Indikator aktualisieren
+        let sizeIndicator = preview.querySelector('.size-indicator');
+        if (!sizeIndicator) {
+            sizeIndicator = document.createElement('div');
+            sizeIndicator.className = 'size-indicator';
+            preview.appendChild(sizeIndicator);
+        }
+        
+        const sizeNames = {
+            '200': 'Klein (200px)',
+            '300': 'Mittel (300px)', 
+            '500': 'Groß (500px)',
+            '800': 'Sehr groß (800px)'
+        };
+        sizeIndicator.textContent = sizeNames[size] || `${size}px`;
+        
+        console.log(`Vorschau-Größe aktualisiert: ${size}px`);
     }
+}
 
     // Verbesserte Preview-Aktualisierung mit korrekter Größe
     updatePreview() {

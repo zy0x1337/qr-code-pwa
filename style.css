@@ -3917,3 +3917,43 @@ select.form-control {
     padding: var(--space-2, 0.125rem) var(--space-6, 0.375rem);
     font-size: 0.625rem;
 }
+
+/* ANTI-DUPLIKATIONS CSS */
+.qr-preview {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Nur ein QR-Container erlaubt */
+.qr-single-wrapper {
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+/* Verstecke alle QR-Elemente außer dem ersten */
+.qr-preview canvas:not(:first-of-type),
+.qr-preview img:not(:first-of-type),
+.qr-preview table:not(:first-of-type) {
+    display: none !important;
+}
+
+/* Verhindere side-by-side Anordnung */
+.qr-single-container,
+.qr-single-container > * {
+    display: block !important;
+    width: auto !important;
+    text-align: center !important;
+}
+
+/* Falls trotzdem mehrere Container erscheinen */
+.qr-preview .qr-single-wrapper:not(:first-of-type) {
+    display: none !important;
+}
+
+/* Cleanup für alte Container-Klassen */
+.qr-code-wrapper:not(.qr-single-wrapper) {
+    display: none !important;
+}

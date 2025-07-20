@@ -3330,10 +3330,7 @@ select.form-control {
     }
 }
 
-/* ==========================================
-   HINTERGRUND-FARBVORAUSWAHL STYLING
-   ========================================== */
-
+/* Hintergrund-Farbvorauswahl */
 .bg-color-picker {
     display: flex;
     flex-direction: column;
@@ -3391,22 +3388,14 @@ select.form-control {
     text-shadow: 0 0 3px rgba(255, 255, 255, 0.8);
 }
 
-/* Spezielle Hintergrund-Presets */
+/* Sichtbare Hintergrund-Farben */
 .bg-preset--white {
     background: #ffffff;
+    border-color: #ddd;
 }
 
 .bg-preset--light-gray {
     background: #f8f9fa;
-}
-
-.bg-preset--transparent {
-    background: transparent;
-    background-image: 
-        linear-gradient(45deg, #ddd 25%, transparent 25%, transparent 75%, #ddd 75%),
-        linear-gradient(45deg, #ddd 25%, transparent 25%, transparent 75%, #ddd 75%);
-    background-size: 8px 8px;
-    background-position: 0 0, 4px 4px;
 }
 
 .bg-preset--cream {
@@ -3414,16 +3403,24 @@ select.form-control {
 }
 
 .bg-preset--light-blue {
-    background: #f0f9ff;
+    background: #e0f2fe;
 }
 
 .bg-preset--light-green {
-    background: #f0fdf4;
+    background: #ecfdf5;
 }
 
-/* Spezielle Behandlung für transparenten Hintergrund */
+.bg-preset--transparent {
+    background: white;
+    background-image: 
+        linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%),
+        linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%);
+    background-size: 8px 8px;
+    background-position: 0 0, 4px 4px;
+}
+
 .bg-preset--transparent.active::after {
-    color: #666;
+    color: #333;
     background: rgba(255, 255, 255, 0.9);
     border-radius: 50%;
     width: 16px;
@@ -3431,6 +3428,21 @@ select.form-control {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+/* Dark Mode Anpassungen */
+@media (prefers-color-scheme: dark) {
+    .bg-preset {
+        border-color: var(--color-card-border);
+    }
+    
+    .bg-preset:hover {
+        border-color: var(--color-primary);
+    }
+    
+    .bg-preset--white {
+        border-color: #666;
+    }
 }
 
 /* ==========================================

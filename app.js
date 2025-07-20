@@ -2046,7 +2046,7 @@ document.addEventListener('DOMContentLoaded', () => {
     new PWAInstaller();
 });
 
-// Erweiterte QR Customization mit Hintergrund-Presets und dynamischer Vorschau
+// QR Customization für Größe und Hintergrund
 class QRCustomization {
     constructor() {
         this.qrColor = '#000000';
@@ -2057,13 +2057,13 @@ class QRCustomization {
 
     init() {
         this.setupColorPresets();
-        this.setupBgColorPresets(); // NEU: Hintergrund-Presets
+        this.setupBgColorPresets();
         this.setupSizeSelector();
         this.setupColorPickers();
-        this.setupDynamicPreview(); // NEU: Dynamische Vorschau
+        this.setupDynamicPreview();
     }
 
-    // NEU: Hintergrund-Farbvorauswahl Setup
+    // Hintergrund-Preset Setup
     setupBgColorPresets() {
         const bgPresets = document.querySelectorAll('.bg-preset');
         const qrBgColorInput = document.getElementById('qr-bg-color');
@@ -2086,7 +2086,10 @@ class QRCustomization {
                 this.updatePreview();
                 
                 // Toast für Feedback
-                this.showBgColorToast(preset.title || bgColor);
+                const colorName = preset.title || bgColor;
+                if (typeof app !== 'undefined' && app.showToast) {
+                    app.showToast(`Hintergrund: ${colorName}`, 'info');
+                }
             });
         });
 
@@ -2097,40 +2100,7 @@ class QRCustomization {
         }
     }
 
-    // NEU: Dynamische Vorschau Setup
-    setupDynamicPreview() {
-        const preview = document.querySelector('.qr-preview');
-        if (preview) {
-            // Größen-Indikator hinzufügen
-            const sizeIndicator = document.createElement('div');
-            sizeIndicator.className = 'size-indicator';
-            preview.appendChild(sizeIndicator);
-        }
-    }
-
-    // Erweiterte Color Picker mit Hintergrund
-    setupColorPickers() {
-        const qrColorInput = document.getElementById('qr-color');
-        const qrBgColorInput = document.getElementById('qr-bg-color');
-
-        if (qrColorInput) {
-            qrColorInput.addEventListener('change', (e) => {
-                this.qrColor = e.target.value;
-                this.updateColorPresetSelection(e.target.value);
-                this.updatePreview();
-            });
-        }
-
-        if (qrBgColorInput) {
-            qrBgColorInput.addEventListener('change', (e) => {
-                this.qrBgColor = e.target.value;
-                this.updateBgPresetSelection(e.target.value);
-                this.updatePreview();
-            });
-        }
-    }
-
-    // Erweiterte Größenauswahl mit dynamischer Vorschau
+    // Korrigierte Größenauswahl
     setupSizeSelector() {
         const sizeSelector = document.getElementById('qr-size');
         
@@ -2138,25 +2108,30 @@ class QRCustomization {
             sizeSelector.addEventListener('change', (e) => {
                 const selectedSize = e.target.value;
                 
+                console.log('Größe gewählt:', selectedSize);
+                
                 // Premium-Check für große Größen
                 if (selectedSize === '800' && !this.hasPremium()) {
                     this.showPremiumModal();
-                    sizeSelector.value = this.qrSize;
+                    sizeSelector.value = this.qrSize; // Zurücksetzen
                     return;
                 }
                 
+                // Größe setzen
                 this.qrSize = selectedSize;
-                this.updatePreviewSize(selectedSize); // NEU: Dynamische Größe
+                this.updatePreviewSize(selectedSize);
                 this.updatePreview();
                 this.showSizeToast(selectedSize);
             });
+            
+            // Initial-Größe setzen
+            this.updatePreviewSize(this.qrSize);
         }
     }
 
-    // NEU: Vorschau-Größe dynamisch anpassen
+    // Dynamische Vorschau-Größe
     updatePreviewSize(size) {
         const preview = document.querySelector('.qr-preview');
-        const sizeIndicator = preview?.querySelector('.size-indicator');
         
         if (preview) {
             // Alte Size-Klassen entfernen
@@ -2165,20 +2140,27 @@ class QRCustomization {
             // Neue Size-Klasse hinzufügen
             preview.classList.add(`size-${size}`);
             
-            // Größen-Indikator aktualisieren
-            if (sizeIndicator) {
-                const sizeNames = {
-                    '200': 'Klein (200px)',
-                    '300': 'Mittel (300px)', 
-                    '500': 'Groß (500px)',
-                    '800': 'Sehr groß (800px)'
-                };
-                sizeIndicator.textContent = sizeNames[size] || `${size}px`;
+            // Größen-Indikator hinzufügen/aktualisieren
+            let sizeIndicator = preview.querySelector('.size-indicator');
+            if (!sizeIndicator) {
+                sizeIndicator = document.createElement('div');
+                sizeIndicator.className = 'size-indicator';
+                preview.appendChild(sizeIndicator);
             }
+            
+            const sizeNames = {
+                '200': 'Klein (200px)',
+                '300': 'Mittel (300px)', 
+                '500': 'Groß (500px)',
+                '800': 'Sehr groß (800px)'
+            };
+            sizeIndicator.textContent = sizeNames[size] || `${size}px`;
+            
+            console.log('Vorschau-Größe aktualisiert:', size);
         }
     }
 
-    // Erweiterte Preview-Aktualisierung mit Hintergrund-Support
+    // Erweiterte Preview-Aktualisierung
     updatePreview() {
         const content = document.getElementById('qr-content')?.value.trim();
         if (!content || !window.QRCode) return;
@@ -2190,6 +2172,9 @@ class QRCustomization {
             // QR Code Container erstellen
             const qrContainer = document.createElement('div');
             qrContainer.style.position = 'relative';
+            qrContainer.style.display = 'flex';
+            qrContainer.style.justifyContent = 'center';
+            qrContainer.style.alignItems = 'center';
             
             // Vorherigen QR Code löschen (aber Size-Indikator behalten)
             const sizeIndicator = preview.querySelector('.size-indicator');
@@ -2199,7 +2184,7 @@ class QRCustomization {
             }
             preview.appendChild(qrContainer);
 
-            // QR Code Optionen mit transparentem Hintergrund-Support
+            // QR Code Optionen mit korrekter Größe
             const qrOptions = {
                 text: content,
                 width: parseInt(this.qrSize),
@@ -2212,16 +2197,6 @@ class QRCustomization {
             // QR Code generieren
             const qr = new QRCode(qrContainer, qrOptions);
 
-            // Transparenten Hintergrund nachbearbeiten
-            if (this.qrBgColor === 'transparent') {
-                setTimeout(() => {
-                    const canvas = qrContainer.querySelector('canvas');
-                    if (canvas) {
-                        this.makeBackgroundTransparent(canvas);
-                    }
-                }, 100);
-            }
-
             console.log(`QR Preview aktualisiert: ${this.qrSize}px, ${this.qrColor} auf ${this.qrBgColor}`);
 
         } catch (error) {
@@ -2229,77 +2204,7 @@ class QRCustomization {
         }
     }
 
-    // NEU: Transparenten Hintergrund erstellen
-    makeBackgroundTransparent(canvas) {
-        const ctx = canvas.getContext('2d');
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imageData.data;
-
-        // Weiße Pixel transparent machen
-        for (let i = 0; i < data.length; i += 4) {
-            const r = data[i];
-            const g = data[i + 1];
-            const b = data[i + 2];
-            
-            // Wenn Pixel weiß oder fast weiß ist
-            if (r > 240 && g > 240 && b > 240) {
-                data[i + 3] = 0; // Alpha auf 0 (transparent)
-            }
-        }
-
-        ctx.putImageData(imageData, 0, 0);
-    }
-
-    // Hilfsmethoden für Preset-Auswahl Updates
-    updateColorPresetSelection(color) {
-        document.querySelectorAll('.color-preset').forEach(preset => {
-            if (preset.dataset.color === color) {
-                preset.classList.add('active');
-            } else {
-                preset.classList.remove('active');
-            }
-        });
-    }
-
-    updateBgPresetSelection(bgColor) {
-        document.querySelectorAll('.bg-preset').forEach(preset => {
-            if (preset.dataset.bgColor === bgColor) {
-                preset.classList.add('active');
-            } else {
-                preset.classList.remove('active');
-            }
-        });
-    }
-
-    // NEU: Toast für Hintergrundfarbe
-    showBgColorToast(colorName) {
-        if (typeof this.showToast === 'function') {
-            this.showToast(`Hintergrund: ${colorName}`, 'info');
-        }
-    }
-
-    // Erweiterte Einstellungen abrufen
-    getSettings() {
-        return {
-            color: this.qrColor,
-            bgColor: this.qrBgColor,
-            size: this.qrSize,
-            isTransparent: this.qrBgColor === 'transparent'
-        };
-    }
-
-    // NEU: Hintergrundfarbe setzen
-    setBgColor(bgColor) {
-        this.qrBgColor = bgColor;
-        const qrBgColorInput = document.getElementById('qr-bg-color');
-        if (qrBgColorInput && bgColor !== 'transparent') {
-            qrBgColorInput.value = bgColor;
-        }
-        this.updateBgPresetSelection(bgColor);
-        this.updatePreview();
-    }
-
-    // Bestehende Methoden bleiben unverändert...
+    // Farb-Presets Setup
     setupColorPresets() {
         const colorPresets = document.querySelectorAll('.color-preset');
         const qrColorInput = document.getElementById('qr-color');
@@ -2325,6 +2230,58 @@ class QRCustomization {
         }
     }
 
+    // Color Picker Setup
+    setupColorPickers() {
+        const qrColorInput = document.getElementById('qr-color');
+        const qrBgColorInput = document.getElementById('qr-bg-color');
+
+        if (qrColorInput) {
+            qrColorInput.addEventListener('change', (e) => {
+                this.qrColor = e.target.value;
+                this.updateColorPresetSelection(e.target.value);
+                this.updatePreview();
+            });
+        }
+
+        if (qrBgColorInput) {
+            qrBgColorInput.addEventListener('change', (e) => {
+                this.qrBgColor = e.target.value;
+                this.updateBgPresetSelection(e.target.value);
+                this.updatePreview();
+            });
+        }
+    }
+
+    // Dynamische Vorschau Setup
+    setupDynamicPreview() {
+        const preview = document.querySelector('.qr-preview');
+        if (preview) {
+            // Initial-Größe setzen
+            this.updatePreviewSize(this.qrSize);
+        }
+    }
+
+    // Hilfsmethoden
+    updateColorPresetSelection(color) {
+        document.querySelectorAll('.color-preset').forEach(preset => {
+            if (preset.dataset.color === color) {
+                preset.classList.add('active');
+            } else {
+                preset.classList.remove('active');
+            }
+        });
+    }
+
+    updateBgPresetSelection(bgColor) {
+        document.querySelectorAll('.bg-preset').forEach(preset => {
+            if (preset.dataset.bgColor === bgColor) {
+                preset.classList.add('active');
+            } else {
+                preset.classList.remove('active');
+            }
+        });
+    }
+
     showSizeToast(size) {
         const sizeNames = {
             '200': 'Klein',
@@ -2333,8 +2290,8 @@ class QRCustomization {
             '800': 'Sehr groß'
         };
 
-        if (typeof this.showToast === 'function') {
-            this.showToast(`QR Code Größe: ${sizeNames[size]} (${size}px)`, 'info');
+        if (typeof app !== 'undefined' && app.showToast) {
+            app.showToast(`QR Code Größe: ${sizeNames[size]} (${size}px)`, 'info');
         }
     }
 
@@ -2348,8 +2305,27 @@ class QRCustomization {
             modal.style.display = 'flex';
         }
         
-        if (typeof this.showToast === 'function') {
-            this.showToast('Premium-Feature: Große QR Codes (800px) benötigen Premium', 'warning');
+        if (typeof app !== 'undefined' && app.showToast) {
+            app.showToast('Premium-Feature: Große QR Codes (800px) benötigen Premium', 'warning');
         }
     }
+
+    // Öffentliche API
+    getSettings() {
+        return {
+            color: this.qrColor,
+            bgColor: this.qrBgColor,
+            size: this.qrSize,
+            isTransparent: this.qrBgColor === 'transparent'
+        };
+    }
 }
+
+// QR Customization initialisieren
+document.addEventListener('DOMContentLoaded', () => {
+    if (typeof app !== 'undefined') {
+        app.qrCustomization = new QRCustomization();
+    } else {
+        window.qrCustomization = new QRCustomization();
+    }
+});

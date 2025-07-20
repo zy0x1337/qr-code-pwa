@@ -56,6 +56,10 @@ class QRProApp {
     this.addHistoryFilters();
     this.setupHistoryEventListeners();
     this.updateDashboard();
+    // Initial History Load - falls die App direkt auf der History-Seite startet
+    if (this.currentPage === 'history') {
+        this.loadHistoryPage();
+    }
   }
 
   async registerServiceWorker() {
@@ -788,41 +792,61 @@ addHistoryFilters() {
 displayHistory(historyItems = null) {
     const historyList = document.getElementById('history-list');
     if (!historyList) return;
-
-    // Verwende gefilterte Items oder alle Aktivitäten
-    const items = historyItems || this.getAllHistory();
-
-    if (items.length === 0) {
+    
+    // Falls keine Items übergeben wurden, alle laden
+    if (!historyItems) {
+        historyItems = this.getAllHistory();
+    }
+    
+    if (historyItems.length === 0) {
         historyList.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">📂</div>
-                <h3>Keine Einträge im Verlauf</h3>
+                <div class="empty-icon">📋</div>
+                <h3>Noch keine QR Codes erstellt oder gescannt</h3>
                 <p>Erstellen oder scannen Sie QR Codes, um hier Ihren Verlauf zu sehen.</p>
+                <button class="btn btn-primary" onclick="app.navigateToPage('generator')">
+                    QR Code erstellen
+                </button>
             </div>
         `;
         return;
     }
 
-    // Gruppierung nach Datum
-    const groupedHistory = this.groupHistoryByDate(items);
-    
-    let historyHTML = '';
-    for (const [date, dayItems] of Object.entries(groupedHistory)) {
-        historyHTML += `
-            <div class="history-group">
-                <div class="history-date-header">
-                    <h3>${this.formatDate(date)}</h3>
-                    <span class="items-count">${dayItems.length} Einträge</span>
+    historyList.innerHTML = historyItems.map(item => {
+        const iconClass = item.type === 'generated' ? 'qr_code' : 'qr_code_scanner';
+        const typeLabel = item.type === 'generated' ? 'Erstellt' : 'Gescannt';
+        const typeClass = item.type === 'generated' ? 'type-generated' : 'type-scanned';
+        
+        return `
+            <div class="history-item" data-id="${item.id}">
+                <div class="history-icon">
+                    <span class="material-icons">${iconClass}</span>
                 </div>
-                <div class="history-items">
-                    ${dayItems.map(item => this.createHistoryItemHTML(item)).join('')}
+                <div class="history-content">
+                    <div class="history-header">
+                        <span class="history-type ${typeClass}">${typeLabel}</span>
+                        <span class="history-date">${this.formatDate(item.timestamp)}</span>
+                    </div>
+                    <div class="history-text">${this.truncateText(item.content, 60)}</div>
+                    ${item.qrType ? `<div class="history-qr-type">Typ: ${item.qrType}</div>` : ''}
+                </div>
+                <div class="history-actions">
+                    <button class="btn-icon history-copy-btn" data-content="${item.content}" title="Kopieren">
+                        <span class="material-icons">content_copy</span>
+                    </button>
+                    <button class="btn-icon history-regenerate-btn" data-content="${item.content}" title="Neu generieren">
+                        <span class="material-icons">refresh</span>
+                    </button>
+                    <button class="btn-icon history-share-btn" data-content="${item.content}" title="Teilen">
+                        <span class="material-icons">share</span>
+                    </button>
+                    <button class="btn-icon history-delete-btn" data-id="${item.id}" title="Löschen">
+                        <span class="material-icons">delete</span>
+                    </button>
                 </div>
             </div>
         `;
-    }
-
-    historyList.innerHTML = historyHTML;
-    this.updateHistoryStats(items);
+    }).join('');
 }
 
 updateHistoryStats(items) {
@@ -860,10 +884,28 @@ formatDate(date) {
 }
 
 getAllHistory() {
-    return [
-        ...this.qrHistory.map(item => ({...item, type: 'generated'})),
-        ...this.scanHistory.map(item => ({...item, type: 'scanned'}))
-    ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    const combinedHistory = [];
+    
+    // Generierte QR Codes hinzufügen
+    this.qrHistory.forEach(item => {
+        combinedHistory.push({
+            ...item,
+            type: 'generated',
+            icon: 'qr_code'
+        });
+    });
+    
+    // Gescannte QR Codes hinzufügen
+    this.scanHistory.forEach(item => {
+        combinedHistory.push({
+            ...item,
+            type: 'scanned',
+            icon: 'qr_code_scanner'
+        });
+    });
+    
+    // Nach Datum sortieren (neueste zuerst)
+    return combinedHistory.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 }
 
 groupHistoryByDate(items) {
@@ -2485,11 +2527,52 @@ getTemplatesCount() {
     document.getElementById(`${page}-page`)?.classList.add('active');
     
     this.currentPage = page;
+
+    // Navigation Logic
+    document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+
+    const targetPage = document.getElementById(`${page}-page`);
+    const navItem = document.querySelector(`[data-page="${page}"]`);
+    
+    if (targetPage) targetPage.classList.remove('hidden');
+    if (navItem) navItem.classList.add('active');
+    
+    // Spezifische Aktionen für verschiedene Seiten
+    switch(page) {
+        case 'dashboard':
+            this.updateDashboard();
+            break;
+        case 'history':
+            this.loadHistoryPage();
+            break;
+        case 'generator':
+            this.focusGenerator();
+            break;
+        case 'scanner':
+            this.initScanner();
+            break;
+    }
     
     if (page === 'dashboard') {
       this.updateDashboard();
     }
   }
+
+  loadHistoryPage() {
+    // Beim ersten Laden der Verlaufsseite alle Einträge anzeigen
+    const searchInput = document.getElementById('search-history');
+    const currentSearchTerm = searchInput ? searchInput.value : '';
+    
+    // Filter zurücksetzen oder aktuelle Werte verwenden
+    this.filterHistory(currentSearchTerm);
+    
+    // Such-Counter aktualisieren
+    const allHistory = this.getAllHistory();
+    this.updateSearchResults(allHistory.length, currentSearchTerm);
+}
 
   handleQuickAction(action) {
     switch (action) {

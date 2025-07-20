@@ -2139,23 +2139,15 @@ clearContentSuggestions() {
 
 // Dashboard Schnellaktionen Setup
 setupDashboardActions() {
-    console.log('🔧 Dashboard-Aktionen werden eingerichtet...');
-    
     const quickActions = document.querySelectorAll('[data-action]');
-    console.log(`📊 ${quickActions.length} Schnellaktions-Buttons gefunden`);
     
-    quickActions.forEach((action, index) => {
-        console.log(`Button ${index + 1}:`, action.dataset.action);
-        
-        action.addEventListener('click', (e) => {
+    quickActions.forEach(action => {
+        this.addEventHandler(action, 'click', (e) => {
             e.preventDefault();
             const actionType = action.dataset.action;
-            console.log(`🚀 Aktion ausgeführt: ${actionType}`);
             this.handleQuickAction(actionType);
         });
     });
-    
-    console.log('✅ Dashboard-Aktionen erfolgreich eingerichtet');
 }
 
 // Seiten-Navigation Methode
@@ -4414,7 +4406,7 @@ class TemplateManager {
                         margin: 4
                     },
                     tags: ['event', 'wedding', 'invitation'],
-                    premium: false
+                    premium: true
                 },
                 {
                     id: 'birthday-party',
@@ -4644,6 +4636,9 @@ class TemplateManager {
                     </div>
                     <div class="qr-preview">
                         <div class="qr-dots" style="background: ${template.settings.color}"></div>
+                    </div>
+                    ${template.premium ? '<div class="premium-badge">Premium</div>' : ''}
+                </div>
                 <div class="template-info">
                     <h4 class="template-name">${template.name}</h4>
                     <p class="template-description">${template.description}</p>
@@ -4827,6 +4822,12 @@ class TemplateManager {
         const template = this.findTemplateById(templateId);
         if (!template) return;
 
+        // Premium-Check
+        if (template.premium && !this.isPremiumUser()) {
+            this.showPremiumModal();
+            return;
+        }
+
         this.selectedTemplate = template;
         
         // Visuelles Feedback
@@ -5003,22 +5004,15 @@ class TemplateManager {
      * Statistiken aktualisieren
      */
     updateStats() {
-    const totalCount = Object.values(this.templates).flat().length;
+        const totalCount = Object.values(this.templates).flat().length;
+        const premiumCount = Object.values(this.templates).flat().filter(t => t.premium).length;
 
-    const totalElement = this.modal.querySelector('#total-templates');
-    if (totalElement) totalElement.textContent = totalCount;
-    
-    const premiumElement = this.modal.querySelector('#premium-templates');
-    if (premiumElement) {
-        premiumElement.textContent = Object.keys(this.templates).length; // Anzahl Kategorien
+        const totalElement = this.modal.querySelector('#total-templates');
+        const premiumElement = this.modal.querySelector('#premium-templates');
+
+        if (totalElement) totalElement.textContent = totalCount;
+        if (premiumElement) premiumElement.textContent = premiumCount;
     }
-    
-    // Label ändern
-    const premiumLabel = this.modal.querySelector('.stat-item:last-child .stat-label');
-    if (premiumLabel) {
-        premiumLabel.textContent = 'Kategorien';
-    }
-}
 
     /**
      * Ausgewähltes Template Info aktualisieren
@@ -5064,6 +5058,16 @@ class TemplateManager {
             'geo': 'Standort'
         };
         return labels[type] || type.toUpperCase();
+    }
+
+    isPremiumUser() {
+        // Premium-Status prüfen - kann später erweitert werden
+        return localStorage.getItem('premium') === 'true' || false;
+    }
+
+    showPremiumModal() {
+        // Premium-Modal anzeigen
+        this.showError('Dieses Template ist nur für Premium-Nutzer verfügbar.');
     }
 
     showTemplateDetails(template) {

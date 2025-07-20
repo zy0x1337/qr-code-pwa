@@ -1957,3 +1957,85 @@ style.textContent = `
   }
 `;
 document.head.appendChild(style);
+
+// PWA Install funktionalität (am Ende von app.js hinzufügen)
+class PWAInstaller {
+    constructor() {
+        this.deferredPrompt = null;
+        this.init();
+    }
+
+    init() {
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            this.deferredPrompt = e;
+            this.showInstallPrompt();
+        });
+
+        window.addEventListener('appinstalled', () => {
+            this.hideInstallPrompt();
+            this.showInstallSuccess();
+        });
+
+        this.setupEventListeners();
+    }
+
+    showInstallPrompt() {
+        const prompt = document.getElementById('install-prompt');
+        const floatingBtn = document.getElementById('floating-install');
+        const navbarBtn = document.getElementById('navbar-install');
+        
+        if (prompt) prompt.classList.add('show');
+        if (floatingBtn) floatingBtn.classList.add('show');
+        if (navbarBtn) navbarBtn.style.display = 'flex';
+    }
+
+    hideInstallPrompt() {
+        const prompt = document.getElementById('install-prompt');
+        const floatingBtn = document.getElementById('floating-install');
+        const navbarBtn = document.getElementById('navbar-install');
+        
+        if (prompt) prompt.classList.remove('show');
+        if (floatingBtn) floatingBtn.classList.remove('show');
+        if (navbarBtn) navbarBtn.style.display = 'none';
+    }
+
+    async installApp() {
+        if (!this.deferredPrompt) return;
+
+        this.deferredPrompt.prompt();
+        const { outcome } = await this.deferredPrompt.userChoice;
+        
+        this.deferredPrompt = null;
+        this.hideInstallPrompt();
+    }
+
+    showInstallSuccess() {
+        const success = document.getElementById('install-success');
+        if (success) {
+            success.classList.add('show');
+            setTimeout(() => {
+                success.classList.remove('show');
+            }, 3000);
+        }
+    }
+
+    setupEventListeners() {
+        document.querySelectorAll('#install-app, #floating-install, #navbar-install').forEach(btn => {
+            btn.addEventListener('click', () => this.installApp());
+        });
+
+        document.getElementById('dismiss-install')?.addEventListener('click', () => {
+            this.hideInstallPrompt();
+        });
+
+        document.getElementById('maybe-later')?.addEventListener('click', () => {
+            this.hideInstallPrompt();
+        });
+    }
+}
+
+// PWA Installer initialisieren (ganz am Ende der app.js)
+document.addEventListener('DOMContentLoaded', () => {
+    new PWAInstaller();
+});

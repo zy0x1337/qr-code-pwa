@@ -2449,10 +2449,12 @@ updatePreview() {
 
         this.checkColorContrast();
         
-        // NEUE ZEILE: Download-Info aktualisieren
-        if (document.querySelector('.download-section')) {
-            this.updateDownloadInfo();
-        }
+        // Download-Info aktualisieren
+        const downloadBtn = document.getElementById('download-btn');
+if (downloadBtn) {
+  downloadBtn.classList.remove('premium-locked');
+  downloadBtn.addEventListener('click', () => this.downloadQRCode());
+}
 
     } catch (error) {
         console.error('Fehler beim QR Preview Update:', error);
@@ -3095,9 +3097,11 @@ attachDownloadEventListeners() {
     });
     
     // Download-Button
-    document.getElementById('download-btn').addEventListener('click', () => {
-        this.downloadQRCode();
-    });
+    const downloadBtn = document.getElementById('download-btn');
+if (downloadBtn) {
+  downloadBtn.classList.remove('premium-locked');
+  downloadBtn.addEventListener('click', () => this.downloadQRCode());
+}
     
     // Preview-Button
     document.getElementById('preview-download').addEventListener('click', () => {

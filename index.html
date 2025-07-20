@@ -103,12 +103,6 @@
         </svg>
         <span class="install-text">Installieren</span>
     </button>
-                    <button class="btn btn--sm btn--primary" id="upgrade-btn">
-                        <span>Premium</span>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor"/>
-                        </svg>
-                    </button>
                 </div>
             </div>
         </nav>
@@ -413,84 +407,85 @@
                 </div>
                 
                 <div class="download-section" id="download-section">
-    <h3>QR Code herunterladen</h3>
-    
-    <!-- Hauptdownload-Button mit dynamischem Format und Größe -->
-    <button id="main-download-btn" class="btn btn--primary btn--full-width main-download">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7,10 12,15 17,10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-        <span class="download-text">Als PNG herunterladen</span>
-        <span class="download-size" id="download-size">~50KB</span>
-    </button>
-    
-    <!-- Formatauswahl -->
-    <div class="format-selection">
-        <h4>Alle verfügbaren Formate:</h4>
-        <div class="format-grid">
-            <button class="format-btn active" data-format="png" data-name="PNG">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                    <circle cx="8.5" cy="8.5" r="1.5"/>
-                    <polyline points="21,15 16,10 5,21"/>
-                </svg>
-                PNG
-            </button>
-            <button class="format-btn" data-format="jpg" data-name="JPG">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-                    <polyline points="14,2 14,8 20,8"/>
-                    <circle cx="10" cy="12" r="2"/>
-                    <path d="M9 17c-1 0-2-1-2-2"/>
-                </svg>
-                JPG
-            </button>
-            <button class="format-btn" data-format="svg" data-name="SVG">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5"/>
-                    <line x1="12" y1="8" x2="12" y2="16"/>
-                    <line x1="8" y1="12" x2="16" y2="12"/>
-                </svg>
-                SVG
-            </button>
-            <button class="format-btn" data-format="pdf" data-name="PDF">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                    <polyline points="14,2 14,8 20,8"/>
-                    <line x1="16" y1="13" x2="8" y2="13"/>
-                    <line x1="16" y1="17" x2="8" y2="17"/>
-                    <polyline points="10,9 9,9 8,9"/>
-                </svg>
-                PDF
-            </button>
-            <button class="format-btn" data-format="eps" data-name="EPS">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                    <polyline points="14,2 14,8 20,8"/>
-                    <line x1="9" y1="13" x2="9" y2="17"/>
-                    <line x1="9" y1="13" x2="13" y2="13"/>
-                    <line x1="9" y1="15" x2="11" y2="15"/>
-                </svg>
-                EPS
-            </button>
-        </div>
-    </div>
-    
-    <!-- Download-Optionen -->
-    <div class="download-options">
-        <div class="option-group">
-            <label for="download-quality">
-                <span>Qualität</span>
-                <span class="quality-value" id="quality-value">95%</span>
-            </label>
-            <input type="range" id="download-quality" min="70" max="100" value="95" class="quality-slider">
-        </div>
-        
-        <div class="option-group">
-            <label for="download-filename">Dateiname:</label>
-            <input type="text" id="download-filename" value="qr-code" class="filename-input" placeholder="qr-code">
+                    <h3>QR Code herunterladen</h3>
+                    
+                    <button id="main-download-btn" class="btn btn--primary btn--full-width main-download">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7,10 12,15 17,10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        <span class="download-text">Als PNG herunterladen</span>
+                        <span class="download-size" id="download-size">~50KB</span>
+                    </button>
+                    
+                    <div class="format-selection">
+                        <h4>Alle verfügbaren Formate:</h4>
+                        <div class="format-grid">
+                            <button class="format-btn active" data-format="png" data-name="PNG">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                                    <polyline points="21,15 16,10 5,21"/>
+                                </svg>
+                                PNG
+                            </button>
+                            <button class="format-btn" data-format="jpg" data-name="JPG">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                                    <polyline points="14,2 14,8 20,8"/>
+                                    <circle cx="10" cy="12" r="2"/>
+                                    <path d="M9 17c-1 0-2-1-2-2"/>
+                                </svg>
+                                JPG
+                            </button>
+                            <button class="format-btn" data-format="svg" data-name="SVG">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5"/>
+                                    <line x1="12" y1="8" x2="12" y2="16"/>
+                                    <line x1="8" y1="12" x2="16" y2="12"/>
+                                </svg>
+                                SVG
+                            </button>
+                            <button class="format-btn" data-format="pdf" data-name="PDF">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14,2 14,8 20,8"/>
+                                    <line x1="16" y1="13" x2="8" y2="13"/>
+                                    <line x1="16" y1="17" x2="8" y2="17"/>
+                                    <polyline points="10,9 9,9 8,9"/>
+                                </svg>
+                                PDF
+                            </button>
+                            <button class="format-btn" data-format="eps" data-name="EPS">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14,2 14,8 20,8"/>
+                                    <line x1="9" y1="13" x2="9" y2="17"/>
+                                    <line x1="9" y1="13" x2="13" y2="13"/>
+                                    <line x1="9" y1="15" x2="11" y2="15"/>
+                                </svg>
+                                EPS
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="download-options">
+                        <div class="option-group">
+                            <label for="download-quality">
+                                <span>Qualität</span>
+                                <span class="quality-value" id="quality-value">95%</span>
+                            </label>
+                            <input type="range" id="download-quality" min="70" max="100" value="95" class="quality-slider">
+                        </div>
+                        
+                        <div class="option-group">
+                            <label for="download-filename">Dateiname:</label>
+                            <input type="text" id="download-filename" value="qr-code" class="filename-input" placeholder="qr-code">
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -503,7 +498,6 @@
     </div>
 
     <div class="scanner-container">
-        <!-- WICHTIG: Dieses Element muss existieren für Html5Qrcode -->
         <div id="scanner-container" class="scanner-viewport">
             <div class="scanner-placeholder">
                 <div class="scanner-icon">📷</div>
@@ -515,7 +509,6 @@
             </div>
         </div>
 
-        <!-- KORRIGIERTE Element-IDs -->
         <div id="scan-result" class="scanner-result hidden">
             <div class="result-content">
                 <h3>QR Code erkannt</h3>
@@ -541,130 +534,133 @@
 
             <!-- History Page -->
             <div id="history-page" class="page">
-                <div class="page-header">
-                    <div class="header-content">
-                        <div>
-                            <h1>Verlauf</h1>
-                            <p>Ihre QR Code Historie</p>
-                        </div>
-                        <div class="header-actions">
-    <button class="btn btn--outline">
-        <svg>...</svg>
-        Exportieren
-    </button>
-</div>
-                    </div>
-                </div>
-
-                <div class="history-filters">
-                    <div class="filter-group">
-                        <input type="text" id="history-search" class="form-control" placeholder="Durchsuchen...">
-                        <select id="history-filter" class="form-control">
-                            <option value="all">Alle Typen</option>
-                            <option value="url">URLs</option>
-                            <option value="text">Text</option>
-                            <option value="email">E-Mail</option>
-                            <option value="phone">Telefon</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div id="history-list" class="history-list">
-                    <div class="empty-state">
-                        <div class="empty-icon">📋</div>
-                        <p>Keine QR Codes im Verlauf</p>
-                    </div>
-                </div>
+    <div class="page-header">
+        <div class="header-content">
+            <div>
+                <h1>Verlauf</h1>
+                <p>Ihre QR Code Historie</p>
             </div>
+            <div class="header-actions">
+                <button class="btn btn--outline" id="export-history">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7,10 12,15 17,10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Exportieren
+                </button>
+            </div>
+        </div>
+    </div>
 
-            <!-- Settings Page -->
-            <div id="settings-page" class="page">
-                <div class="page-header">
-                    <h1>Einstellungen</h1>
-                    <p>App-Einstellungen verwalten</p>
-                </div>
+    <div class="history-filters">
+        <div class="filter-group">
+            <input type="text" id="history-search" class="form-control" placeholder="Durchsuchen...">
+            <select id="history-filter" class="form-control">
+                <option value="all">Alle Typen</option>
+                <option value="url">URLs</option>
+                <option value="text">Text</option>
+                <option value="email">E-Mail</option>
+                <option value="phone">Telefon</option>
+            </select>
+        </div>
+    </div>
 
-                <div class="settings-sections">
-                    <div class="settings-section">
-                        <h3>Darstellung</h3>
-                        <div class="setting-item">
-                            <div class="setting-info">
-                                <h4>Design-Modus</h4>
-                                <p>Helles oder dunkles Design wählen</p>
-                            </div>
-                            <select id="theme-selector" class="form-control">
-                                <option value="auto">Automatisch</option>
-                                <option value="light">Hell</option>
-                                <option value="dark">Dunkel</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="settings-section">
-                        <h3>Account</h3>
-                        <div class="account-info">
-                            <div class="account-status">
-    <div class="status-icon">👤</div>
-    <div class="status-content">
-        <h4>Vollzugang</h4>
-        <p>Unbegrenzte QR Codes • Unbegrenzter Verlauf</p>
+    <div id="history-list" class="history-list">
+        <div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <p>Keine QR Codes im Verlauf</p>
+        </div>
     </div>
 </div>
 
-                    <div class="settings-section">
-                        <h3>Premium Features</h3>
-                        <div class="premium-preview">
-                            <div class="feature-list">
-                                <div class="feature-item">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                        <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2"/>
-                                    </svg>
-                                    <span>Unbegrenzte QR Code Generierung</span>
-                                </div>
-                                <div class="feature-item">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                        <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2"/>
-                                    </svg>
-                                    <span>Premium Templates & Designs</span>
-                                </div>
-                                <div class="feature-item">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                        <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2"/>
-                                    </svg>
-                                    <span>Erweiterte Dateiformate (SVG, PDF, EPS)</span>
-                                </div>
-                                <div class="feature-item">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                        <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2"/>
-                                    </svg>
-                                    <span>Analytics & Tracking</span>
-                                </div>
-                            </div>
-                            <button class="btn btn--primary btn--full-width" id="start-trial">
-                                14-tägige kostenlose Testversion starten
-                            </button>
-                        </div>
-                    </div>
+            <!-- Settings Page -->
+            <div id="settings-page" class="page">
+    <div class="page-header">
+        <h1>Einstellungen</h1>
+        <p>App-Einstellungen verwalten</p>
+    </div>
 
-                    <div class="settings-section">
-                        <h3>App-Informationen</h3>
-                        <div class="app-info">
-                            <div class="info-item">
-                                <span>Version</span>
-                                <span>1.0.0</span>
-                            </div>
-                            <div class="info-item">
-                                <span>Speicher verwendet</span>
-                                <span id="storage-usage">0 MB</span>
-                            </div>
-                            <div class="info-item">
-                                <span>QR Codes erstellt</span>
-                                <span id="total-qr-created">0</span>
-                            </div>
-                        </div>
+    <div class="settings-sections">
+        <div class="settings-section">
+            <h3>Darstellung</h3>
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h4>Design-Modus</h4>
+                    <p>Helles oder dunkles Design wählen</p>
+                </div>
+                <select id="theme-selector" class="form-control">
+                    <option value="auto">Automatisch</option>
+                    <option value="light">Hell</option>
+                    <option value="dark">Dunkel</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h3>Account</h3>
+            <div class="account-info">
+                <div class="account-status">
+                    <div class="status-icon">👤</div>
+                    <div class="status-content">
+                        <h4>Vollzugang</h4>
+                        <p>Unbegrenzte QR Codes • Unbegrenzter Verlauf</p>
                     </div>
                 </div>
             </div>
+        </div>
+
+        <div class="settings-section">
+            <h3>App-Features</h3>
+            <div class="feature-preview">
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                        <span>Unbegrenzte QR Code Generierung</span>
+                    </div>
+                    <div class="feature-item">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                        <span>Alle Templates & Designs</span>
+                    </div>
+                    <div class="feature-item">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                        <span>Alle Dateiformate (SVG, PDF, EPS)</span>
+                    </div>
+                    <div class="feature-item">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                        <span>Analytics & Tracking</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h3>App-Informationen</h3>
+            <div class="app-info">
+                <div class="info-item">
+                    <span>Version</span>
+                    <span>1.0.0</span>
+                </div>
+                <div class="info-item">
+                    <span>Speicher verwendet</span>
+                    <span id="storage-usage">0 MB</span>
+                </div>
+                <div class="info-item">
+                    <span>QR Codes erstellt</span>
+                    <span id="total-qr-created">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
         </main>
     </div>

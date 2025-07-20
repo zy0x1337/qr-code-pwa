@@ -2132,54 +2132,144 @@ class QRCustomization {
         }
     }
 
-    // Optimierte Preview-Aktualisierung
-    updatePreview() {
-        const content = document.getElementById('qr-content')?.value.trim();
-        if (!content || !window.QRCode) return;
+    // Verhindert Doppel-QR Codes
+updatePreview() {
+    const content = document.getElementById('qr-content')?.value.trim();
+    if (!content || !window.QRCode) return;
 
-        const preview = document.querySelector('.qr-preview');
-        if (!preview) return;
+    const preview = document.querySelector('.qr-preview');
+    if (!preview) return;
 
+    try {
+        console.log('QR Preview wird aktualisiert...');
+        
+        // SCHRITT 1: Container VOLLSTÄNDIG leeren
+        // Alle Kinder-Elemente entfernen AUSSER size-indicator
+        const sizeIndicator = preview.querySelector('.size-indicator');
+        const sizeIndicatorHTML = sizeIndicator ? sizeIndicator.outerHTML : '';
+        
+        // Preview komplett leeren
+        preview.innerHTML = '';
+        
+        // Size-Indicator wieder hinzufügen falls vorhanden
+        if (sizeIndicatorHTML) {
+            preview.insertAdjacentHTML('beforeend', sizeIndicatorHTML);
+        }
+
+        // SCHRITT 2: Neuen, eindeutigen QR Container erstellen
+        const qrWrapper = document.createElement('div');
+        qrWrapper.className = 'qr-code-wrapper';
+        qrWrapper.style.cssText = `
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            width: 100% !important;
+            height: 100% !important;
+            position: relative !important;
+        `;
+        
+        // Eindeutige ID für QR Container
+        const uniqueId = 'qr-container-' + Date.now();
+        const qrContainer = document.createElement('div');
+        qrContainer.id = uniqueId;
+        qrContainer.style.cssText = `
+            display: inline-block !important;
+            position: relative !important;
+        `;
+        
+        qrWrapper.appendChild(qrContainer);
+        preview.appendChild(qrWrapper);
+
+        // SCHRITT 3: QR Code Optionen
+        const qrOptions = {
+            text: content,
+            width: parseInt(this.qrSize),
+            height: parseInt(this.qrSize),
+            colorDark: this.qrColor,
+            colorLight: this.qrBgColor === 'transparent' ? '#ffffff' : this.qrBgColor,
+            correctLevel: QRCode.CorrectLevel.H
+        };
+
+        // SCHRITT 4: QR Code generieren (nur EINE Instanz)
         try {
-            // QR Code Container erstellen
-            const qrContainer = document.createElement('div');
-            qrContainer.style.cssText = `
-                position: relative;
-                display: flex !important;
-                justify-content: center !important;
-                align-items: center !important;
-                width: 100% !important;
-                height: 100% !important;
-            `;
+            new QRCode(qrContainer, qrOptions);
+            console.log(`✅ Einzelner QR Code generiert: ${this.qrSize}px`);
+        } catch (qrError) {
+            console.error('QR Generierung fehlgeschlagen:', qrError);
+            throw qrError;
+        }
+
+        // SCHRITT 5: Canvas-Styling nach Generierung
+        setTimeout(() => {
+            const canvas = qrContainer.querySelector('canvas');
+            const img = qrContainer.querySelector('img');
             
-            // Vorherigen QR Code entfernen (Size-Indikator behalten)
-            const sizeIndicator = preview.querySelector('.size-indicator');
-            const existingQR = preview.querySelector('div:not(.size-indicator):not(.preview-placeholder)');
-            if (existingQR) {
-                existingQR.remove();
+            if (canvas) {
+                canvas.style.cssText = `
+                    display: block !important;
+                    margin: 0 auto !important;
+                    max-width: 100% !important;
+                    max-height: 100% !important;
+                `;
             }
             
-            preview.appendChild(qrContainer);
+            if (img) {
+                img.style.cssText = `
+                    display: block !important;
+                    margin: 0 auto !important;
+                    max-width: 100% !important;
+                    max-height: 100% !important;
+                `;
+            }
+        }, 100);
 
-            // QR Code Optionen
-            const qrOptions = {
-                text: content,
-                width: parseInt(this.qrSize),
-                height: parseInt(this.qrSize),
-                colorDark: this.qrColor,
-                colorLight: this.qrBgColor === 'transparent' ? '#ffffff' : this.qrBgColor,
-                correctLevel: QRCode.CorrectLevel.H
-            };
-
-            // QR Code generieren
-            const qr = new QRCode(qrContainer, qrOptions);
-
-            console.log(`QR Preview aktualisiert: ${this.qrSize}px, ${this.qrColor} auf ${this.qrBgColor}`);
-
-        } catch (error) {
-            console.error('Fehler beim QR Preview Update:', error);
-        }
+    } catch (error) {
+        console.error('❌ Fehler beim QR Preview Update:', error);
+        
+        // Fallback: Preview mit Fehlermeldung
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'preview-error';
+        errorDiv.innerHTML = `
+            <p>⚠️ QR Code konnte nicht generiert werden</p>
+            <small>${error.message}</small>
+        `;
+        preview.appendChild(errorDiv);
     }
+}
+
+// Hilfsmethode: Preview vollständig zurücksetzen
+resetPreview() {
+    const preview = document.querySelector('.qr-preview');
+    if (!preview) return;
+
+    // Alle QR Code Instanzen entfernen
+    const qrElements = preview.querySelectorAll('canvas, img, table');
+    qrElements.forEach(element => element.remove());
+    
+    // QR Container entfernen
+    const qrContainers = preview.querySelectorAll('[id^="qr-container-"], .qr-code-wrapper');
+    qrContainers.forEach(container => container.remove());
+    
+    // Placeholder wieder hinzufügen falls keine Inhalte
+    const hasContent = preview.querySelector('canvas, img');
+    if (!hasContent && !preview.querySelector('.preview-placeholder')) {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'preview-placeholder';
+        placeholder.innerHTML = `
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                <rect x="7" y="7" width="3" height="3" fill="currentColor"/>
+                <rect x="14" y="7" width="3" height="3" fill="currentColor"/>
+                <rect x="7" y="14" width="3" height="3" fill="currentColor"/>
+                <rect x="14" y="14" width="3" height="3" fill="currentColor"/>
+            </svg>
+            <p>QR Code Vorschau</p>
+        `;
+        preview.appendChild(placeholder);
+    }
+
+    console.log('Preview zurückgesetzt');
+}
 
     // Hintergrund-Presets Setup
     setupBgColorPresets() {
@@ -2240,27 +2330,42 @@ class QRCustomization {
         }
     }
 
-    // Color Picker Setup
-    setupColorPickers() {
-        const qrColorInput = document.getElementById('qr-color');
-        const qrBgColorInput = document.getElementById('qr-bg-color');
+    // setupColorPickers mit Debouncing
+setupColorPickers() {
+    const qrColorInput = document.getElementById('qr-color');
+    const qrBgColorInput = document.getElementById('qr-bg-color');
+    
+    // Debounce-Timer für Preview-Updates
+    let updateTimer = null;
 
-        if (qrColorInput) {
-            qrColorInput.addEventListener('change', (e) => {
-                this.qrColor = e.target.value;
-                this.updateColorPresetSelection(e.target.value);
+    if (qrColorInput) {
+        qrColorInput.addEventListener('change', (e) => {
+            this.qrColor = e.target.value;
+            this.updateColorPresetSelection(e.target.value);
+            
+            // Debounced Preview Update
+            clearTimeout(updateTimer);
+            updateTimer = setTimeout(() => {
+                this.resetPreview();
                 this.updatePreview();
-            });
-        }
-
-        if (qrBgColorInput) {
-            qrBgColorInput.addEventListener('change', (e) => {
-                this.qrBgColor = e.target.value;
-                this.updateBgPresetSelection(e.target.value);
-                this.updatePreview();
-            });
-        }
+            }, 300);
+        });
     }
+
+    if (qrBgColorInput) {
+        qrBgColorInput.addEventListener('change', (e) => {
+            this.qrBgColor = e.target.value;
+            this.updateBgPresetSelection(e.target.value);
+            
+            // Debounced Preview Update
+            clearTimeout(updateTimer);
+            updateTimer = setTimeout(() => {
+                this.resetPreview();
+                this.updatePreview();
+            }, 300);
+        });
+    }
+}
 
     // Dynamische Vorschau Setup
     setupDynamicPreview() {

@@ -665,6 +665,19 @@
         </main>
     </div>
 
+<div id="template-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>QR-Code-Templates</h2>
+      <button class="modal-close" data-close-template>×</button>
+    </div>
+
+    <div class="template-grid" id="template-grid">
+      <!-- Karten werden per JS gerendert -->
+    </div>
+  </div>
+</div>
+
     <!-- Floating Install Button -->
     <button id="floating-install" class="floating-install" aria-label="App installieren">
         <span class="sr-only">QR Pro installieren</span>
@@ -674,49 +687,6 @@
             <line x1="12" y1="15" x2="12" y2="3"></line>
         </svg>
     </button>
-
-    <!-- Premium Upgrade Modal -->
-    <div id="premium-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Auf Premium upgraden</h2>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="pricing-comparison">
-                    <div class="pricing-card">
-                        <h3>Kostenlos</h3>
-                        <div class="price">€0<span>/Monat</span></div>
-                        <ul>
-                            <li>✓ 10 QR Codes pro Tag</li>
-                            <li>✓ Basis-Scanner</li>
-                            <li>✓ 20 Verlaufselemente</li>
-                            <li>✓ PNG Export</li>
-                            <li>✗ Premium Templates</li>
-                            <li>✗ Unbegrenzte Generation</li>
-                            <li>✗ Analytics</li>
-                        </ul>
-                    </div>
-                    <div class="pricing-card featured">
-                        <div class="popular-badge">Beliebt</div>
-                        <h3>Premium</h3>
-                        <div class="price">€9.99<span>/Monat</span></div>
-                        <ul>
-                            <li>✓ Unbegrenzte QR Codes</li>
-                            <li>✓ Erweiterte Scanner-Features</li>
-                            <li>✓ Unbegrenzter Verlauf</li>
-                            <li>✓ Alle Exportformate</li>
-                            <li>✓ Premium Templates</li>
-                            <li>✓ Custom Branding</li>
-                            <li>✓ Analytics Dashboard</li>
-                            <li>✓ Priority Support</li>
-                        </ul>
-                        <button class="btn btn--primary btn--full-width">14 Tage kostenlos testen</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- PWA Install Prompt -->
     <div id="install-prompt" class="install-prompt">

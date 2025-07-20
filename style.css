@@ -4973,3 +4973,18 @@ input:checked + .toggle-slider:before {
         gap: var(--space-12);
     }
 }
+
+/* Modal */
+#template-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:2000; }
+#template-modal .modal-content { max-width:680px; margin:5vh auto; background:#fff; border-radius:12px; padding:24px; }
+
+.template-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:16px; }
+
+.template-card {
+  border:1px solid var(--color-card-border);
+  border-radius:8px; padding:12px; cursor:pointer; transition:.2s;
+}
+.template-card:hover { transform:translateY(-2px); border-color:var(--color-primary); }
+
+.template-preview { height:120px; border:1px dashed #ccc; display:flex; align-items:center; justify-content:center; margin-bottom:8px; background:#fafafa; }
+.template-name { font-size:14px; text-align:center; font-weight:600; }

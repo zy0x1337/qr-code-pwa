@@ -1648,22 +1648,24 @@ isValidPhone(string) {
 }
 
 // URL-Aktion anzeigen
-showURLAction(url) {
-  const actionDiv = this.createActionDiv();
-  actionDiv.innerHTML = `
-    <div class="scan-action-content">
-      <h4>🌐 Website gefunden</h4>
-      <p class="scan-url">${url}</p>
-      <div class="scan-actions">
-        <button class="btn btn--primary" onclick="window.open('${url}', '_blank')">
-          Website öffnen
-        </button>
-        <button class="btn btn--secondary" onclick="navigator.clipboard.writeText('${url}')">
-          Link kopieren
-        </button>
-      </div>
-    </div>
-  `;
+showURLActions(url) {
+    const resultDiv = document.getElementById('scan-result');
+    if (resultDiv) {
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'scan-actions';
+        actionsDiv.innerHTML = `
+            <h4>🌐 Website gefunden</h4>
+            <div class="action-buttons">
+                <button onclick="window.open('${url}', '_blank')" class="btn btn--primary">
+                    Website öffnen
+                </button>
+                <button onclick="navigator.clipboard.writeText('${url}')" class="btn btn--secondary">
+                    Link kopieren
+                </button>
+            </div>
+        `;
+        resultDiv.appendChild(actionsDiv);
+    }
 }
 
 // E-Mail-Aktion anzeigen
@@ -4255,4 +4257,117 @@ document.addEventListener('DOMContentLoaded', () => {
             window.qrCustomization.integrateWithMainApp(window.qrApp);
         }
     }, 500);
+});
+
+/* Nach QRCustomization-Klasse oder in app.js ergänzen */
+class TemplateManager {
+  constructor(qrCustomizer) {
+    this.qrCustomizer = qrCustomizer;               // Referenz auf QRCustomization
+    this.templates = this.buildTemplates();         // Array mit Template-Objekten
+    this.modal = document.getElementById('template-modal');
+    this.grid  = document.getElementById('template-grid');
+    this.renderCards();
+    this.bindEvents();
+  }
+
+  /* Beispiel-Templates */
+  buildTemplates() {
+    return [
+      {
+        id: 'wifi',
+        name: 'Besucher-WiFi',
+        payload: 'WIFI:T:WPA;S:Guest_WLAN;P:mysecretpw;H:false;;',
+        settings: { color:'#ffffff', bgColor:'#2563eb', size:'300' }
+      },
+      {
+        id: 'vcard',
+        name: 'Visitenkarte',
+        payload:
+`BEGIN:VCARD
+VERSION:3.0
+FN:Max Mustermann
+ORG:Muster GmbH
+TEL:+49 123 456789
+EMAIL:max@muster.de
+URL:https://muster.de
+END:VCARD`,
+        settings: { color:'#000000', bgColor:'#facc15', size:'300' }
+      },
+      {
+        id: 'link',
+        name: 'Website Link',
+        payload: 'https://www.example.com',
+        settings: { color:'#ffffff', bgColor:'#0d9488', size:'300' }
+      }
+    ];
+  }
+
+  /* Karten ins Modal rendern */
+  renderCards() {
+    this.grid.innerHTML = this.templates.map(t => `
+      <div class="template-card" data-id="${t.id}">
+        <div class="template-preview">
+          <span>QR</span>
+        </div>
+        <div class="template-name">${t.name}</div>
+      </div>
+    `).join('');
+  }
+
+  bindEvents() {
+    /* Öffnen durch Button „Templates verwenden“ */
+    document.querySelectorAll('[data-feature="templates"]').forEach(btn => {
+      btn.addEventListener('click', () => this.open());
+    });
+
+    /* Schließen */
+    this.modal.querySelector('[data-close-template]')
+        .addEventListener('click', () => this.close());
+    this.modal.addEventListener('click', e => {
+      if (e.target === this.modal) this.close();
+    });
+
+    /* Klick auf Template-Karte */
+    this.grid.addEventListener('click', e => {
+      const card = e.target.closest('.template-card');
+      if (!card) return;
+      const tpl = this.templates.find(t => t.id === card.dataset.id);
+      if (tpl) this.applyTemplate(tpl);
+    });
+  }
+
+  open()  { this.modal.style.display = 'flex'; }
+  close() { this.modal.style.display = 'none'; }
+
+  /* Template anwenden */
+  applyTemplate(tpl) {
+    const { payload, settings } = tpl;
+
+    /* Inhalt setzen */
+    const textarea = document.getElementById('qr-content');
+    textarea.value = payload;
+
+    /* Farben & Größe übernehmen */
+    this.qrCustomizer.setColor(settings.color);
+    this.qrCustomizer.setBgColor(settings.bgColor);
+    this.qrCustomizer.setSize(settings.size);
+
+    /* Vorschau aktualisieren */
+    this.qrCustomizer.updatePreview();
+
+    /* Feedback */
+    window.qrApp?.showToast?.(`Template „${tpl.name}“ angewendet`, 'success', 2500);
+
+    this.close();
+  }
+}
+
+/* Initialisierung nach QRCustomization-Setup */
+document.addEventListener('DOMContentLoaded', () => {
+  /* warten bis qrCustomization existiert */
+  setTimeout(() => {
+    if (window.qrCustomization) {
+      window.templateManager = new TemplateManager(window.qrCustomization);
+    }
+  }, 600);
 });

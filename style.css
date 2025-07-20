@@ -2319,7 +2319,7 @@ select.form-control {
 }
 
 /* ==========================================
-   STAT CARDS - NUR GRAU DARK MODE
+   STAT CARDS - KORREKTE LIGHT/DARK MODE
    ========================================== */
 
 .stats-grid {
@@ -2329,12 +2329,13 @@ select.form-control {
     margin: 2rem 0;
 }
 
+/* LIGHT MODE (Default) */
 .stat-card {
     position: relative;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(226, 232, 240, 0.8);
     border-radius: 16px;
     padding: 2rem;
     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -2388,8 +2389,39 @@ select.form-control {
     color: #475569;
 }
 
+/* DARK MODE für Stat Cards */
+@media (prefers-color-scheme: dark) {
+    .stat-card {
+        background: rgba(31, 41, 55, 0.95);
+        border-color: rgba(75, 85, 99, 0.3);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .stat-card:hover {
+        background: rgba(55, 65, 81, 0.95);
+        border-color: #6366f1;
+        box-shadow: 
+            0 12px 32px rgba(0, 0, 0, 0.4),
+            0 0 0 1px rgba(99, 102, 241, 0.1);
+    }
+    
+    .stat-card h3 {
+        background: linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%);
+        background-clip: text;
+        -webkit-background-clip: text;
+    }
+    
+    .stat-card p {
+        color: #9ca3af;
+    }
+    
+    .stat-card:hover p {
+        color: #d1d5db;
+    }
+}
+
 /* ==========================================
-   ACTION CARDS - NUR GRAU DARK MODE
+   ACTION CARDS - KORREKTE LIGHT/DARK MODE
    ========================================== */
 
 .quick-actions {
@@ -2399,12 +2431,13 @@ select.form-control {
     margin: 2rem 0;
 }
 
+/* LIGHT MODE (Default) */
 .action-card {
     position: relative;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(226, 232, 240, 0.8);
     border-radius: 20px;
     padding: 2rem 1.5rem;
     cursor: pointer;
@@ -2413,13 +2446,12 @@ select.form-control {
     text-align: center;
     box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
     outline: none;
-    border: none;
 }
 
 .action-card:hover {
     background: rgba(255, 255, 255, 0.98);
     transform: translateY(-6px) scale(1.02);
-    border: 1px solid #6366f1;
+    border-color: #6366f1;
     box-shadow: 
         0 20px 50px rgba(31, 38, 135, 0.15),
         0 0 0 1px rgba(99, 102, 241, 0.1);
@@ -2436,7 +2468,7 @@ select.form-control {
     transition-duration: 0.15s;
 }
 
-/* Action Icons */
+/* Action Icons - Bleiben farbig in beiden Modi */
 .action-icon {
     width: 56px;
     height: 56px;
@@ -2487,7 +2519,7 @@ select.form-control {
     box-shadow: 0 8px 24px rgba(139, 92, 246, 0.25);
 }
 
-/* Action Card Typography */
+/* Action Card Typography - Light Mode */
 .action-card h3 {
     margin: 0 0 0.75rem 0;
     font-size: 1.25rem;
@@ -2515,50 +2547,17 @@ select.form-control {
     color: #4b5563;
 }
 
-/* ==========================================
-   DARK MODE - NUR GRAU BACKGROUNDS
-   ========================================== */
-
+/* DARK MODE für Action Cards */
 @media (prefers-color-scheme: dark) {
-    /* Stat Cards Dark Mode */
-    .stat-card {
-        background: rgba(31, 41, 55, 0.95) !important;
-        border-color: rgba(75, 85, 99, 0.3) !important;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    }
-    
-    .stat-card:hover {
-        background: rgba(55, 65, 81, 0.95) !important;
-        border-color: #6366f1 !important;
-        box-shadow: 
-            0 12px 32px rgba(0, 0, 0, 0.4),
-            0 0 0 1px rgba(99, 102, 241, 0.1);
-    }
-    
-    .stat-card h3 {
-        background: linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%);
-        background-clip: text;
-        -webkit-background-clip: text;
-    }
-    
-    .stat-card p {
-        color: #9ca3af;
-    }
-    
-    .stat-card:hover p {
-        color: #d1d5db;
-    }
-    
-    /* Action Cards Dark Mode */
     .action-card {
-        background: rgba(31, 41, 55, 0.95) !important;
-        border-color: rgba(75, 85, 99, 0.3) !important;
+        background: rgba(31, 41, 55, 0.95);
+        border-color: rgba(75, 85, 99, 0.3);
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
     
     .action-card:hover {
-        background: rgba(55, 65, 81, 0.95) !important;
-        border: 1px solid #6366f1 !important;
+        background: rgba(55, 65, 81, 0.95);
+        border-color: #6366f1;
         box-shadow: 
             0 20px 50px rgba(0, 0, 0, 0.4),
             0 0 0 1px rgba(99, 102, 241, 0.1);
@@ -2578,62 +2577,5 @@ select.form-control {
     
     .action-card:hover p {
         color: #e5e7eb;
-    }
-}
-
-/* ==========================================
-   RESPONSIVE DESIGN
-   ========================================== */
-
-@media (max-width: 768px) {
-    .stats-grid,
-    .quick-actions {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-    }
-    
-    .stat-card,
-    .action-card {
-        padding: 1.5rem;
-    }
-    
-    .stat-card h3 {
-        font-size: 2rem;
-    }
-    
-    .action-card h3 {
-        font-size: 1.125rem;
-    }
-    
-    .action-icon {
-        width: 48px;
-        height: 48px;
-        margin-bottom: 1rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .stats-grid,
-    .quick-actions {
-        gap: 0.75rem;
-        margin: 1.5rem 0;
-    }
-    
-    .stat-card,
-    .action-card {
-        padding: 1.25rem;
-        border-radius: 16px;
-    }
-    
-    .stat-card h3 {
-        font-size: 1.75rem;
-    }
-    
-    .action-card h3 {
-        font-size: 1rem;
-    }
-    
-    .action-card p {
-        font-size: 0.85rem;
     }
 }

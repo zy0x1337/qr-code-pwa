@@ -1,44 +1,3 @@
-// Sofortige Debug-Konsole für Android
-if (/Android/i.test(navigator.userAgent)) {
-  // Debug-Button erstellen
-  const debugBtn = document.createElement('div');
-  debugBtn.innerHTML = '🐛';
-  debugBtn.style.cssText = `
-    position: fixed; top: 10px; right: 10px; z-index: 99999;
-    background: red; color: white; width: 50px; height: 50px;
-    border-radius: 50%; display: flex; align-items: center;
-    justify-content: center; cursor: pointer; font-size: 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-  `;
-  
-  // Debug-Panel
-  const debugPanel = document.createElement('div');
-  debugPanel.style.cssText = `
-    position: fixed; bottom: 0; left: 0; right: 0; height: 300px;
-    background: rgba(0,0,0,0.95); color: lime; font-family: monospace;
-    font-size: 12px; padding: 10px; z-index: 99998; overflow-y: auto;
-    border-top: 2px solid lime; display: none;
-  `;
-  
-  document.addEventListener('DOMContentLoaded', () => {
-    document.body.appendChild(debugBtn);
-    document.body.appendChild(debugPanel);
-  });
-  
-  // Toggle-Funktion
-  debugBtn.onclick = () => {
-    debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
-  };
-  
-  // Console hijacking
-  const originalLog = console.log;
-  console.log = function(...args) {
-    originalLog.apply(console, args);
-    debugPanel.innerHTML += `[${new Date().toLocaleTimeString()}] ${args.join(' ')}<br>`;
-    debugPanel.scrollTop = debugPanel.scrollHeight;
-  };
-}
-
 // QR Pro - Modern QR Code Generator & Scanner PWA
 class QRProApp {
   constructor() {
@@ -2046,6 +2005,14 @@ class QRCustomization {
         this.qrColor = '#000000';
         this.qrBgColor = '#ffffff';
         this.qrSize = '300';
+
+    // NEUE Logo-Eigenschaften
+    this.logoFile = null;
+    this.logoSize = 20; // Prozent der QR-Code-Größe
+    this.logoPosition = 'center';
+    this.logoShape = 'square';
+    this.logoPadding = 10;
+    this.logoEnabled = false;
         
         // 2025 Moderne Farbpaletten
         this.colorPresets = {
@@ -2108,6 +2075,7 @@ class QRCustomization {
         this.setupSizeSelector();
         this.setupColorPickers();
         this.setupCategorySelectors();
+        this.setupLogoFunctionality();
     }
 
     // Erweiterte Farbenvorauswahl Setup
@@ -2456,35 +2424,107 @@ showCustomColorFeedback(color) {
         }
     }
 
-    // Erweiterte Preview-Aktualisierung
-    updatePreview() {
-        const content = document.getElementById('qr-content')?.value.trim();
-        if (!content || !window.QRCode) return;
+    // Preview-Aktualisierung mit Logo-Support
+updatePreview() {
+    const content = document.getElementById('qr-content')?.value.trim();
+    if (!content || !window.QRCode) return;
 
-        const preview = document.querySelector('.qr-preview');
-        if (!preview) return;
+    const preview = document.querySelector('.qr-preview');
+    if (!preview) return;
 
-        try {
-            preview.innerHTML = '';
+    try {
+        preview.innerHTML = '';
 
-            const qr = new QRCode(preview, {
-                text: content,
-                width: parseInt(this.qrSize),
-                height: parseInt(this.qrSize),
-                colorDark: this.qrColor,
-                colorLight: this.qrBgColor,
-                correctLevel: QRCode.CorrectLevel.H
-            });
+        // Standard QR Code generieren
+        const qr = new QRCode(preview, {
+            text: content,
+            width: parseInt(this.qrSize),
+            height: parseInt(this.qrSize),
+            colorDark: this.qrColor,
+            colorLight: this.qrBgColor,
+            correctLevel: QRCode.CorrectLevel.H
+        });
 
-            // Kontrast-Warnung anzeigen
-            this.checkColorContrast();
-
-        } catch (error) {
-            console.error('Fehler beim QR Preview Update:', error);
+        // Logo hinzufügen wenn aktiviert
+        if (this.logoEnabled && this.logoFile) {
+            setTimeout(() => {
+                this.addLogoToQR(preview);
+            }, 100);
         }
-    }
 
-    // NEUE FUNKTION: Kontrast-Prüfung
+        this.checkColorContrast();
+
+    } catch (error) {
+        console.error('Fehler beim QR Preview Update:', error);
+    }
+}
+
+// Logo zum QR Code hinzufügen
+addLogoToQR(preview) {
+    const qrCanvas = preview.querySelector('canvas');
+    if (!qrCanvas || !this.logoFile) return;
+    
+    const ctx = qrCanvas.getContext('2d');
+    const img = new Image();
+    
+    img.onload = () => {
+        const qrSize = parseInt(this.qrSize);
+        const logoSize = (qrSize * this.logoSize) / 100;
+        
+        // Position berechnen
+        const positions = {
+            'center': { x: (qrSize - logoSize) / 2, y: (qrSize - logoSize) / 2 },
+            'top-left': { x: this.logoPadding, y: this.logoPadding },
+            'top-right': { x: qrSize - logoSize - this.logoPadding, y: this.logoPadding },
+            'bottom-left': { x: this.logoPadding, y: qrSize - logoSize - this.logoPadding },
+            'bottom-right': { x: qrSize - logoSize - this.logoPadding, y: qrSize - logoSize - this.logoPadding }
+        };
+        
+        const pos = positions[this.logoPosition] || positions.center;
+        
+        // Hintergrund für Logo erstellen
+        ctx.save();
+        
+        if (this.logoShape === 'circle') {
+            ctx.beginPath();
+            ctx.arc(pos.x + logoSize/2, pos.y + logoSize/2, logoSize/2 + 2, 0, 2 * Math.PI);
+            ctx.fillStyle = this.qrBgColor;
+            ctx.fill();
+            ctx.clip();
+        } else if (this.logoShape === 'rounded') {
+            this.roundRect(ctx, pos.x - 2, pos.y - 2, logoSize + 4, logoSize + 4, 8);
+            ctx.fillStyle = this.qrBgColor;
+            ctx.fill();
+            ctx.clip();
+        } else {
+            ctx.fillStyle = this.qrBgColor;
+            ctx.fillRect(pos.x - 2, pos.y - 2, logoSize + 4, logoSize + 4);
+        }
+        
+        // Logo zeichnen
+        ctx.drawImage(img, pos.x, pos.y, logoSize, logoSize);
+        ctx.restore();
+    };
+    
+    img.src = this.logoFile;
+}
+
+// Hilfsfunktion für abgerundete Rechtecke
+roundRect(ctx, x, y, width, height, radius) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+}
+
+    // Kontrast-Prüfung
     checkColorContrast() {
         const contrast = this.calculateContrast(this.qrColor, this.qrBgColor);
         const warningElement = document.querySelector('.contrast-warning');
@@ -2561,7 +2601,7 @@ showCustomColorFeedback(color) {
         return color;
     }
 
-    // Premium-Funktionen (bestehend)
+    // Premium-Funktionen
     hasPremium() {
         return localStorage.getItem('premium-status') === 'active';
     }
@@ -2577,7 +2617,7 @@ showCustomColorFeedback(color) {
         }
     }
 
-    // Öffentliche API (bestehend + erweitert)
+    // Öffentliche API
     setColor(color) {
         this.qrColor = color;
         const qrColorInput = document.getElementById('qr-color');
@@ -2616,7 +2656,7 @@ showCustomColorFeedback(color) {
         };
     }
 
-    // NEUE FUNKTION: Erweiterte Preset-Verwaltung
+    // Erweiterte Preset-Verwaltung
     addCustomPreset(type, color, name, category = 'custom') {
         if (type === 'color') {
             if (!this.colorPresets[category]) {
@@ -2643,6 +2683,311 @@ showCustomColorFeedback(color) {
             };
         }
     }
+
+    // Logo-Funktionalität einrichten
+setupLogoFunctionality() {
+    const logoSection = this.createLogoSection();
+    const customizationContainer = document.querySelector('.qr-customization') || 
+                                 document.querySelector('.color-presets-wrapper')?.parentElement;
+    
+    if (customizationContainer) {
+        customizationContainer.appendChild(logoSection);
+        this.attachLogoEventListeners();
+    }
+}
+
+// Logo-Sektion HTML erstellen
+createLogoSection() {
+    const logoSection = document.createElement('div');
+    logoSection.className = 'logo-section';
+    logoSection.innerHTML = `
+        <div class="logo-header">
+            <h3 class="logo-title">
+                <span class="logo-icon">📷</span>
+                Logo hinzufügen
+            </h3>
+            <div class="logo-toggle-wrapper">
+                <label class="logo-toggle">
+                    <input type="checkbox" id="logo-enabled" ${this.logoEnabled ? 'checked' : ''}>
+                    <span class="toggle-slider"></span>
+                </label>
+                <span class="toggle-label">Logo aktivieren</span>
+            </div>
+        </div>
+        
+        <div class="logo-controls ${this.logoEnabled ? 'active' : 'inactive'}">
+            <!-- Logo Upload -->
+            <div class="logo-upload-area">
+                <input type="file" id="logo-upload" accept="image/*" style="display: none;">
+                <div class="upload-zone" id="upload-zone">
+                    <div class="upload-content">
+                        <span class="upload-icon">📁</span>
+                        <span class="upload-text">Logo-Datei auswählen</span>
+                        <span class="upload-hint">PNG, JPG, SVG (max. 2MB)</span>
+                    </div>
+                </div>
+                <div class="logo-preview" id="logo-preview" style="display: none;">
+                    <img id="logo-preview-img" alt="Logo Vorschau">
+                    <button type="button" class="remove-logo" id="remove-logo">×</button>
+                </div>
+            </div>
+            
+            <!-- Logo-Einstellungen -->
+            <div class="logo-settings">
+                <div class="setting-group">
+                    <label for="logo-size" class="setting-label">
+                        <span>Größe</span>
+                        <span class="setting-value" id="logo-size-value">${this.logoSize}%</span>
+                    </label>
+                    <input type="range" id="logo-size" min="10" max="40" value="${this.logoSize}" class="range-slider">
+                </div>
+                
+                <div class="setting-group">
+                    <label for="logo-position" class="setting-label">Position</label>
+                    <select id="logo-position" class="form-control">
+                        <option value="center" ${this.logoPosition === 'center' ? 'selected' : ''}>Zentrum</option>
+                        <option value="top-left" ${this.logoPosition === 'top-left' ? 'selected' : ''}>Oben Links</option>
+                        <option value="top-right" ${this.logoPosition === 'top-right' ? 'selected' : ''}>Oben Rechts</option>
+                        <option value="bottom-left" ${this.logoPosition === 'bottom-left' ? 'selected' : ''}>Unten Links</option>
+                        <option value="bottom-right" ${this.logoPosition === 'bottom-right' ? 'selected' : ''}>Unten Rechts</option>
+                    </select>
+                </div>
+                
+                <div class="setting-group">
+                    <label for="logo-shape" class="setting-label">Form</label>
+                    <div class="shape-options">
+                        <button type="button" class="shape-btn ${this.logoShape === 'square' ? 'active' : ''}" data-shape="square">
+                            <span class="shape-icon">⬜</span>
+                            Quadrat
+                        </button>
+                        <button type="button" class="shape-btn ${this.logoShape === 'circle' ? 'active' : ''}" data-shape="circle">
+                            <span class="shape-icon">⭕</span>
+                            Kreis
+                        </button>
+                        <button type="button" class="shape-btn ${this.logoShape === 'rounded' ? 'active' : ''}" data-shape="rounded">
+                            <span class="shape-icon">▢</span>
+                            Abgerundet
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="setting-group">
+                    <label for="logo-padding" class="setting-label">
+                        <span>Abstand</span>
+                        <span class="setting-value" id="logo-padding-value">${this.logoPadding}px</span>
+                    </label>
+                    <input type="range" id="logo-padding" min="0" max="20" value="${this.logoPadding}" class="range-slider">
+                </div>
+            </div>
+            
+            <!-- Logo-Presets -->
+            <div class="logo-presets">
+                <label class="presets-label">Schnell-Vorlagen:</label>
+                <div class="preset-buttons">
+                    <button type="button" class="preset-btn" data-preset="small-corner">
+                        <span class="preset-icon">📍</span>
+                        Klein & Ecke
+                    </button>
+                    <button type="button" class="preset-btn" data-preset="medium-center">
+                        <span class="preset-icon">🎯</span>
+                        Mittel & Zentrum
+                    </button>
+                    <button type="button" class="preset-btn" data-preset="large-center">
+                        <span class="preset-icon">⭐</span>
+                        Groß & Zentrum
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    return logoSection;
+}
+
+// Logo Event Listeners einrichten
+attachLogoEventListeners() {
+    // Logo Toggle
+    const logoToggle = document.getElementById('logo-enabled');
+    logoToggle.addEventListener('change', (e) => {
+        this.logoEnabled = e.target.checked;
+        this.toggleLogoControls();
+        this.updatePreview();
+    });
+    
+    // File Upload
+    const logoUpload = document.getElementById('logo-upload');
+    const uploadZone = document.getElementById('upload-zone');
+    
+    uploadZone.addEventListener('click', () => logoUpload.click());
+    
+    // Drag & Drop
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('drag-over');
+    });
+    
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('drag-over');
+    });
+    
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('drag-over');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            this.handleLogoUpload(files[0]);
+        }
+    });
+    
+    logoUpload.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            this.handleLogoUpload(e.target.files[0]);
+        }
+    });
+    
+    // Logo entfernen
+    document.getElementById('remove-logo').addEventListener('click', () => {
+        this.removeLogo();
+    });
+    
+    // Logo-Größe
+    const logoSizeSlider = document.getElementById('logo-size');
+    logoSizeSlider.addEventListener('input', (e) => {
+        this.logoSize = parseInt(e.target.value);
+        document.getElementById('logo-size-value').textContent = `${this.logoSize}%`;
+        this.updatePreview();
+    });
+    
+    // Logo-Position
+    document.getElementById('logo-position').addEventListener('change', (e) => {
+        this.logoPosition = e.target.value;
+        this.updatePreview();
+    });
+    
+    // Logo-Form
+    document.querySelectorAll('.shape-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            this.logoShape = btn.dataset.shape;
+            this.updatePreview();
+        });
+    });
+    
+    // Logo-Abstand
+    const logoPaddingSlider = document.getElementById('logo-padding');
+    logoPaddingSlider.addEventListener('input', (e) => {
+        this.logoPadding = parseInt(e.target.value);
+        document.getElementById('logo-padding-value').textContent = `${this.logoPadding}px`;
+        this.updatePreview();
+    });
+    
+    // Presets
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            this.applyLogoPreset(btn.dataset.preset);
+        });
+    });
+}
+
+// Logo-Upload verarbeiten
+handleLogoUpload(file) {
+    // Dateigröße prüfen (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+        this.showLogoError('Datei zu groß. Maximum: 2MB');
+        return;
+    }
+    
+    // Dateityp prüfen
+    if (!file.type.startsWith('image/')) {
+        this.showLogoError('Nur Bilddateien erlaubt (PNG, JPG, SVG)');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        this.logoFile = e.target.result;
+        this.showLogoPreview(e.target.result);
+        this.updatePreview();
+        
+        if (window.qrApp && typeof window.qrApp.showToast === 'function') {
+            window.qrApp.showToast('Logo erfolgreich hinzugefügt!', 'success', 2000);
+        }
+    };
+    
+    reader.readAsDataURL(file);
+}
+
+// Logo-Vorschau anzeigen
+showLogoPreview(imageSrc) {
+    const uploadZone = document.getElementById('upload-zone');
+    const logoPreview = document.getElementById('logo-preview');
+    const previewImg = document.getElementById('logo-preview-img');
+    
+    uploadZone.style.display = 'none';
+    logoPreview.style.display = 'block';
+    previewImg.src = imageSrc;
+}
+
+// Logo entfernen
+removeLogo() {
+    this.logoFile = null;
+    document.getElementById('upload-zone').style.display = 'block';
+    document.getElementById('logo-preview').style.display = 'none';
+    document.getElementById('logo-upload').value = '';
+    this.updatePreview();
+    
+    if (window.qrApp && typeof window.qrApp.showToast === 'function') {
+        window.qrApp.showToast('Logo entfernt', 'info', 1500);
+    }
+}
+
+// Logo-Controls ein-/ausblenden
+toggleLogoControls() {
+    const logoControls = document.querySelector('.logo-controls');
+    if (this.logoEnabled) {
+        logoControls.classList.add('active');
+        logoControls.classList.remove('inactive');
+    } else {
+        logoControls.classList.remove('active');
+        logoControls.classList.add('inactive');
+    }
+}
+
+// Logo-Presets anwenden
+applyLogoPreset(preset) {
+    const presets = {
+        'small-corner': { size: 15, position: 'bottom-right', shape: 'circle', padding: 5 },
+        'medium-center': { size: 25, position: 'center', shape: 'rounded', padding: 10 },
+        'large-center': { size: 35, position: 'center', shape: 'square', padding: 15 }
+    };
+    
+    const config = presets[preset];
+    if (config) {
+        this.logoSize = config.size;
+        this.logoPosition = config.position;
+        this.logoShape = config.shape;
+        this.logoPadding = config.padding;
+        
+        // UI aktualisieren
+        document.getElementById('logo-size').value = this.logoSize;
+        document.getElementById('logo-size-value').textContent = `${this.logoSize}%`;
+        document.getElementById('logo-position').value = this.logoPosition;
+        document.getElementById('logo-padding').value = this.logoPadding;
+        document.getElementById('logo-padding-value').textContent = `${this.logoPadding}px`;
+        
+        // Form-Buttons aktualisieren
+        document.querySelectorAll('.shape-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.shape === this.logoShape);
+        });
+        
+        this.updatePreview();
+        
+        if (window.qrApp && typeof window.qrApp.showToast === 'function') {
+            window.qrApp.showToast(`Preset "${preset}" angewendet`, 'success', 1500);
+        }
+    }
+}
 }
 
 // Integration mit der Hauptapp

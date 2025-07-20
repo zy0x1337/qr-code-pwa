@@ -2088,7 +2088,7 @@ class QRCustomization {
                 { color: '#e0f2fe', name: 'Sky 100' },
                 { color: '#ecfdf5', name: 'Green 50' }
             ],
-            premium: [
+            elegant: [
                 { color: '#fafafa', name: 'Neutral 50' },
                 { color: '#f4f4f5', name: 'Zinc 100' },
                 { color: '#e4e4e7', name: 'Zinc 200' },
@@ -2151,7 +2151,8 @@ class QRCustomization {
                     <option value="neutral">Neutral</option>
                     <option value="warm">Warm</option>
                     <option value="cool">Cool</option>
-                    <option value="premium">Premium</option>
+                    <option value="premium">Elegant</option>
+                    <option value="custom">Eigene Farbe</option>
                 </select>
             </div>
             <div class="bg-color-presets"></div>
@@ -2240,28 +2241,113 @@ class QRCustomization {
         }
     }
 
-    // NEUE FUNKTION: Hintergrundfarb-Presets rendern
-    renderBgColorPresets() {
-        const bgPresetsContainer = document.querySelector('.bg-color-presets');
-        if (!bgPresetsContainer) return;
+    // Hintergrundfarb-Presets rendern
+renderBgColorPresets() {
+    const bgPresetsContainer = document.querySelector('.bg-color-presets');
+    if (!bgPresetsContainer) return;
 
-        const presets = this.bgColorPresets[this.currentBgCategory] || this.bgColorPresets.neutral;
+    // Spezielle Behandlung für "Eigene Farbe"
+    if (this.currentBgCategory === 'custom') {
+        bgPresetsContainer.innerHTML = `
+            <div class="custom-color-section">
+                <div class="custom-color-picker">
+                    <label for="custom-bg-input" class="custom-color-label">
+                        <span class="custom-icon">🎨</span>
+                        Wähle deine individuelle Hintergrundfarbe:
+                    </label>
+                    <div class="custom-picker-wrapper">
+                        <input type="color" 
+                               id="custom-bg-input" 
+                               value="${this.qrBgColor}" 
+                               class="custom-color-input"
+                               aria-label="Eigene Hintergrundfarbe auswählen">
+                        <span class="color-value">${this.qrBgColor}</span>
+                    </div>
+                </div>
+                <div class="color-suggestions">
+                    <span class="suggestions-label">Beliebte Farbtöne:</span>
+                    <div class="quick-suggestions">
+                        ${this.generateQuickSuggestions()}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Event Listener für Custom Color Input
+        const customInput = bgPresetsContainer.querySelector('#custom-bg-input');
+        const colorValueSpan = bgPresetsContainer.querySelector('.color-value');
         
-        bgPresetsContainer.innerHTML = presets.map(preset => `
-            <button class="bg-color-preset advanced-preset" 
-                    data-color="${preset.color}" 
-                    style="background: ${preset.color}; border: 2px solid #e2e8f0;" 
-                    title="${preset.name}"
-                    type="button">
-            </button>
-        `).join('');
+        customInput.addEventListener('input', (e) => {
+            this.setBgColor(e.target.value);
+            colorValueSpan.textContent = e.target.value.toUpperCase();
+            this.showCustomColorFeedback(e.target.value);
+        });
 
-        // Standard-Preset aktivieren
-        const defaultBgPreset = bgPresetsContainer.querySelector(`[data-color="${this.qrBgColor}"]`);
-        if (defaultBgPreset) {
-            defaultBgPreset.classList.add('active');
-        }
+        // Event Listeners für Quick Suggestions
+        bgPresetsContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('suggestion-color')) {
+                const color = e.target.dataset.color;
+                this.setBgColor(color);
+                customInput.value = color;
+                colorValueSpan.textContent = color.toUpperCase();
+                this.showCustomColorFeedback(color);
+            }
+        });
+
+        return;
     }
+
+    // Standard-Preset-Rendering für andere Kategorien
+    const presets = this.bgColorPresets[this.currentBgCategory] || this.bgColorPresets.neutral;
+    
+    bgPresetsContainer.innerHTML = presets.map(preset => `
+        <button class="bg-color-preset advanced-preset" 
+                data-color="${preset.color}" 
+                style="background: ${preset.color}; border: 2px solid #e2e8f0;" 
+                title="${preset.name}"
+                type="button">
+        </button>
+    `).join('');
+
+    // Standard-Preset aktivieren
+    const defaultBgPreset = bgPresetsContainer.querySelector(`[data-color="${this.qrBgColor}"]`);
+    if (defaultBgPreset) {
+        defaultBgPreset.classList.add('active');
+    }
+}
+
+// Quick Suggestions für beliebte Farben generieren
+generateQuickSuggestions() {
+    const suggestions = [
+        { color: '#f8f9fa', name: 'Hellgrau' },
+        { color: '#e9ecef', name: 'Silber' },
+        { color: '#fff3cd', name: 'Cremeweiß' },
+        { color: '#d1ecf1', name: 'Hellblau' },
+        { color: '#d4edda', name: 'Mintgrün' },
+        { color: '#f8d7da', name: 'Rosé' },
+        { color: '#e2e3e5', name: 'Steingrau' },
+        { color: '#ffeeba', name: 'Vanille' }
+    ];
+
+    return suggestions.map(suggestion => `
+        <button class="suggestion-color" 
+                data-color="${suggestion.color}"
+                style="background: ${suggestion.color};"
+                title="${suggestion.name}"
+                type="button">
+        </button>
+    `).join('');
+}
+
+// Feedback für Custom Color Auswahl
+showCustomColorFeedback(color) {
+    if (window.qrApp && typeof window.qrApp.showToast === 'function') {
+        window.qrApp.showToast(`Eigene Farbe: ${color.toUpperCase()}`, 'success', 1500);
+    }
+    
+    // Kontrast-Prüfung aktivieren
+    this.checkColorContrast();
+}
 
     // Farbpreset auswählen
     selectColorPreset(element, color) {
@@ -2501,12 +2587,17 @@ class QRCustomization {
     }
 
     setBgColor(color) {
-        this.qrBgColor = color;
-        const qrBgColorInput = document.getElementById('qr-bg-color');
-        if (qrBgColorInput) qrBgColorInput.value = color;
+    this.qrBgColor = color;
+    const qrBgColorInput = document.getElementById('qr-bg-color');
+    if (qrBgColorInput) qrBgColorInput.value = color;
+    
+    // Nur bei Standard-Presets synchronisieren
+    if (this.currentBgCategory !== 'custom') {
         this.syncPresetSelection('bgColor');
-        this.updatePreview();
     }
+    
+    this.updatePreview();
+}
 
     setSize(size) {
         this.qrSize = size;

@@ -3759,3 +3759,174 @@ select.form-control {
   font-size: 10px;
   font-weight: bold;
 }
+
+/* Custom Color Section Styles */
+.custom-color-section {
+  padding: var(--space-16);
+  background: linear-gradient(135deg, 
+    rgba(var(--color-primary-rgb), 0.05), 
+    rgba(var(--color-secondary-rgb), 0.02));
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius-lg);
+  margin-top: var(--space-12);
+}
+
+.custom-color-picker {
+  margin-bottom: var(--space-20);
+}
+
+.custom-color-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+  margin-bottom: var(--space-12);
+  font-size: var(--font-size-sm);
+}
+
+.custom-icon {
+  font-size: var(--font-size-lg);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+.custom-picker-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+  padding: var(--space-12);
+  background: var(--color-surface);
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius-base);
+  transition: border-color var(--duration-fast) var(--ease-standard);
+}
+
+.custom-picker-wrapper:hover {
+  border-color: var(--color-primary);
+}
+
+.custom-color-input {
+  width: 60px !important;
+  height: 40px !important;
+  border: 2px solid var(--color-card-border) !important;
+  border-radius: var(--radius-base) !important;
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+
+.custom-color-input:hover {
+  transform: scale(1.05);
+  border-color: var(--color-primary) !important;
+}
+
+.color-value {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  padding: var(--space-6) var(--space-12);
+  background: var(--color-card);
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius-sm);
+  min-width: 80px;
+  text-align: center;
+}
+
+/* Color Suggestions */
+.color-suggestions {
+  padding-top: var(--space-16);
+  border-top: 1px solid var(--color-card-border);
+}
+
+.suggestions-label {
+  display: block;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-12);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.quick-suggestions {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(32px, 1fr));
+  gap: var(--space-8);
+}
+
+.suggestion-color {
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--color-card-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-standard);
+  background: none;
+  padding: 0;
+}
+
+.suggestion-color:hover {
+  transform: scale(1.15);
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
+  z-index: 10;
+}
+
+.suggestion-color:active {
+  transform: scale(1.05);
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 768px) {
+  .custom-picker-wrapper {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-12);
+  }
+
+  .custom-color-input {
+    width: 50px !important;
+    height: 35px !important;
+  }
+
+  .quick-suggestions {
+    grid-template-columns: repeat(auto-fill, minmax(28px, 1fr));
+    gap: var(--space-6);
+  }
+
+  .suggestion-color {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* Touch-optimiert */
+@media (hover: none) and (pointer: coarse) {
+  .suggestion-color {
+    width: 36px;
+    height: 36px;
+  }
+
+  .suggestion-color:hover {
+    transform: none;
+  }
+
+  .suggestion-color:active {
+    transform: scale(0.95);
+  }
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .custom-color-section {
+    background: linear-gradient(135deg, 
+      rgba(var(--color-primary-rgb), 0.08), 
+      rgba(var(--color-secondary-rgb), 0.04));
+  }
+}
+
+[data-color-scheme="dark"] .custom-color-section {
+  background: linear-gradient(135deg, 
+    rgba(var(--color-primary-rgb), 0.08), 
+    rgba(var(--color-secondary-rgb), 0.04));
+}

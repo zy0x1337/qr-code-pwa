@@ -1,3 +1,16 @@
+// Debounce-Hilfsfunktion
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 // QR Pro - Modern QR Code Generator & Scanner PWA
 class QRProApp {
   constructor() {
@@ -40,6 +53,9 @@ class QRProApp {
     this.setupQRTypeHandler();
     this.setupDashboardActions();
     await this.initializeTemplateManager();
+    this.addHistoryFilters();
+    this.setupHistoryEventListeners();
+    this.updateDashboard();
   }
 
   async registerServiceWorker() {
@@ -635,45 +651,219 @@ resumeScanner() {
   }
 }
 
-filterHistory(searchTerm) {
-  const historyList = document.getElementById('history-list');
-  if (!historyList) return;
-  
-  const allHistory = [...this.qrHistory, ...this.scanHistory];
-  const filtered = allHistory.filter(item => 
-    item.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.type.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-  
-  this.displayHistory(filtered);
+setupHistoryEventListeners() {
+    // Such-Events
+    const searchInput = document.getElementById('search-history');
+    if (searchInput) {
+        searchInput.addEventListener('input', debounce((e) => {
+            this.filterHistory(e.target.value);
+        }, 300));
+    }
+
+    // Filter-Events
+    ['type-filter', 'date-filter', 'sort-order'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('change', () => this.filterHistory(searchInput?.value || ''));
+        }
+    });
 }
 
-displayHistory(historyItems) {
-  const historyList = document.getElementById('history-list');
-  if (!historyList) return;
-  
-  if (historyItems.length === 0) {
-    historyList.innerHTML = '<div class="empty-state">Keine Einträge gefunden</div>';
-    return;
-  }
-  
-  historyList.innerHTML = historyItems.map(item => `
-    <div class="history-item">
-      <div class="history-header">
-        <span class="history-type">${item.type === 'generated' ? 'Generiert' : 'Gescannt'}</span>
-        <span class="history-date">${this.formatTime(item.timestamp)}</span>
-      </div>
-      <div class="history-content">${item.content}</div>
-      <div class="history-actions">
-        <button class="history-copy-btn" data-content="${item.content}">Kopieren</button>
-        ${item.type === 'generated' ? 
-          `<button class="history-regenerate-btn" data-content="${item.content}">Erneut</button>` : 
-          ''
+filterHistory(searchTerm = '') {
+    const typeFilter = document.getElementById('type-filter')?.value || 'all';
+    const dateFilter = document.getElementById('date-filter')?.value || 'all';
+    const sortOrder = document.getElementById('sort-order')?.value || 'newest';
+
+    let allHistory = this.getAllHistory();
+
+    // Text-Suche
+    if (searchTerm.trim()) {
+        const term = searchTerm.toLowerCase();
+        allHistory = allHistory.filter(item => 
+            item.content.toLowerCase().includes(term) ||
+            (item.qrType && item.qrType.toLowerCase().includes(term))
+        );
+    }
+
+    // Typ-Filter
+    if (typeFilter !== 'all') {
+        allHistory = allHistory.filter(item => item.type === typeFilter);
+    }
+
+    // Datum-Filter
+    if (dateFilter !== 'all') {
+        const now = new Date();
+        const filterDate = new Date();
+        
+        switch(dateFilter) {
+            case 'today':
+                filterDate.setHours(0, 0, 0, 0);
+                break;
+            case 'week':
+                filterDate.setDate(now.getDate() - 7);
+                break;
+            case 'month':
+                filterDate.setMonth(now.getMonth() - 1);
+                break;
         }
-        <button class="history-delete-btn" data-id="${item.id || item.timestamp}">Löschen</button>
-      </div>
-    </div>
-  `).join('');
+        
+        allHistory = allHistory.filter(item => 
+            new Date(item.timestamp) >= filterDate
+        );
+    }
+
+    // Sortierung
+    if (sortOrder === 'oldest') {
+        allHistory.reverse();
+    }
+
+    this.displayHistory(allHistory);
+    this.updateSearchResults(allHistory.length, searchTerm);
+}
+
+addHistoryFilters() {
+    const historyPage = document.getElementById('history-page');
+    const existingFilters = document.querySelector('.history-filters');
+    
+    if (existingFilters) return;
+
+    const filtersHTML = `
+        <div class="history-filters">
+            <div class="filter-row">
+                <div class="search-group">
+                    <input type="text" id="search-history" placeholder="Durchsuchen..." class="form-control">
+                    <button id="clear-search" class="btn btn--secondary">✕</button>
+                </div>
+                <div class="filter-group">
+                    <select id="type-filter" class="form-control">
+                        <option value="all">Alle Typen</option>
+                        <option value="generated">Generiert</option>
+                        <option value="scanned">Gescannt</option>
+                    </select>
+                    <select id="date-filter" class="form-control">
+                        <option value="all">Alle Zeiten</option>
+                        <option value="today">Heute</option>
+                        <option value="week">Diese Woche</option>
+                        <option value="month">Dieser Monat</option>
+                    </select>
+                    <select id="sort-order" class="form-control">
+                        <option value="newest">Neueste zuerst</option>
+                        <option value="oldest">Älteste zuerst</option>
+                    </select>
+                </div>
+            </div>
+            <div class="filter-actions">
+                <div class="results-info">
+                    <span id="results-count">Alle Einträge</span>
+                </div>
+                <div class="action-buttons">
+                    <button id="export-history" class="btn btn--secondary">
+                        📤 Exportieren
+                    </button>
+                    <button id="import-history" class="btn btn--secondary">
+                        📥 Importieren
+                    </button>
+                    <button id="clear-history" class="btn btn--outline">
+                        🗑️ Verlauf löschen
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    historyPage.querySelector('.page-header').insertAdjacentHTML('afterend', filtersHTML);
+}
+
+displayHistory(historyItems = null) {
+    const historyList = document.getElementById('history-list');
+    if (!historyList) return;
+
+    // Verwende gefilterte Items oder alle Aktivitäten
+    const items = historyItems || this.getAllHistory();
+
+    if (items.length === 0) {
+        historyList.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">📂</div>
+                <h3>Keine Einträge im Verlauf</h3>
+                <p>Erstellen oder scannen Sie QR Codes, um hier Ihren Verlauf zu sehen.</p>
+            </div>
+        `;
+        return;
+    }
+
+    // Gruppierung nach Datum
+    const groupedHistory = this.groupHistoryByDate(items);
+    
+    let historyHTML = '';
+    for (const [date, dayItems] of Object.entries(groupedHistory)) {
+        historyHTML += `
+            <div class="history-group">
+                <div class="history-date-header">
+                    <h3>${this.formatDate(date)}</h3>
+                    <span class="items-count">${dayItems.length} Einträge</span>
+                </div>
+                <div class="history-items">
+                    ${dayItems.map(item => this.createHistoryItemHTML(item)).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    historyList.innerHTML = historyHTML;
+    this.updateHistoryStats(items);
+}
+
+getAllHistory() {
+    return [
+        ...this.qrHistory.map(item => ({...item, type: 'generated'})),
+        ...this.scanHistory.map(item => ({...item, type: 'scanned'}))
+    ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+}
+
+groupHistoryByDate(items) {
+    return items.reduce((groups, item) => {
+        const date = new Date(item.timestamp).toDateString();
+        if (!groups[date]) groups[date] = [];
+        groups[date].push(item);
+        return groups;
+    }, {});
+}
+
+createHistoryItemHTML(item) {
+    const isGenerated = item.type === 'generated';
+    return `
+        <div class="history-item" data-id="${item.id}">
+            <div class="history-item-icon ${item.type}">
+                ${isGenerated ? '🔗' : '📷'}
+            </div>
+            <div class="history-item-content">
+                <div class="history-item-title">
+                    ${isGenerated ? 'QR Code generiert' : 'QR Code gescannt'}
+                </div>
+                <div class="history-item-preview">
+                    ${this.truncateText(item.content, 80)}
+                </div>
+                <div class="history-item-meta">
+                    <span class="time">${this.formatFullTime(item.timestamp)}</span>
+                    <span class="type ${item.qrType || 'text'}">${item.qrType || 'Text'}</span>
+                    ${item.size ? `<span class="size">${item.size}px</span>` : ''}
+                </div>
+            </div>
+            <div class="history-item-actions">
+                <button class="history-copy-btn" data-content="${item.content}" title="Kopieren">
+                    📋
+                </button>
+                ${isGenerated ? 
+                    `<button class="history-regenerate-btn" data-content="${item.content}" title="Erneut generieren">🔄</button>
+                     <button class="history-download-btn" data-id="${item.id}" title="Herunterladen">⬇️</button>` :
+                    `<button class="history-open-btn" data-content="${item.content}" title="Öffnen">🔍</button>`
+                }
+                <button class="history-share-btn" data-content="${item.content}" title="Teilen">📤</button>
+                <button class="history-delete-btn" data-id="${item.id}" title="Löschen">🗑️</button>
+            </div>
+        </div>
+    `;
 }
 
 clearHistory() {
@@ -687,22 +877,209 @@ clearHistory() {
 }
 
 exportHistory() {
-  const data = {
-    qrHistory: this.qrHistory,
-    scanHistory: this.scanHistory,
-    exportDate: new Date().toISOString()
-  };
-  
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `qr-pro-export-${new Date().toISOString().split('T')[0]}.json`;
-  link.click();
-  
-  URL.revokeObjectURL(url);
-  this.showToast('Verlauf exportiert', 'success');
+    const allHistory = this.getAllHistory();
+    
+    if (allHistory.length === 0) {
+        this.showToast('Keine Daten zum Exportieren vorhanden', 'warning');
+        return;
+    }
+
+    // Mehrere Export-Formate anbieten
+    const exportModal = document.createElement('div');
+    exportModal.className = 'modal active';
+    exportModal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Verlauf exportieren</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="export-options">
+                    <div class="export-format">
+                        <h3>Format wählen:</h3>
+                        <div class="format-buttons">
+                            <button class="format-btn active" data-format="json">
+                                <span class="format-icon">{ }</span>
+                                <span>JSON</span>
+                                <small>Vollständige Daten</small>
+                            </button>
+                            <button class="format-btn" data-format="csv">
+                                <span class="format-icon">📊</span>
+                                <span>CSV</span>
+                                <small>Tabellendaten</small>
+                            </button>
+                            <button class="format-btn" data-format="txt">
+                                <span class="format-icon">📄</span>
+                                <span>TXT</span>
+                                <small>Nur Inhalte</small>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="export-settings">
+                        <label>
+                            <input type="checkbox" checked id="include-generated"> 
+                            Generierte QR Codes (${this.qrHistory.length})
+                        </label>
+                        <label>
+                            <input type="checkbox" checked id="include-scanned"> 
+                            Gescannte QR Codes (${this.scanHistory.length})
+                        </label>
+                    </div>
+                    <div class="export-actions">
+                        <button class="btn btn--primary" id="download-export">
+                            📥 Download starten
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(exportModal);
+    this.setupExportModal(exportModal, allHistory);
+}
+
+setupExportModal(modal, allHistory) {
+    let selectedFormat = 'json';
+    
+    // Format-Auswahl
+    modal.querySelectorAll('.format-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            modal.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedFormat = btn.dataset.format;
+        });
+    });
+
+    // Download-Button
+    modal.querySelector('#download-export').addEventListener('click', () => {
+        const includeGenerated = modal.querySelector('#include-generated').checked;
+        const includeScanned = modal.querySelector('#include-scanned').checked;
+        
+        let dataToExport = allHistory.filter(item => 
+            (includeGenerated && item.type === 'generated') ||
+            (includeScanned && item.type === 'scanned')
+        );
+
+        this.downloadHistoryFile(dataToExport, selectedFormat);
+        modal.remove();
+    });
+
+    // Modal schließen
+    modal.querySelector('.modal-close').addEventListener('click', () => modal.remove());
+}
+
+downloadHistoryFile(data, format) {
+    let content, filename, mimeType;
+    const timestamp = new Date().toISOString().split('T')[0];
+
+    switch(format) {
+        case 'json':
+            content = JSON.stringify(data, null, 2);
+            filename = `qr-history-${timestamp}.json`;
+            mimeType = 'application/json';
+            break;
+            
+        case 'csv':
+            const headers = ['Typ', 'Inhalt', 'QR-Typ', 'Zeitstempel', 'Größe'];
+            const rows = data.map(item => [
+                item.type === 'generated' ? 'Generiert' : 'Gescannt',
+                `"${item.content.replace(/"/g, '""')}"`,
+                item.qrType || 'Text',
+                new Date(item.timestamp).toLocaleString('de-DE'),
+                item.size || ''
+            ]);
+            content = [headers, ...rows].map(row => row.join(',')).join('\n');
+            filename = `qr-history-${timestamp}.csv`;
+            mimeType = 'text/csv';
+            break;
+            
+        case 'txt':
+            content = data.map(item => 
+                `[${item.type.toUpperCase()}] ${new Date(item.timestamp).toLocaleString('de-DE')}\n${item.content}\n---`
+            ).join('\n\n');
+            filename = `qr-history-${timestamp}.txt`;
+            mimeType = 'text/plain';
+            break;
+    }
+
+    // Download starten
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    this.showToast(`${data.length} Einträge als ${format.toUpperCase()} exportiert`, 'success');
+}
+
+// Import-Funktion
+importHistory(file) {
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const content = e.target.result;
+            let importedData = [];
+
+            if (file.name.endsWith('.json')) {
+                importedData = JSON.parse(content);
+            } else if (file.name.endsWith('.csv')) {
+                importedData = this.parseCSVHistory(content);
+            } else {
+                throw new Error('Unsupported file format');
+            }
+
+            this.mergeImportedHistory(importedData);
+        } catch (error) {
+            this.showToast('Fehler beim Importieren: ' + error.message, 'error');
+        }
+    };
+
+    reader.readAsText(file);
+}
+
+mergeImportedHistory(importedData) {
+    let newGenerated = 0;
+    let newScanned = 0;
+
+    importedData.forEach(item => {
+        // Duplikate vermeiden
+        const existingItem = this.findHistoryItem(item.content, item.timestamp);
+        if (existingItem) return;
+
+        // ID generieren falls nicht vorhanden
+        if (!item.id) {
+            item.id = 'imported-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        }
+
+        if (item.type === 'generated') {
+            this.qrHistory.push(item);
+            newGenerated++;
+        } else if (item.type === 'scanned') {
+            this.scanHistory.push(item);
+            newScanned++;
+        }
+    });
+
+    // Speichern
+    this.saveData();
+    
+    // UI aktualisieren
+    if (this.currentPage === 'history') {
+        this.displayHistory();
+    }
+    this.updateDashboard();
+
+    this.showToast(
+        `Import erfolgreich: ${newGenerated} generierte, ${newScanned} gescannte QR Codes hinzugefügt`, 
+        'success'
+    );
 }
 
 importHistory(file) {
@@ -1785,16 +2162,84 @@ restartScanner() {
   }
 
   // UI Updates
-  updateDashboard() {
-  console.log('📊 Aktualisiere Dashboard...');
-  
-  // SICHERE STATISTIK-UPDATES
-  this.updateSafeStat('qr-generated', this.getQRGeneratedCount());
-  this.updateSafeStat('qr-scanned', this.getQRScannedCount());
-  this.updateSafeStat('today-active', this.getTodayActiveCount());
-  this.updateSafeStat('templates-count', this.getTemplatesCount());
-  
-  this.updateRecentActivity();
+  // Erweiterte updateDashboard Funktion
+updateDashboard() {
+    this.updateStatsCards();
+    this.updateRecentActivities();
+    this.updateQuickStats();
+}
+
+// Neue Funktion für "Letzte Aktivitäten"
+updateRecentActivities() {
+    const recentList = document.getElementById('recent-activities');
+    if (!recentList) return;
+
+    // Alle Aktivitäten zusammenführen und nach Datum sortieren
+    const allActivities = [
+        ...this.qrHistory.map(item => ({...item, type: 'generated'})),
+        ...this.scanHistory.map(item => ({...item, type: 'scanned'}))
+    ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+     .slice(0, 10); // Nur die letzten 10 Aktivitäten
+
+    if (allActivities.length === 0) {
+        recentList.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">📱</div>
+                <p>Noch keine QR Codes erstellt oder gescannt</p>
+                <button class="btn btn--primary" onclick="app.navigateToPage('generator')">
+                    Ersten QR Code erstellen
+                </button>
+            </div>
+        `;
+        return;
+    }
+
+    const activitiesHTML = allActivities.map(activity => `
+        <div class="activity-item" data-activity-id="${activity.id}">
+            <div class="activity-icon ${activity.type}">
+                ${activity.type === 'generated' ? '🔗' : '📷'}
+            </div>
+            <div class="activity-content">
+                <div class="activity-title">
+                    ${activity.type === 'generated' ? 'QR Code generiert' : 'QR Code gescannt'}
+                </div>
+                <div class="activity-preview">
+                    ${this.truncateText(activity.content, 50)}
+                </div>
+                <div class="activity-meta">
+                    <span class="activity-time">${this.formatTime(activity.timestamp)}</span>
+                    <span class="activity-type-badge ${activity.qrType || 'text'}">${activity.qrType || 'Text'}</span>
+                </div>
+            </div>
+            <div class="activity-actions">
+                <button class="activity-btn" onclick="app.copyToClipboard('${activity.content}')" title="Kopieren">
+                    📋
+                </button>
+                ${activity.type === 'generated' ? 
+                    `<button class="activity-btn" onclick="app.regenerateQRCode('${activity.content}')" title="Erneut generieren">🔄</button>` :
+                    `<button class="activity-btn" onclick="app.handleScanResult('${activity.content}')" title="Erneut öffnen">🔍</button>`
+                }
+            </div>
+        </div>
+    `).join('');
+
+    recentList.innerHTML = `<div class="activity-list">${activitiesHTML}</div>`;
+}
+
+// Hilfsfunktionen
+truncateText(text, maxLength) {
+    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+}
+
+formatTime(timestamp) {
+    const now = new Date();
+    const time = new Date(timestamp);
+    const diffInMinutes = Math.floor((now - time) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'Gerade eben';
+    if (diffInMinutes < 60) return `vor ${diffInMinutes}min`;
+    if (diffInMinutes < 1440) return `vor ${Math.floor(diffInMinutes / 60)}h`;
+    return `vor ${Math.floor(diffInMinutes / 1440)} Tag(en)`;
 }
 
 // HILFSMETHODE FÜR SICHERE UPDATES

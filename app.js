@@ -997,6 +997,61 @@ saveSettings() {
     }
 }
 
+// updatePreviewSize Methode zur QRProApp Klasse hinzufügen
+updatePreviewSize(sizeClass) {
+    const preview = document.getElementById('qr-preview');
+    if (!preview) return;
+    
+    // Alle alten Größenklassen entfernen
+    preview.classList.remove('size-200', 'size-300', 'size-500', 'size-800', 'size-small', 'size-medium');
+    
+    // Neue semantische Größenklassen verwenden
+    switch(sizeClass) {
+        case 'size-small':
+            preview.classList.add('size-small');
+            break;
+        case 'size-medium':
+            preview.classList.add('size-medium');
+            break;
+        default:
+            preview.classList.add('size-small');
+    }
+    
+    // Größen-Indikator aktualisieren
+    this.updateSizeIndicator(sizeClass);
+}
+
+// updateSizeIndicator Methode ebenfalls hinzufügen
+updateSizeIndicator(sizeClass) {
+    let indicatorText = '';
+    let pixelSize = 200;
+    
+    switch(sizeClass) {
+        case 'size-small':
+            indicatorText = 'Klein (200px)';
+            pixelSize = 200;
+            break;
+        case 'size-medium':
+            indicatorText = 'Mittel (300px)';
+            pixelSize = 300;
+            break;
+    }
+    
+    let indicator = document.querySelector('.size-indicator');
+    if (!indicator) {
+        indicator = document.createElement('div');
+        indicator.className = 'size-indicator';
+        const preview = document.getElementById('qr-preview');
+        if (preview) {
+            preview.style.position = 'relative';
+            preview.appendChild(indicator);
+        }
+    }
+    
+    indicator.textContent = indicatorText;
+    indicator.setAttribute('data-size', pixelSize);
+}
+
 generateQRCodePreview() {
     const content = document.getElementById('qr-content')?.value.trim();
     const preview = document.querySelector('.qr-preview');
@@ -2341,26 +2396,6 @@ class QRCustomization {
             `;
         }
     }, 500);
-}
-
-updatePreviewSize(sizeClass) {
-    const preview = document.getElementById('qr-preview');
-    if (!preview) return;
-    
-    preview.classList.remove('size-200', 'size-300', 'size-500', 'size-800', 'size-small', 'size-medium');
-    
-    switch(sizeClass) {
-        case 'size-small':
-            preview.classList.add('size-small');
-            break;
-        case 'size-medium':
-            preview.classList.add('size-medium');
-            break;
-        default:
-            preview.classList.add('size-small');
-    }
-    
-    this.updateSizeIndicator(sizeClass);
 }
 
 updateSizeIndicator(sizeClass) {

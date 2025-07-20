@@ -6317,25 +6317,3 @@ input:checked + .toggle-slider:before {
         grid-template-columns: 1fr;
     }
 }
-
-.type-generated {
-    background-color: #4CAF50;
-    color: white;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.8em;
-}
-
-.type-scanned {
-    background-color: #2196F3;
-    color: white;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.8em;
-}
-
-.history-qr-type {
-    font-size: 0.9em;
-    color: var(--text-secondary);
-    margin-top: 4px;
-}

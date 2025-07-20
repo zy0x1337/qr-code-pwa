@@ -3568,3 +3568,25 @@ select.form-control {
         font-size: 10px;
     }
 }
+
+/* Visuelles Feedback für Preset-Status */
+#qr-bg-color.custom-active {
+    border: 2px solid var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.1);
+}
+
+#qr-bg-color.preset-active {
+    border: 2px solid var(--color-success);
+    box-shadow: 0 0 0 3px rgba(var(--color-success-rgb), 0.1);
+}
+
+#qr-bg-preset:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* Loading State für Preset-Änderungen */
+.preset-loading {
+    opacity: 0.6;
+    pointer-events: none;
+}

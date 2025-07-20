@@ -1590,7 +1590,7 @@ getQRSize() {
     return parseInt(sizeInput?.value || '300');
 }
 
-// Sofortiges Update für Farb-/Größenänderungen
+// Sofortiges Preview-Update (ohne Verzögerung)
 updatePreviewImmediate() {
     // Vorheriges Timeout clearen
     if (this.previewTimeout) {
@@ -2393,20 +2393,22 @@ restartScanner() {
     }, 300);
   }
 
-  // In der QRProApp Klasse
-setupBackgroundPresets() {
+  setupBackgroundPresets() {
     console.log('🎨 Initialisiere Hintergrund-Presets...');
     
     const bgPresetSelect = document.getElementById('qr-bg-preset');
     const bgColorInput = document.getElementById('qr-bg-color');
     const toggleViewBtn = document.getElementById('toggle-preset-view');
     
+    // Kritische Validierung - Methode beenden falls Elemente fehlen
     if (!bgPresetSelect || !bgColorInput) {
-        console.warn('Hintergrund-Preset Elemente nicht gefunden');
-        return;
+        console.error('❌ FEHLER: Hintergrund-Preset Elemente nicht gefunden!');
+        console.log('bgPresetSelect:', bgPresetSelect);
+        console.log('bgColorInput:', bgColorInput);
+        return false;
     }
     
-    // Preset-Farben definieren
+    // Preset-Farben als Instanz-Variable definieren
     this.bgPresets = {
         'white': '#ffffff',
         'cream': '#fefef7', 
@@ -2422,25 +2424,52 @@ setupBackgroundPresets() {
         'lavender': '#f8f4ff'
     };
     
-    // Event Listener für Select-Änderung
-    bgPresetSelect.addEventListener('change', (e) => {
-        this.handleBackgroundPresetChange(e.target.value);
-    });
+    console.log('✅ Presets definiert:', Object.keys(this.bgPresets));
     
-    // Event Listener für Farb-Input Änderung
-    bgColorInput.addEventListener('input', (e) => {
-        // Bei manueller Farbänderung auf "custom" setzen
+    // Alte Event Listener entfernen (Sicherheit gegen Doppelbindung)
+    if (this.bgPresetChangeHandler) {
+        bgPresetSelect.removeEventListener('change', this.bgPresetChangeHandler);
+    }
+    if (this.bgColorInputHandler) {
+        bgColorInput.removeEventListener('input', this.bgColorInputHandler);
+    }
+    
+    // Event Handler als Instanz-Methoden speichern für späteren Zugriff
+    this.bgPresetChangeHandler = (e) => {
+        console.log('🎨 Preset Change Event ausgelöst:', e.target.value);
+        this.handleBackgroundPresetChange(e.target.value);
+    };
+    
+    this.bgColorInputHandler = (e) => {
+        console.log('🎨 Manuelle Farbänderung:', e.target.value);
+        
+        // Bei manueller Farbänderung automatisch auf "custom" setzen
         if (bgPresetSelect.value !== 'custom') {
+            console.log('🔄 Wechsle zu Custom-Modus');
             bgPresetSelect.value = 'custom';
             bgColorInput.disabled = false;
+            bgColorInput.style.opacity = '1';
+            bgColorInput.style.cursor = 'pointer';
         }
-        this.updatePreview();
-    });
+        
+        // Preview sofort aktualisieren
+        this.updatePreviewImmediate();
+        
+        // Einstellungen speichern
+        this.saveSettings();
+    };
     
-    // Kachel-Ansicht erstellen
+    // Event Listener hinzufügen
+    bgPresetSelect.addEventListener('change', this.bgPresetChangeHandler);
+    bgColorInput.addEventListener('input', this.bgColorInputHandler);
+    
+    // Zusätzlicher Event Listener für 'change' Event am Color Input
+    bgColorInput.addEventListener('change', this.bgColorInputHandler);
+    
+    // Kachel-Ansicht erstellen (falls Container vorhanden)
     this.createPresetTiles();
     
-    // Toggle Button Event Listener
+    // Toggle Button Event Listener (optional)
     if (toggleViewBtn) {
         toggleViewBtn.addEventListener('click', () => {
             this.togglePresetView();
@@ -2450,97 +2479,126 @@ setupBackgroundPresets() {
     // Select Options mit Farb-Previews erweitern
     this.enhanceSelectOptions();
     
-    // Initialer Zustand
+    // Initialen UI-Zustand setzen
     this.updateBackgroundPresetUI();
     
-    console.log('✅ Hintergrund-Presets initialisiert');
+    // Selbsttest durchführen (Debug-Modus)
+    if (this.debugMode || console.log === console.debug) {
+        console.log('🧪 Führe Selbsttest durch...');
+        setTimeout(() => {
+            this.testBackgroundPresetFunctionality();
+        }, 500);
+    }
+    
+    console.log('✅ Hintergrund-Presets erfolgreich initialisiert');
+    return true;
+}
+
+// Debug-Funktion für Funktionstests
+testBackgroundPresetFunctionality() {
+    console.log('🧪 Teste Hintergrund-Preset Funktionalität...');
+    
+    const bgPresetSelect = document.getElementById('qr-bg-preset');
+    const bgColorInput = document.getElementById('qr-bg-color');
+    
+    if (!bgPresetSelect || !bgColorInput) {
+        console.error('❌ Test fehlgeschlagen - Elemente nicht gefunden');
+        return;
+    }
+    
+    // Test 1: Preset-Wechsel
+    const originalValue = bgPresetSelect.value;
+    bgPresetSelect.value = 'white';
+    bgPresetSelect.dispatchEvent(new Event('change'));
+    
+    setTimeout(() => {
+        if (bgColorInput.value === '#ffffff') {
+            console.log('✅ Test 1 erfolgreich: Preset-Wechsel funktioniert');
+        } else {
+            console.error('❌ Test 1 fehlgeschlagen: Preset-Wechsel');
+        }
+        
+        // Zurücksetzen
+        bgPresetSelect.value = originalValue;
+        bgPresetSelect.dispatchEvent(new Event('change'));
+        
+    }, 100);
 }
 
 // Hintergrund-Preset Änderung verarbeiten
 handleBackgroundPresetChange(selectedPreset) {
+    console.log(`🎨 handleBackgroundPresetChange aufgerufen mit: "${selectedPreset}"`);
+    
     const bgColorInput = document.getElementById('qr-bg-color');
     const bgPresetSelect = document.getElementById('qr-bg-preset');
     
-    console.log(`🎨 Hintergrund-Preset geändert zu: ${selectedPreset}`);
-    
-    // Validierung der Eingaben
+    // Strikte Validierung
     if (!bgColorInput) {
-        console.warn('Hintergrund-Farb-Input nicht gefunden');
+        console.error('❌ bgColorInput nicht gefunden!');
         return;
     }
     
+    if (!this.bgPresets) {
+        console.error('❌ this.bgPresets nicht definiert!');
+        this.setupBackgroundPresets(); // Erneut initialisieren
+        return;
+    }
+    
+    console.log('📋 Verfügbare Presets:', Object.keys(this.bgPresets));
+    
     if (selectedPreset === 'custom') {
-        // Benutzer kann eigene Farbe wählen
+        console.log('🎨 Custom-Modus aktiviert');
+        
         bgColorInput.disabled = false;
         bgColorInput.style.opacity = '1';
         bgColorInput.style.cursor = 'pointer';
+        bgColorInput.style.backgroundColor = bgColorInput.value;
         
-        // Optional: Fokus auf Input setzen
-        setTimeout(() => bgColorInput.focus(), 100);
+        // Visual Feedback
+        bgColorInput.classList.add('custom-active');
         
-        console.log('🎨 Custom-Modus aktiviert');
-        
-    } else if (this.bgPresets && this.bgPresets[selectedPreset]) {
-        // Preset-Farbe anwenden
+    } else if (this.bgPresets[selectedPreset]) {
         const presetColor = this.bgPresets[selectedPreset];
+        
+        console.log(`🎨 Preset "${selectedPreset}" wird angewendet:`, presetColor);
         
         // Farbe setzen
         bgColorInput.value = presetColor;
         bgColorInput.disabled = true;
         bgColorInput.style.opacity = '0.7';
         bgColorInput.style.cursor = 'not-allowed';
+        bgColorInput.style.backgroundColor = presetColor;
         
-        // Visual Feedback
-        bgColorInput.style.borderColor = presetColor;
+        // Visual Classes
+        bgColorInput.classList.remove('custom-active');
+        bgColorInput.classList.add('preset-active');
         
-        // Preset auch in Kacheln markieren
-        this.updateActiveTile(selectedPreset);
+        // Success-Feedback
+        const presetName = this.getPresetName(selectedPreset);
+        console.log(`✅ Preset "${presetName}" erfolgreich angewendet`);
         
-        // Kontrast-Check für bessere Accessibility
-        const contrastColor = this.getContrastColor(presetColor);
-        console.log(`🎨 Preset "${selectedPreset}" angewendet. Kontrastfarbe: ${contrastColor}`);
-        
-        // Success-Toast mit Preset-Namen
-        this.showToast(
-            `Hintergrund "${this.getPresetName(selectedPreset)}" angewendet`, 
-            'success', 
-            2000
-        );
+        this.showToast(`Hintergrund "${presetName}" angewendet`, 'success', 2000);
         
     } else {
-        // Ungültiges Preset
-        console.warn(`❌ Ungültiges Preset: ${selectedPreset}`);
+        console.error(`❌ Ungültiges Preset: "${selectedPreset}"`);
+        console.log('Verfügbare Presets:', Object.keys(this.bgPresets));
         
-        // Fallback zu "custom"
+        // Fallback
         if (bgPresetSelect) {
             bgPresetSelect.value = 'custom';
+            this.handleBackgroundPresetChange('custom');
         }
-        
-        bgColorInput.disabled = false;
-        bgColorInput.style.opacity = '1';
-        
-        this.showToast('Ungültiges Preset - auf "Eigene Farbe" zurückgesetzt', 'warning');
         return;
     }
     
-    // Preview sofort aktualisieren (ohne Verzögerung)
+    // Preview SOFORT aktualisieren
+    console.log('🔄 Aktualisiere Preview...');
     this.updatePreviewImmediate();
     
     // Einstellungen speichern
     this.saveSettings();
     
-    // Analytics/Tracking (optional)
-    if (this.settings.analytics) {
-        this.trackEvent('background_preset_changed', {
-            preset: selectedPreset,
-            color: this.bgPresets[selectedPreset] || 'custom'
-        });
-    }
-    
-    // Accessibility: Screen Reader Feedback
-    this.announceToScreenReader(
-        `Hintergrundfarbe geändert zu ${this.getPresetName(selectedPreset)}`
-    );
+    console.log('✅ handleBackgroundPresetChange erfolgreich abgeschlossen');
 }
 
 // Screen Reader Ankündigung für Accessibility
@@ -2579,11 +2637,12 @@ trackEvent(eventName, properties = {}) {
 // Kachel-Ansicht erstellen
 createPresetTiles() {
     const tilesContainer = document.getElementById('bg-preset-tiles');
-    if (!tilesContainer) return;
+    if (!tilesContainer) {
+        console.log('🔄 Preset-Tiles Container nicht gefunden - überspringe Kachelerstellung');
+        return;
+    }
     
-    // Custom Tile bereits im HTML vorhanden
-    
-    // Preset Tiles hinzufügen
+    // Custom Tile bereits im HTML vorhanden, nur Preset Tiles hinzufügen
     Object.entries(this.bgPresets).forEach(([key, color]) => {
         const tile = document.createElement('div');
         tile.className = 'preset-tile';
@@ -2592,6 +2651,7 @@ createPresetTiles() {
         const colorDiv = document.createElement('div');
         colorDiv.className = 'tile-color';
         colorDiv.style.backgroundColor = color;
+        colorDiv.style.border = '1px solid #ddd';
         
         const label = document.createElement('span');
         label.className = 'tile-label';
@@ -2602,32 +2662,58 @@ createPresetTiles() {
         
         // Click Event für Kachel
         tile.addEventListener('click', () => {
+            console.log('🎨 Kachel geklickt:', key);
             this.handleTileClick(key);
         });
         
+        // Keyboard Support
+        tile.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                this.handleTileClick(key);
+            }
+        });
+        
+        tile.setAttribute('tabindex', '0');
+        tile.setAttribute('role', 'button');
+        tile.setAttribute('aria-label', `Hintergrund-Preset ${this.getPresetName(key)} auswählen`);
+        
         tilesContainer.appendChild(tile);
     });
+    
+    console.log('✅ Preset-Tiles erstellt');
 }
 
 // Kachel-Klick verarbeiten
 handleTileClick(presetKey) {
     const bgPresetSelect = document.getElementById('qr-bg-preset');
     
+    if (!bgPresetSelect) {
+        console.error('❌ Select-Element für Tile-Click nicht gefunden');
+        return;
+    }
+    
     // Select aktualisieren
     bgPresetSelect.value = presetKey;
     
     // Preset-Änderung verarbeiten
     this.handleBackgroundPresetChange(presetKey);
-    
-    // Aktive Kachel markieren
-    this.updateActiveTile(presetKey);
 }
 
 // Aktive Kachel markieren
 updateActiveTile(activePreset) {
     const tiles = document.querySelectorAll('.preset-tile');
+    if (tiles.length === 0) return;
+    
     tiles.forEach(tile => {
-        tile.classList.toggle('active', tile.dataset.preset === activePreset);
+        const isActive = tile.dataset.preset === activePreset;
+        tile.classList.toggle('active', isActive);
+        
+        if (isActive) {
+            tile.setAttribute('aria-pressed', 'true');
+        } else {
+            tile.setAttribute('aria-pressed', 'false');
+        }
     });
 }
 
@@ -2637,7 +2723,10 @@ togglePresetView() {
     const tilesContainer = document.getElementById('bg-preset-tiles');
     const toggleBtn = document.getElementById('toggle-preset-view');
     
-    if (!selectElement || !tilesContainer || !toggleBtn) return;
+    if (!selectElement || !tilesContainer || !toggleBtn) {
+        console.warn('⚠️ Nicht alle Elemente für View-Toggle gefunden');
+        return;
+    }
     
     const isSelectVisible = selectElement.style.display !== 'none';
     
@@ -2647,12 +2736,14 @@ togglePresetView() {
         tilesContainer.style.display = 'grid';
         toggleBtn.innerHTML = '📝 Liste';
         toggleBtn.setAttribute('aria-label', 'Zur Listen-Ansicht wechseln');
+        console.log('🔄 Gewechselt zu Kachel-Ansicht');
     } else {
         // Zu Select-Ansicht wechseln
         selectElement.style.display = 'block';
         tilesContainer.style.display = 'none';
         toggleBtn.innerHTML = '📋 Kacheln';
         toggleBtn.setAttribute('aria-label', 'Zur Kachel-Ansicht wechseln');
+        console.log('🔄 Gewechselt zu Listen-Ansicht');
     }
 }
 
@@ -2661,33 +2752,50 @@ enhanceSelectOptions() {
     const bgPresetSelect = document.getElementById('qr-bg-preset');
     if (!bgPresetSelect) return;
     
-    // CSS für Option-Hintergründe hinzufügen
-    const style = document.createElement('style');
-    let optionStyles = '';
-    
-    Object.entries(this.bgPresets).forEach(([key, color]) => {
-        optionStyles += `
-            #qr-bg-preset option[value="${key}"] {
-                background-color: ${color};
-                color: ${this.getContrastColor(color)};
-            }
-        `;
-    });
-    
-    style.textContent = optionStyles;
-    document.head.appendChild(style);
+    try {
+        // CSS-Regeln für Option-Hintergründe dynamisch hinzufügen
+        const styleId = 'preset-option-styles';
+        let existingStyle = document.getElementById(styleId);
+        
+        if (!existingStyle) {
+            existingStyle = document.createElement('style');
+            existingStyle.id = styleId;
+            document.head.appendChild(existingStyle);
+        }
+        
+        let optionStyles = '';
+        
+        Object.entries(this.bgPresets).forEach(([key, color]) => {
+            const contrastColor = this.getContrastColor(color);
+            optionStyles += `
+                #qr-bg-preset option[value="${key}"] {
+                    background-color: ${color} !important;
+                    color: ${contrastColor} !important;
+                }
+            `;
+        });
+        
+        existingStyle.textContent = optionStyles;
+        console.log('✅ Select-Optionen mit Farb-Previews erweitert');
+        
+    } catch (error) {
+        console.warn('⚠️ Fehler beim Erweitern der Select-Optionen:', error);
+    }
 }
 
 // Kontrast-Farbe berechnen
 getContrastColor(hexColor) {
+    if (!hexColor || hexColor.length !== 7) return '#000000';
+    
     // Hex zu RGB konvertieren
     const r = parseInt(hexColor.substr(1, 2), 16);
     const g = parseInt(hexColor.substr(3, 2), 16);
     const b = parseInt(hexColor.substr(5, 2), 16);
     
-    // Helligkeit berechnen
+    // Helligkeit nach WCAG-Standard berechnen
     const brightness = (r * 299 + g * 587 + b * 114) / 1000;
     
+    // Schwarz für helle Farben, Weiß für dunkle
     return brightness > 125 ? '#000000' : '#ffffff';
 }
 
@@ -2699,30 +2807,39 @@ updateBackgroundPresetUI() {
     if (!bgPresetSelect || !bgColorInput) return;
     
     const currentPreset = bgPresetSelect.value;
+    console.log('🔄 Aktualisiere UI für Preset:', currentPreset);
     
     if (currentPreset === 'custom') {
         bgColorInput.disabled = false;
         bgColorInput.style.opacity = '1';
+        bgColorInput.style.cursor = 'pointer';
+        bgColorInput.classList.add('custom-active');
+        bgColorInput.classList.remove('preset-active');
     } else {
         bgColorInput.disabled = true;
         bgColorInput.style.opacity = '0.7';
+        bgColorInput.style.cursor = 'not-allowed';
+        bgColorInput.classList.remove('custom-active');
+        bgColorInput.classList.add('preset-active');
     }
     
     // Aktive Kachel markieren
     this.updateActiveTile(currentPreset);
+    
+    console.log('✅ UI-Zustand aktualisiert');
 }
 
 // Preset-Namen für Benutzeranzeige
 getPresetName(presetKey) {
     const presetNames = {
-        'white': 'Reines Weiß',
-        'cream': 'Cremeweiß',
-        'pearl': 'Perlweiß',
+        'white': 'Weiß',
+        'cream': 'Creme',
+        'pearl': 'Perl',
         'light-gray': 'Hellgrau',
-        'warm-gray': 'Warmes Grau',
-        'cool-gray': 'Kühles Grau',
+        'warm-gray': 'Warmgrau',
+        'cool-gray': 'Kühlgrau',
         'beige': 'Beige',
-        'sand': 'Sandton',
+        'sand': 'Sand',
         'ivory': 'Elfenbein', 
         'linen': 'Leinen',
         'mint': 'Mint',

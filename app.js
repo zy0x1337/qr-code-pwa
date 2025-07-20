@@ -39,6 +39,7 @@ class QRProApp {
     this.registerServiceWorker();
     this.setupQRTypeHandler();
     this.setupDashboardActions();
+    await this.initializeTemplateManager();
   }
 
   async registerServiceWorker() {
@@ -1922,17 +1923,24 @@ getTemplatesCount() {
   }
 
   handleQuickAction(action) {
-    switch(action) {
-      case 'generate-url':
-        this.navigateToPage('generator');
-        document.getElementById('qr-type').value = 'url';
-        this.updateContentPlaceholder();
-        break;
-      case 'scan':
-        this.navigateToPage('scanner');
-        break;
+    switch (action) {
+        case 'open-generator':
+            this.navigateToPage('generator');
+            break;
+        case 'start-scanner':
+            this.navigateToPage('scanner');
+            setTimeout(() => this.startScanner(), 100);
+            break;
+        case 'show-templates':
+            this.showTemplateModal();
+            break;
+        case 'show-history':
+            this.navigateToPage('history');
+            break;
+        default:
+            console.warn('Unknown action:', action);
     }
-  }
+}
 
   updateContentPlaceholder() {
     const qrContent = document.getElementById('qr-content');
@@ -2115,34 +2123,15 @@ clearContentSuggestions() {
 
 // Dashboard Schnellaktionen Setup
 setupDashboardActions() {
-    const actionCards = document.querySelectorAll('.action-card');
+    const quickActions = document.querySelectorAll('[data-action]');
     
-    actionCards.forEach(card => {
-        card.addEventListener('click', (e) => {
-            const action = card.dataset.action;
-            this.handleDashboardAction(action);
+    quickActions.forEach(action => {
+        this.addEventHandler(action, 'click', (e) => {
+            e.preventDefault();
+            const actionType = action.dataset.action;
+            this.handleQuickAction(actionType);
         });
     });
-}
-
-// Dashboard Aktionen Handler
-handleDashboardAction(action) {
-    switch (action) {
-        case 'open-generator':
-            this.openGenerator();
-            break;
-        case 'start-scanner':
-            this.startScanner();
-            break;
-        case 'show-templates':
-            this.showTemplates();
-            break;
-        case 'show-history':
-            this.showHistory();
-            break;
-        default:
-            console.log('Unbekannte Aktion:', action);
-    }
 }
 
 // Seiten-Navigation Methode
@@ -2355,13 +2344,42 @@ regenerateFromHistory(itemId) {
     this.useTemplate(templateData);
 }
 
+// Neue Methode für TemplateManager-Initialisierung
+async initializeTemplateManager() {
+    try {
+        // Warten bis TemplateManager verfügbar ist
+        if (!window.templateManager) {
+            console.log('TemplateManager wird geladen...');
+            await new Promise(resolve => {
+                const checkManager = setInterval(() => {
+                    if (window.templateManager) {
+                        clearInterval(checkManager);
+                        resolve();
+                    }
+                }, 100);
+            });
+        }
+        
+        console.log('TemplateManager erfolgreich initialisiert');
+    } catch (error) {
+        console.error('Fehler bei TemplateManager-Initialisierung:', error);
+    }
+}
+
 // Template Modal Integration
 showTemplateModal() {
-    if (window.templateManager) {
+    if (window.templateManager && typeof window.templateManager.showModal === 'function') {
         window.templateManager.showModal();
     } else {
         console.warn('TemplateManager nicht verfügbar');
         this.showToast('Template-Manager wird geladen...', 'info');
+        
+        // Fallback: Nach kurzer Wartezeit erneut versuchen
+        setTimeout(() => {
+            if (window.templateManager) {
+                window.templateManager.showModal();
+            }
+        }, 1000);
     }
 }
 

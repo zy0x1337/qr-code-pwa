@@ -882,12 +882,17 @@ addHistoryFilters() {
 
 displayHistory(historyItems = null) {
     const historyList = document.getElementById('history-list');
-    if (!historyList) return;
+    if (!historyList) {
+        console.warn('❌ History-List Element nicht gefunden');
+        return;
+    }
     
     // Falls keine Items übergeben wurden, alle laden
     if (!historyItems) {
         historyItems = this.getAllHistory();
     }
+    
+    console.log(`🔍 Zeige ${historyItems.length} Historie-Einträge an`);
     
     if (historyItems.length === 0) {
         historyList.innerHTML = `
@@ -895,9 +900,14 @@ displayHistory(historyItems = null) {
                 <div class="empty-icon">📋</div>
                 <h3>Noch keine QR Codes erstellt oder gescannt</h3>
                 <p>Erstellen oder scannen Sie QR Codes, um hier Ihren Verlauf zu sehen.</p>
-                <button class="btn btn-primary" onclick="app.navigateToPage('generator')">
-                    QR Code erstellen
-                </button>
+                <div class="empty-actions">
+                    <button class="btn btn-primary" onclick="app.navigateToPage('generator')">
+                        🔗 QR Code erstellen
+                    </button>
+                    <button class="btn btn-secondary" onclick="app.navigateToPage('scanner')">
+                        📷 QR Code scannen
+                    </button>
+                </div>
             </div>
         `;
         return;
@@ -907,19 +917,21 @@ displayHistory(historyItems = null) {
         const iconClass = item.type === 'generated' ? 'qr_code' : 'qr_code_scanner';
         const typeLabel = item.type === 'generated' ? 'Erstellt' : 'Gescannt';
         const typeClass = item.type === 'generated' ? 'type-generated' : 'type-scanned';
+        const backgroundColor = item.type === 'generated' ? '#e8f5e8' : '#e8f0ff';
         
         return `
-            <div class="history-item" data-id="${item.id}">
-                <div class="history-icon">
-                    <span class="material-icons">${iconClass}</span>
+            <div class="history-item" data-id="${item.id}" style="border-left: 4px solid ${item.type === 'generated' ? '#4CAF50' : '#2196F3'}">
+                <div class="history-icon" style="background: ${backgroundColor}">
+                    <span class="material-icons" style="color: ${item.type === 'generated' ? '#4CAF50' : '#2196F3'}">${iconClass}</span>
                 </div>
                 <div class="history-content">
                     <div class="history-header">
                         <span class="history-type ${typeClass}">${typeLabel}</span>
                         <span class="history-date">${this.formatDate(item.timestamp)}</span>
                     </div>
-                    <div class="history-text">${this.truncateText(item.content, 60)}</div>
+                    <div class="history-text" title="${item.content}">${this.truncateText(item.content, 60)}</div>
                     ${item.qrType ? `<div class="history-qr-type">Typ: ${item.qrType}</div>` : ''}
+                    ${item.size ? `<div class="history-meta">Größe: ${item.size}px</div>` : ''}
                 </div>
                 <div class="history-actions">
                     <button class="btn-icon history-copy-btn" data-content="${item.content}" title="Kopieren">
@@ -938,6 +950,8 @@ displayHistory(historyItems = null) {
             </div>
         `;
     }).join('');
+    
+    console.log('✅ Historie-Anzeige aktualisiert');
 }
 
 updateHistoryStats(items) {
@@ -1491,12 +1505,6 @@ saveSettings() {
         }
     }
 
-    if (!window.QRCode) {
-        console.error('QRCode still not available after loading attempt');
-        this.showToast('QR-Generierung nicht verfügbar', 'error');
-        return;
-    }
-
     try {
         console.log('🔄 Generating QR Code...');
         const preview = document.querySelector('.qr-preview');
@@ -1504,22 +1512,70 @@ saveSettings() {
         // Vorherigen QR Code löschen
         preview.innerHTML = '';
         
+        // QR Code Daten sammeln
+        const qrData = {
+            id: 'generated-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+            content: content,
+            qrType: document.getElementById('qr-type')?.value || 'text',
+            color: document.getElementById('qr-color')?.value || '#000000',
+            bgColor: document.getElementById('qr-bg-color')?.value || '#FFFFFF',
+            size: parseInt(document.getElementById('qr-size')?.value) || 300,
+            timestamp: Date.now(),
+            type: 'generated'
+        };
+        
         // Neuen QR Code generieren (qrcodejs API)
         const qr = new QRCode(preview, {
             text: content,
-            width: 300,
-            height: 300,
-            colorDark: document.getElementById('qr-color')?.value || '#000000',
-            colorLight: document.getElementById('qr-bg-color')?.value || '#FFFFFF',
+            width: qrData.size,
+            height: qrData.size,
+            colorDark: qrData.color,
+            colorLight: qrData.bgColor,
             correctLevel: QRCode.CorrectLevel.H
         });
 
         console.log('✅ QR Code generated successfully');
         this.showToast('QR Code erfolgreich generiert', 'success');
         
+        // Zu Historie hinzufügen
+        this.addToHistory(qrData);
+        console.log('📝 QR Code zu Historie hinzugefügt:', qrData);
+        
+        // Daily Count erhöhen
+        this.dailyQRCount++;
+        localStorage.setItem('qr-pro-daily-count', this.dailyQRCount.toString());
+        
+        // Dashboard aktualisieren
+        this.updateDashboard();
+        
     } catch (error) {
         console.error('❌ QR Generation error:', error);
         this.showToast('QR Code Generierung fehlgeschlagen', 'error');
+    }
+}
+
+addToHistory(entry) {
+    console.log('📝 Füge zu History hinzu:', entry);
+    
+    // Sicherstellen dass qrHistory existiert
+    if (!Array.isArray(this.qrHistory)) {
+        this.qrHistory = [];
+    }
+    
+    // Entry zur Historie hinzufügen
+    this.qrHistory.unshift(entry);
+    
+    // Maximale Anzahl begrenzen
+    if (this.qrHistory.length > 100) {
+        this.qrHistory = this.qrHistory.slice(0, 100);
+    }
+    
+    // In localStorage speichern
+    try {
+        localStorage.setItem('qr-pro-history', JSON.stringify(this.qrHistory));
+        console.log('✅ Historie gespeichert. Gesamtanzahl:', this.qrHistory.length);
+    } catch (error) {
+        console.error('❌ Fehler beim Speichern der Historie:', error);
     }
 }
 
@@ -2667,16 +2723,53 @@ getTemplatesCount() {
   initializeHistoryPage() {
     console.log('🔄 Initialisiere Verlaufsseite...');
     
-    // 1. Filter-HTML hinzufügen falls nicht vorhanden
+    // Debug-Informationen
+    console.log('qrHistory:', this.qrHistory?.length || 0);
+    console.log('scanHistory:', this.scanHistory?.length || 0);
+    
+    // 1. Daten aus localStorage laden
+    this.loadHistoryData();
+    
+    // 2. Filter-HTML hinzufügen falls nicht vorhanden
     this.ensureHistoryFiltersExist();
     
-    // 2. Event-Listener einrichten
+    // 3. Event-Listener einrichten
     this.setupHistoryEventListeners();
     
-    // 3. Initiales Laden der History
+    // 4. Initiales Laden der History
     this.loadInitialHistory();
     
     console.log('✅ Verlaufsseite initialisiert');
+}
+
+loadHistoryData() {
+    // Geschichte aus localStorage laden
+    const savedHistory = localStorage.getItem('qr-pro-history');
+    const savedScanHistory = localStorage.getItem('qr-pro-scan-history');
+    
+    if (savedHistory) {
+        try {
+            this.qrHistory = JSON.parse(savedHistory);
+            console.log('📚 Generierte Geschichte geladen:', this.qrHistory.length);
+        } catch (e) {
+            console.error('Fehler beim Laden der generierten Geschichte:', e);
+            this.qrHistory = [];
+        }
+    } else {
+        this.qrHistory = [];
+    }
+    
+    if (savedScanHistory) {
+        try {
+            this.scanHistory = JSON.parse(savedScanHistory);
+            console.log('📷 Scan-Geschichte geladen:', this.scanHistory.length);
+        } catch (e) {
+            console.error('Fehler beim Laden der Scan-Geschichte:', e);
+            this.scanHistory = [];
+        }
+    } else {
+        this.scanHistory = [];
+    }
 }
 
 ensureHistoryFiltersExist() {

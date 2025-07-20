@@ -2337,7 +2337,7 @@ saveSettings() {
             errorCorrection: errorCorrectionLevel
         };
         
-        // NEU: Batch-Generierung prüfen
+        // Batch-Generierung prüfen
         if (this.batchMode && this.batchData.length > 0) {
             return this.generateBatchQRCodes();
         }
@@ -2413,7 +2413,7 @@ getOptimalErrorCorrection(contentLength) {
     return QRCode.CorrectLevel.H; // High (Standard)
 }
 
-// NEU: Batch-Generierung
+// Batch-Generierung
 async generateBatchQRCodes() {
     const results = [];
     const totalItems = this.batchData.length;

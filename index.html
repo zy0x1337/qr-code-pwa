@@ -89,20 +89,20 @@
                 <div class="navbar-brand">
                     <div class="brand-logo">QR Pro</div>
                     <div class="user-status">
-    <span class="status-badge full-access">Vollzugang</span>
-</div>
+                        <span class="status-badge full-access">Vollzugang</span>
+                    </div>
                 </div>
 
                 <!-- Navbar Install Button -->
                 <div class="navbar-actions">
                     <button class="navbar-install" id="navbar-install">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15V19C21 19.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V15"></path>
-            <polyline points="7,10 12,15 17,10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
-        </svg>
-        <span class="install-text">Installieren</span>
-    </button>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15V19C21 19.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V15"></path>
+                            <polyline points="7,10 12,15 17,10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        <span class="install-text">Installieren</span>
+                    </button>
                 </div>
             </div>
         </nav>
@@ -159,126 +159,209 @@
                 </div>
 
                 <div class="stats-grid">
-    <div class="stat-card" data-stat="qr-generated">
-        <div class="stat-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="3" width="7" height="7"></rect>
-                <rect x="14" y="3" width="7" height="7"></rect>
-                <rect x="3" y="14" width="7" height="7"></rect>
-                <path d="M14 14h7v7h-7z"></path>
-            </svg>
-        </div>
-        <div class="stat-content">
-            <div class="stat-number">0</div>
-            <div class="stat-label">QR Codes erstellt</div>
-        </div>
-    </div>
+                    <div class="stat-card" data-stat="qr-generated">
+                        <div class="stat-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                                <path d="M14 14h7v7h-7z"></path>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number">0</div>
+                            <div class="stat-label">QR Codes erstellt</div>
+                        </div>
+                    </div>
 
-    <div class="stat-card" data-stat="qr-scanned">
-        <div class="stat-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                <circle cx="12" cy="13" r="4"></circle>
-            </svg>
-        </div>
-        <div class="stat-content">
-            <div class="stat-number">0</div>
-            <div class="stat-label">QR Codes gescannt</div>
-        </div>
-    </div>
+                    <div class="stat-card" data-stat="qr-scanned">
+                        <div class="stat-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                <circle cx="12" cy="13" r="4"></circle>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number">0</div>
+                            <div class="stat-label">QR Codes gescannt</div>
+                        </div>
+                    </div>
 
-    <div class="stat-card" data-stat="today-active">
-        <div class="stat-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-            </svg>
-        </div>
-        <div class="stat-content">
-            <div class="stat-number">0</div>
-            <div class="stat-label">Heute aktiv</div>
-        </div>
-    </div>
+                    <div class="stat-card" data-stat="today-active">
+                        <div class="stat-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number">0</div>
+                            <div class="stat-label">Heute aktiv</div>
+                        </div>
+                    </div>
 
-    <div class="stat-card" data-stat="templates-count">
-        <div class="stat-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="3" width="7" height="7"></rect>
-                <rect x="14" y="3" width="7" height="7"></rect>
-                <rect x="3" y="14" width="7" height="7"></rect>
-                <rect x="14" y="14" width="7" height="7"></rect>
-            </svg>
-        </div>
-        <div class="stat-content">
-            <div class="stat-number">0</div>
-            <div class="stat-label">Templates</div>
-        </div>
-    </div>
-</div>
+                    <div class="stat-card" data-stat="templates-count">
+                        <div class="stat-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number">0</div>
+                            <div class="stat-label">Templates</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEU: Insights Section -->
+                <section class="dashboard-section" id="insights-section" style="display: none;">
+                    <div class="section-header">
+                        <h2>📊 Smart Insights</h2>
+                        <p>Personalisierte Einblicke in Ihre QR Code Nutzung</p>
+                    </div>
+                    
+                    <div class="insights-grid">
+                        <div class="insight-card productivity-card">
+                            <div class="insight-header">
+                                <h3>Produktivitäts-Score</h3>
+                                <div class="productivity-score" id="productivity-score">0</div>
+                            </div>
+                            <div class="productivity-bar">
+                                <div class="productivity-progress" id="productivity-progress" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="insight-card pattern-card">
+                            <div class="insight-header">
+                                <h3>Nutzungsmuster</h3>
+                                <div class="pattern-icon">📈</div>
+                            </div>
+                            <div class="pattern-stats" id="pattern-stats">
+                                <div class="pattern-item">
+                                    <span>Peak Hour:</span>
+                                    <span id="peak-hour">--:--</span>
+                                </div>
+                                <div class="pattern-item">
+                                    <span>Lieblings-Typ:</span>
+                                    <span id="favorite-type">--</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="insight-card recommendations-card">
+                            <div class="insight-header">
+                                <h3>Empfehlungen</h3>
+                                <div class="recommendations-icon">💡</div>
+                            </div>
+                            <div class="recommendations-list" id="recommendations-list">
+                                <!-- Dynamisch gefüllt -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
                 <!-- Quick Actions Section -->
-<section class="dashboard-section">
-    <div class="section-header">
-        <h2>Schnellaktionen</h2>
-        <p>Starten Sie sofort mit den wichtigsten Funktionen</p>
-    </div>
-    
-    <div class="quick-actions">
-        <!-- QR Generator Card -->
-        <button class="action-card action-card--generator" data-action="open-generator">
-            <div class="action-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="3" width="7" height="7"></rect>
-                    <rect x="14" y="3" width="7" height="7"></rect>
-                    <rect x="3" y="14" width="7" height="7"></rect>
-                    <path d="M14 14h7v7h-7z"></path>
-                </svg>
-            </div>
-            <h3>QR Generator</h3>
-            <p>Erstellen Sie professionelle QR Codes mit erweiterten Optionen und Anpassungen</p>
-        </button>
+                <section class="dashboard-section">
+                    <div class="section-header">
+                        <h2>Schnellaktionen</h2>
+                        <p>Starten Sie sofort mit den wichtigsten Funktionen</p>
+                    </div>
+                    
+                    <div class="quick-actions">
+                        <!-- QR Generator Card -->
+                        <button class="action-card action-card--generator" data-action="open-generator">
+                            <div class="action-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="7" height="7"></rect>
+                                    <rect x="14" y="3" width="7" height="7"></rect>
+                                    <rect x="3" y="14" width="7" height="7"></rect>
+                                    <path d="M14 14h7v7h-7z"></path>
+                                </svg>
+                            </div>
+                            <h3>QR Generator</h3>
+                            <p>Erstellen Sie professionelle QR Codes mit erweiterten Optionen und Anpassungen</p>
+                        </button>
 
-        <!-- QR Scanner Card -->
-        <button class="action-card action-card--scanner" data-action="start-scanner">
-            <div class="action-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                    <circle cx="12" cy="13" r="4"></circle>
-                </svg>
-            </div>
-            <h3>QR Scanner</h3>
-            <p>Scannen Sie QR Codes schnell und zuverlässig mit Ihrer Kamera</p>
-        </button>
+                        <!-- QR Scanner Card -->
+                        <button class="action-card action-card--scanner" data-action="start-scanner">
+                            <div class="action-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                    <circle cx="12" cy="13" r="4"></circle>
+                                </svg>
+                            </div>
+                            <h3>QR Scanner</h3>
+                            <p>Scannen Sie QR Codes schnell und zuverlässig mit Ihrer Kamera</p>
+                        </button>
 
-        <!-- Templates Card -->
-        <button class="action-card action-card--templates" data-action="show-templates" id="quick-templates-btn">
-            <div class="action-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="3" width="7" height="7"></rect>
-                    <rect x="14" y="3" width="7" height="7"></rect>
-                    <rect x="3" y="14" width="7" height="7"></rect>
-                    <rect x="14" y="14" width="7" height="7"></rect>
-                </svg>
-            </div>
-            <h3>Templates</h3>
-            <p>Nutzen Sie vorgefertigte QR Code Vorlagen für häufige Anwendungsfälle</p>
-        </button>
+                        <!-- Templates Card -->
+                        <button class="action-card action-card--templates" data-action="show-templates" id="quick-templates-btn">
+                            <div class="action-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="7" height="7"></rect>
+                                    <rect x="14" y="3" width="7" height="7"></rect>
+                                    <rect x="3" y="14" width="7" height="7"></rect>
+                                    <rect x="14" y="14" width="7" height="7"></rect>
+                                </svg>
+                            </div>
+                            <h3>Templates</h3>
+                            <p>Nutzen Sie vorgefertigte QR Code Vorlagen für häufige Anwendungsfälle</p>
+                        </button>
 
-        <!-- History Card (Optional) -->
-        <button class="action-card action-card--history" data-action="show-history">
-            <div class="action-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polyline points="12,6 12,12 16,14"></polyline>
-                </svg>
-            </div>
-            <h3>Verlauf</h3>
-            <p>Zugriff auf Ihre zuletzt erstellten und gescannten QR Codes</p>
-        </button>
-    </div>
-</section>
+                        <!-- NEU: Batch Generation Card -->
+                        <button class="action-card action-card--batch" data-action="show-batch-generator">
+                            <div class="action-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="6" height="6"></rect>
+                                    <rect x="11" y="3" width="6" height="6"></rect>
+                                    <rect x="3" y="11" width="6" height="6"></rect>
+                                    <rect x="11" y="11" width="6" height="6"></rect>
+                                    <path d="M19 3v18M19 12h2"></path>
+                                </svg>
+                            </div>
+                            <h3>Batch Generator</h3>
+                            <p>Erstellen Sie mehrere QR Codes auf einmal für große Projekte</p>
+                        </button>
+
+                        <!-- History Card -->
+                        <button class="action-card action-card--history" data-action="show-history">
+                            <div class="action-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12,6 12,12 16,14"></polyline>
+                                </svg>
+                            </div>
+                            <h3>Verlauf</h3>
+                            <p>Zugriff auf Ihre zuletzt erstellten und gescannten QR Codes</p>
+                        </button>
+
+                        <!-- NEU: Analytics Card -->
+                        <button class="action-card action-card--analytics" data-action="show-analytics">
+                            <div class="action-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 3v18h18"></path>
+                                    <path d="M9 9l4-4 4 4 4-4"></path>
+                                </svg>
+                            </div>
+                            <h3>Analytics</h3>
+                            <p>Detaillierte Statistiken und Nutzungsanalysen Ihrer QR Codes</p>
+                        </button>
+                    </div>
+                </section>
 
                 <div class="recent-activity">
-                    <h2>Letzte Aktivitäten</h2>
+                    <div class="activity-header">
+                        <h2>Letzte Aktivitäten</h2>
+                        <button class="btn btn--sm btn--outline" id="clear-recent-activity">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3,6 5,6 21,6"></polyline>
+                                <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2v2"></path>
+                            </svg>
+                            Löschen
+                        </button>
+                    </div>
                     <div id="recent-items" class="activity-list">
                         <div class="empty-state">
                             <div class="empty-icon">📋</div>
@@ -289,585 +372,1038 @@
             </div>
 
             <!-- Generator Page -->
-<div id="generator-page" class="page">
-    <div class="page-header">
-        <h1>QR Code Generator</h1>
-        <p>Erstelle professionelle QR Codes</p>
-    </div>
-
-    <div class="generator-container">
-        <div class="generator-input">
-            <div class="input-section">
-                <div class="form-group">
-                    <label class="form-label">QR Code Typ</label>
-                    <select id="qr-type" class="form-control">
-                        <option value="url">Website/URL</option>
-                        <option value="text">Einfacher Text</option>
-                        <option value="email">E-Mail</option>
-                        <option value="phone">Telefon</option>
-                        <option value="sms">SMS</option>
-                        <option value="wifi">WiFi</option>
-                        <option value="vcard">Visitenkarte</option>
-                    </select>
+            <div id="generator-page" class="page">
+                <div class="page-header">
+                    <h1>QR Code Generator</h1>
+                    <p>Erstelle professionelle QR Codes</p>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="qr-content">Inhalt</label>
-                    <textarea id="qr-content" class="form-control" rows="4" placeholder="Geben Sie den Inhalt für Ihren QR Code ein..."></textarea>
-                    <div class="input-helper">
-                        <div class="helper-suggestions" id="content-suggestions"></div>
-                    </div>
-                </div>
+                <div class="generator-container">
+                    <div class="generator-input">
+                        <div class="input-section">
+                            <div class="form-group">
+                                <label class="form-label">QR Code Typ</label>
+                                <select id="qr-type" class="form-control">
+                                    <option value="url">Website/URL</option>
+                                    <option value="text">Einfacher Text</option>
+                                    <option value="email">E-Mail</option>
+                                    <option value="phone">Telefon</option>
+                                    <option value="sms">SMS</option>
+                                    <option value="wifi">WiFi</option>
+                                    <option value="vcard">Visitenkarte</option>
+                                    <option value="location">Standort</option>
+                                    <option value="event">Kalenderereignis</option>
+                                </select>
+                            </div>
 
-                <div class="customization-section">
-                    <h3>Anpassung</h3>
-                    <div class="custom-grid">
-                        <div class="form-group">
-                            <label class="form-label">Farbe</label>
-                            <div class="color-picker">
-                                <input type="color" id="qr-color" value="#000000">
-                                <div class="color-presets">
-                                    <button class="color-preset" data-color="#000000" style="background: #000000"></button>
-                                    <button class="color-preset" data-color="#6366f1" style="background: #6366f1"></button>
-                                    <button class="color-preset" data-color="#ef4444" style="background: #ef4444"></button>
-                                    <button class="color-preset" data-color="#10b981" style="background: #10b981"></button>
+                            <div class="form-group">
+                                <label class="form-label" for="qr-content">Inhalt</label>
+                                <textarea id="qr-content" class="form-control" rows="4" placeholder="Geben Sie den Inhalt für Ihren QR Code ein..."></textarea>
+                                <div class="input-helper">
+                                    <div class="helper-suggestions" id="content-suggestions"></div>
+                                    <!-- NEU: Content Validation -->
+                                    <div class="content-validation" id="content-validation">
+                                        <div class="validation-item" id="content-length">
+                                            <span class="validation-label">Zeichen:</span>
+                                            <span class="validation-value">0/2953</span>
+                                        </div>
+                                        <div class="validation-item" id="content-type">
+                                            <span class="validation-label">Erkannt als:</span>
+                                            <span class="validation-value">Text</span>
+                                        </div>
+                                        <div class="validation-item" id="content-security">
+                                            <span class="validation-label">Sicherheit:</span>
+                                            <span class="validation-value security-safe">Sicher</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="customization-section">
+                                <h3>Anpassung</h3>
+                                <div class="custom-grid">
+                                    <div class="form-group">
+                                        <label class="form-label">Farbe</label>
+                                        <div class="color-picker">
+                                            <input type="color" id="qr-color" value="#000000">
+                                            <div class="color-presets">
+                                                <button class="color-preset" data-color="#000000" style="background: #000000"></button>
+                                                <button class="color-preset" data-color="#6366f1" style="background: #6366f1"></button>
+                                                <button class="color-preset" data-color="#ef4444" style="background: #ef4444"></button>
+                                                <button class="color-preset" data-color="#10b981" style="background: #10b981"></button>
+                                                <button class="color-preset" data-color="#f59e0b" style="background: #f59e0b"></button>
+                                                <button class="color-preset" data-color="#8b5cf6" style="background: #8b5cf6"></button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group" id="bg-color-container">
+                                        <label class="form-label">Hintergrundfarbe</label>
+                                        <div class="color-picker">
+                                            <input type="color" id="qr-bg-color" value="#ffffff">
+                                            <div class="color-presets">
+                                                <button class="color-preset" data-color="#ffffff" style="background: #ffffff; border: 1px solid #e5e7eb"></button>
+                                                <button class="color-preset" data-color="#f3f4f6" style="background: #f3f4f6"></button>
+                                                <button class="color-preset" data-color="#e5e7eb" style="background: #e5e7eb"></button>
+                                                <button class="color-preset" data-color="#d1d5db" style="background: #d1d5db"></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Größe</label>
+                                        <select id="qr-size" class="form-control">
+                                            <option value="200">Klein (200px)</option>
+                                            <option value="300" selected>Mittel (300px)</option>
+                                            <option value="500">Groß (500px)</option>
+                                            <option value="800">Sehr groß (800px)</option>
+                                            <option value="custom">Benutzerdefiniert</option>
+                                        </select>
+                                        <div class="custom-size-input" id="custom-size-input" style="display: none;">
+                                            <input type="number" id="custom-size" min="100" max="2000" value="300" placeholder="Größe in Pixeln">
+                                        </div>
+                                    </div>
+
+                                    <!-- NEU: Error Correction Level -->
+                                    <div class="form-group">
+                                        <label class="form-label">Fehlerkorrektur</label>
+                                        <select id="error-correction" class="form-control">
+                                            <option value="L">Niedrig (7%)</option>
+                                            <option value="M">Mittel (15%)</option>
+                                            <option value="Q">Hoch (25%)</option>
+                                            <option value="H" selected>Sehr hoch (30%)</option>
+                                        </select>
+                                        <div class="form-help">Höhere Stufen ermöglichen bessere Scanergebnisse bei Beschädigungen</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="advanced-features">
+                                    <h4>Erweiterte Funktionen</h4>
+                                    <div class="feature-options">
+                                        <button class="btn btn--sm btn--outline" data-feature="logo">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <rect x="3" y="11" width="18" height="10" rx="2" ry="2"/>
+                                                <circle cx="12" cy="16" r="1"/>
+                                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                            </svg>
+                                            Logo hinzufügen
+                                        </button>
+                                        <button class="btn btn--sm btn--outline" data-action="show-templates" id="generator-templates-btn">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <rect x="3" y="3" width="7" height="7"/>
+                                                <rect x="14" y="3" width="7" height="7"/>
+                                                <rect x="3" y="14" width="7" height="7"/>
+                                                <rect x="14" y="14" width="7" height="7"/>
+                                            </svg>
+                                            Templates verwenden
+                                        </button>
+                                        <!-- NEU: Batch Mode Toggle -->
+                                        <button class="btn btn--sm btn--outline" id="batch-mode-toggle">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <rect x="3" y="3" width="6" height="6"/>
+                                                <rect x="11" y="3" width="6" height="6"/>
+                                                <rect x="3" y="11" width="6" height="6"/>
+                                                <rect x="11" y="11" width="6" height="6"/>
+                                            </svg>
+                                            Batch Modus
+                                        </button>
+                                        <!-- NEU: Cache Status -->
+                                        <button class="btn btn--sm btn--outline" id="cache-status">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M12 2v20m8-8H4"/>
+                                            </svg>
+                                            Cache: 0 Einträge
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- NEU: Batch Generation Section -->
+                                <div class="batch-section" id="batch-section" style="display: none;">
+                                    <h4>📦 Batch Generation</h4>
+                                    <div class="batch-input">
+                                        <textarea id="batch-content" class="form-control" rows="6" placeholder="Geben Sie mehrere Inhalte ein - einen pro Zeile:&#10;https://example1.com&#10;https://example2.com&#10;Text für QR Code 3"></textarea>
+                                        <div class="batch-info">
+                                            <span id="batch-count">0 QR Codes</span>
+                                            <button class="btn btn--sm btn--secondary" id="batch-clear">Löschen</button>
+                                        </div>
+                                    </div>
+                                    <div class="batch-progress" id="batch-progress" style="display: none;">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" id="batch-progress-fill"></div>
+                                        </div>
+                                        <div class="progress-text" id="batch-progress-text">0 von 0 erstellt</div>
+                                    </div>
+                                </div>
+
+                                <div class="generator-actions">
+                                    <button id="generate-btn" class="btn btn--primary btn--full-width">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                                            <rect x="7" y="7" width="3" height="3" fill="currentColor"/>
+                                            <rect x="14" y="7" width="3" height="3" fill="currentColor"/>
+                                            <rect x="7" y="14" width="3" height="3" fill="currentColor"/>
+                                            <rect x="14" y="14" width="3" height="3" fill="currentColor"/>
+                                        </svg>
+                                        <span id="generate-text">QR Code generieren</span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
-
-                        <div class="form-group" id="bg-color-container">
-                            <label class="form-label">Hintergrundfarbe</label>
-                            <input type="color" id="qr-bg-color" value="#ffffff" style="display: none;">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Größe</label>
-                            <select id="qr-size" class="form-control">
-                                <option value="200">Klein (200px)</option>
-                                <option value="300" selected>Mittel (300px)</option>
-                                <option value="500">Groß (500px)</option>
-                                <option value="800">Sehr groß (800px)</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="advanced-features">
-                        <h4>Erweiterte Funktionen</h4>
-                        <div class="feature-options">
-                            <button class="btn btn--sm btn--outline" data-feature="logo">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="3" y="11" width="18" height="10" rx="2" ry="2"/>
-                                    <circle cx="12" cy="16" r="1"/>
-                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                                </svg>
-                                Logo hinzufügen
-                            </button>
-                            <button class="btn btn--sm btn--outline" data-action="show-templates" id="generator-templates-btn">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="3" y="3" width="7" height="7"/>
-                                    <rect x="14" y="3" width="7" height="7"/>
-                                    <rect x="3" y="14" width="7" height="7"/>
-                                    <rect x="14" y="14" width="7" height="7"/>
-                                </svg>
-                                Templates verwenden
-                            </button>
-                        </div>
                     </div>
 
-                    <div class="generator-actions">
-                        <button id="generate-btn" class="btn btn--primary btn--full-width">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
-                                <rect x="7" y="7" width="3" height="3" fill="currentColor"/>
-                                <rect x="14" y="7" width="3" height="3" fill="currentColor"/>
-                                <rect x="7" y="14" width="3" height="3" fill="currentColor"/>
-                                <rect x="14" y="14" width="3" height="3" fill="currentColor"/>
+                    <div class="generator-preview">
+                        <div class="preview-container">
+                            <h3>Vorschau</h3>
+                            <div class="qr-preview" id="qr-preview">
+                                <div class="preview-placeholder">
+                                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                                        <rect x="7" y="7" width="3" height="3" fill="currentColor"/>
+                                        <rect x="14" y="7" width="3" height="3" fill="currentColor"/>
+                                        <rect x="7" y="14" width="3" height="3" fill="currentColor"/>
+                                        <rect x="14" y="14" width="3" height="3" fill="currentColor"/>
+                                    </svg>
+                                    <p>QR Code Vorschau</p>
+                                </div>
+                            </div>
+                            
+                            <div class="download-section" id="download-section">
+                                <h3>QR Code herunterladen</h3>
+                                
+                                <button id="main-download-btn" class="btn btn--primary btn--full-width main-download">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                        <polyline points="7,10 12,15 17,10"/>
+                                        <line x1="12" y1="15" x2="12" y2="3"/>
+                                    </svg>
+                                    <span class="download-text">Als PNG herunterladen</span>
+                                    <span class="download-size" id="download-size">~50KB</span>
+                                </button>
+                                
+                                <div class="format-selection">
+                                    <h4>Alle verfügbaren Formate:</h4>
+                                    <div class="format-grid">
+                                        <button class="format-btn active" data-format="png" data-name="PNG">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                                <polyline points="21,15 16,10 5,21"/>
+                                            </svg>
+                                            PNG
+                                        </button>
+                                        <button class="format-btn" data-format="jpg" data-name="JPG">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                                                <polyline points="14,2 14,8 20,8"/>
+                                                <circle cx="10" cy="12" r="2"/>
+                                                <path d="M9 17c-1 0-2-1-2-2"/>
+                                            </svg>
+                                            JPG
+                                        </button>
+                                        <button class="format-btn" data-format="svg" data-name="SVG">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5"/>
+                                                <line x1="12" y1="8" x2="12" y2="16"/>
+                                                <line x1="8" y1="12" x2="16" y2="12"/>
+                                            </svg>
+                                            SVG
+                                        </button>
+                                        <button class="format-btn" data-format="pdf" data-name="PDF">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                                <polyline points="14,2 14,8 20,8"/>
+                                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                                <line x1="16" y1="17" x2="8" y2="17"/>
+                                                <polyline points="10,9 9,9 8,9"/>
+                                            </svg>
+                                            PDF
+                                        </button>
+                                        <button class="format-btn" data-format="eps" data-name="EPS">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                                <polyline points="14,2 14,8 20,8"/>
+                                                <line x1="9" y1="13" x2="9" y2="17"/>
+                                                <line x1="9" y1="13" x2="13" y2="13"/>
+                                                <line x1="9" y1="15" x2="11" y2="15"/>
+                                            </svg>
+                                            EPS
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="download-options">
+                                    <div class="option-group">
+                                        <label for="download-quality">
+                                            <span>Qualität</span>
+                                            <span class="quality-value" id="quality-value">95%</span>
+                                        </label>
+                                        <input type="range" id="download-quality" min="70" max="100" value="95" class="quality-slider">
+                                    </div>
+                                    
+                                    <div class="option-group">
+                                        <label for="download-filename">Dateiname:</label>
+                                        <input type="text" id="download-filename" value="qr-code" class="filename-input" placeholder="qr-code">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scanner Page -->
+            <div id="scanner-page" class="page">
+                <div class="page-header">
+                    <h1>QR Scanner</h1>
+                    <p>Scannen Sie QR Codes mit Ihrer Kamera</p>
+                </div>
+
+                <div class="scanner-container">
+                    <div id="scanner-container" class="scanner-viewport">
+                        <div class="scanner-placeholder">
+                            <div class="scanner-icon">📷</div>
+                            <h3>Scanner starten</h3>
+                            <p>Klicken Sie auf "Scannen", um Ihre Kamera zu aktivieren</p>
+                            <button id="start-scanner" class="btn btn--primary">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                                    <circle cx="12" cy="13" r="4"/>
+                                </svg>
+                                Scanner starten
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- NEU: Scanner Settings -->
+                    <div class="scanner-settings" id="scanner-settings" style="display: none;">
+                        <h4>📸 Scanner Einstellungen</h4>
+                        <div class="settings-grid">
+                            <div class="setting-item">
+                                <label>Kamera auswählen:</label>
+                                <select id="camera-select" class="form-control">
+                                    <!-- Dynamisch gefüllt -->
+                                </select>
+                            </div>
+                            <div class="setting-item">
+                                <label>Scan-Formate:</label>
+                                <div class="format-checkboxes">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="format-qr" checked> QR Code
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="format-datamatrix"> Data Matrix
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="format-code128"> Code 128
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="setting-item">
+                                <label class="toggle-label">
+                                    <input type="checkbox" id="scanner-sound" checked>
+                                    <span class="toggle-slider"></span>
+                                    Scan-Sound aktivieren
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="scan-result" class="scanner-result hidden">
+                        <div class="result-content">
+                            <h3>QR Code erkannt</h3>
+                            <div class="result-header">
+                                <div class="result-type" id="result-type">Text</div>
+                                <div class="result-time" id="result-time"></div>
+                            </div>
+                            <div id="result-text" class="result-data"></div>
+                            <div class="result-actions">
+                                <button id="copy-result" class="btn btn--secondary">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                                        <path d="M5 15H4C3.46957 15 2.96086 14.7893 2.58579 14.4142C2.21071 14.0391 2 13.5304 2 13V4C2 3.46957 2.21071 2.96086 2.58579 2.58579C2.96086 2.21071 3.46957 2 4 2H13C13.5304 2 14.0391 2.21071 14.4142 2.58579C14.7893 2.96086 15 3.46957 15 4V5" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                    Kopieren
+                                </button>
+                                <button id="open-result" class="btn btn--primary">Öffnen</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- NEU: Smart Actions basierend auf gescanntem Content -->
+                    <div class="scan-actions" id="scan-actions" style="display: none;">
+                        <h4>✨ Empfohlene Aktionen</h4>
+                        <div class="action-buttons" id="smart-action-buttons">
+                            <!-- Dynamisch basierend auf Content-Typ gefüllt -->
+                        </div>
+                    </div>
+
+                    <!-- NEU: Scan Statistics -->
+                    <div class="scan-stats" id="scan-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Scan-Versuche:</span>
+                            <span class="stat-value" id="scan-attempts">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Erfolgsrate:</span>
+                            <span class="stat-value" id="success-rate">--</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Durchschnittliche Zeit:</span>
+                            <span class="stat-value" id="avg-scan-time">--</span>
+                        </div>
+                    </div>
+
+                    <div class="scanner-controls">
+                        <button id="stop-scanner" class="btn btn--outline hidden">Scanner stoppen</button>
+                        <button id="toggle-scanner-settings" class="btn btn--secondary">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3"/>
+                                <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/>
                             </svg>
-                            QR Code generieren
+                            Einstellungen
                         </button>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="generator-preview">
-            <div class="preview-container">
-                <h3>Vorschau</h3>
-                <div class="qr-preview" id="qr-preview">
-                    <div class="preview-placeholder">
-                        <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
-                            <rect x="7" y="7" width="3" height="3" fill="currentColor"/>
-                            <rect x="14" y="7" width="3" height="3" fill="currentColor"/>
-                            <rect x="7" y="14" width="3" height="3" fill="currentColor"/>
-                            <rect x="14" y="14" width="3" height="3" fill="currentColor"/>
-                        </svg>
-                        <p>QR Code Vorschau</p>
+            <!-- History Page -->
+            <div id="history-page" class="page">
+                <div class="page-header">
+                    <h1>Verlauf</h1>
+                    <p>Ihre QR Code Historie</p>
+                </div>
+                
+                <!-- Filter werden hier dynamisch eingefügt durch ensureHistoryFiltersExist() -->
+                
+                <!-- NEU: Virtual Scrolling Container -->
+                <div class="history-viewport" id="history-viewport">
+                    <!-- History Liste -->
+                    <div id="history-list" class="history-container">
+                        <!-- Wird dynamisch durch displayHistory() gefüllt -->
                     </div>
                 </div>
                 
-                <div class="download-section" id="download-section">
-  <h3>QR Code herunterladen</h3>
-  
-  <button id="main-download-btn" class="btn btn--primary btn--full-width main-download">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-      <polyline points="7,10 12,15 17,10"/>
-      <line x1="12" y1="15" x2="12" y2="3"/>
-    </svg>
-    <span class="download-text">Als PNG herunterladen</span>
-    <span class="download-size" id="download-size">~50KB</span>
-  </button>
-                    
-                    <div class="format-selection">
-                        <h4>Alle verfügbaren Formate:</h4>
-                        <div class="format-grid">
-                            <button class="format-btn active" data-format="png" data-name="PNG">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                                    <circle cx="8.5" cy="8.5" r="1.5"/>
-                                    <polyline points="21,15 16,10 5,21"/>
-                                </svg>
-                                PNG
-                            </button>
-                            <button class="format-btn" data-format="jpg" data-name="JPG">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-                                    <polyline points="14,2 14,8 20,8"/>
-                                    <circle cx="10" cy="12" r="2"/>
-                                    <path d="M9 17c-1 0-2-1-2-2"/>
-                                </svg>
-                                JPG
-                            </button>
-                            <button class="format-btn" data-format="svg" data-name="SVG">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5"/>
-                                    <line x1="12" y1="8" x2="12" y2="16"/>
-                                    <line x1="8" y1="12" x2="16" y2="12"/>
-                                </svg>
-                                SVG
-                            </button>
-                            <button class="format-btn" data-format="pdf" data-name="PDF">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                    <polyline points="14,2 14,8 20,8"/>
-                                    <line x1="16" y1="13" x2="8" y2="13"/>
-                                    <line x1="16" y1="17" x2="8" y2="17"/>
-                                    <polyline points="10,9 9,9 8,9"/>
-                                </svg>
-                                PDF
-                            </button>
-                            <button class="format-btn" data-format="eps" data-name="EPS">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                    <polyline points="14,2 14,8 20,8"/>
-                                    <line x1="9" y1="13" x2="9" y2="17"/>
-                                    <line x1="9" y1="13" x2="13" y2="13"/>
-                                    <line x1="9" y1="15" x2="11" y2="15"/>
-                                </svg>
-                                EPS
-                            </button>
-                        </div>
+                <!-- NEU: Bulk Selection Actions -->
+                <div class="bulk-actions" id="bulk-actions" style="display: none;">
+                    <div class="bulk-info">
+                        <span id="selected-count">0</span> Einträge ausgewählt
                     </div>
-                    
-                    <div class="download-options">
-                        <div class="option-group">
-                            <label for="download-quality">
-                                <span>Qualität</span>
-                                <span class="quality-value" id="quality-value">95%</span>
-                            </label>
-                            <input type="range" id="download-quality" min="70" max="100" value="95" class="quality-slider">
-                        </div>
-                        
-                        <div class="option-group">
-                            <label for="download-filename">Dateiname:</label>
-                            <input type="text" id="download-filename" value="qr-code" class="filename-input" placeholder="qr-code">
-                        </div>
+                    <div class="bulk-buttons">
+                        <button class="btn btn--sm btn--secondary" id="bulk-copy">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                            </svg>
+                            Alle kopieren
+                        </button>
+                        <button class="btn btn--sm btn--secondary" id="bulk-export">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7,10 12,15 17,10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            Exportieren
+                        </button>
+                        <button class="btn btn--sm btn--outline" id="bulk-delete">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3,6 5,6 21,6"/>
+                                <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6"/>
+                            </svg>
+                            Löschen
+                        </button>
+                        <button class="btn btn--sm btn--secondary" id="bulk-deselect">Auswahl aufheben</button>
                     </div>
                 </div>
+                
+                <!-- Hidden File Input für Import/Export -->
+                <input type="file" id="import-file" accept=".json,.csv" style="display: none;">
+                <input type="file" id="import-images" accept="image/*" multiple style="display: none;">
             </div>
-        </div>
-    </div>
-</div>
-
-            <!-- Scanner Page -->
-<div id="scanner-page" class="page">
-    <div class="page-header">
-        <h1>QR Scanner</h1>
-        <p>Scannen Sie QR Codes mit Ihrer Kamera</p>
-    </div>
-
-    <div class="scanner-container">
-        <div id="scanner-container" class="scanner-viewport">
-            <div class="scanner-placeholder">
-                <div class="scanner-icon">📷</div>
-                <h3>Scanner starten</h3>
-                <p>Klicken Sie auf "Scannen", um Ihre Kamera zu aktivieren</p>
-                <button id="start-scanner" class="btn btn--primary">
-                    Scanner starten
-                </button>
-            </div>
-        </div>
-
-        <div id="scan-result" class="scanner-result hidden">
-            <div class="result-content">
-                <h3>QR Code erkannt</h3>
-                <div id="result-text" class="result-data"></div>
-                <div class="result-actions">
-                    <button id="copy-result" class="btn btn--secondary">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
-                            <path d="M5 15H4C3.46957 15 2.96086 14.7893 2.58579 14.4142C2.21071 14.0391 2 13.5304 2 13V4C2 3.46957 2.21071 2.96086 2.58579 2.58579C2.96086 2.21071 3.46957 2 4 2H13C13.5304 2 14.0391 2.21071 14.4142 2.58579C14.7893 2.96086 15 3.46957 15 4V5" stroke="currentColor" stroke-width="2"/>
-                        </svg>
-                        Kopieren
-                    </button>
-                    <button id="open-result" class="btn btn--primary">Öffnen</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="scanner-controls">
-            <button id="stop-scanner" class="btn btn--outline hidden">Scanner stoppen</button>
-        </div>
-    </div>
-</div>
-
-            <!-- History Page -->
-<div id="history-page" class="page">
-  <div class="page-header">
-    <h1>Verlauf</h1>
-    <p>Ihre QR Code Historie</p>
-  </div>
-  
-  <!-- FILTER WERDEN HIER DYNAMISCH EINGEFÜGT -->
-  <!-- durch addHistoryFilters() Funktion -->
-  
-  <!-- History Liste -->
-  <div id="history-list" class="history-container">
-    <!-- Wird dynamisch durch displayHistory() gefüllt -->
-  </div>
-  
-  <!-- Hidden File Input für Import -->
-  <input type="file" id="import-file" accept=".json,.csv" style="display: none;">
-</div>
 
             <!-- Settings Page -->
             <div id="settings-page" class="page">
-    <div class="page-header">
-        <h1>Einstellungen</h1>
-        <p>App-Einstellungen verwalten</p>
-    </div>
+                <div class="page-header">
+                    <h1>Einstellungen</h1>
+                    <p>App-Einstellungen verwalten</p>
+                </div>
 
-    <div class="settings-sections">
-        <div class="settings-section">
-            <h3>Darstellung</h3>
-            <div class="setting-item">
-                <div class="setting-info">
-                    <h4>Design-Modus</h4>
-                    <p>Helles oder dunkles Design wählen</p>
-                </div>
-                <select id="theme-selector" class="form-control">
-                    <option value="auto">Automatisch</option>
-                    <option value="light">Hell</option>
-                    <option value="dark">Dunkel</option>
-                </select>
-            </div>
-        </div>
+                <div class="settings-sections">
+                    <div class="settings-section">
+                        <h3>Darstellung</h3>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4>Design-Modus</h4>
+                                <p>Helles oder dunkles Design wählen</p>
+                            </div>
+                            <select id="theme-selector" class="form-control">
+                                <option value="auto">Automatisch</option>
+                                <option value="light">Hell</option>
+                                <option value="dark">Dunkel</option>
+                            </select>
+                        </div>
+                        
+                        <!-- NEU: Erweiterte Darstellungsoptionen -->
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4>Animationen</h4>
+                                <p>Bewegungseffekte in der App</p>
+                            </div>
+                            <label class="toggle-label">
+                                <input type="checkbox" id="animations-enabled" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4>Kompakte Ansicht</h4>
+                                <p>Weniger Abstände für mehr Inhalt</p>
+                            </div>
+                            <label class="toggle-label">
+                                <input type="checkbox" id="compact-view">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
 
-        <div class="settings-section">
-            <h3>Account</h3>
-            <div class="account-info">
-                <div class="account-status">
-                    <div class="status-icon">👤</div>
-                    <div class="status-content">
-                        <h4>Kostenlos verfügbar</h4>
-                        <p>Alle Features • Unbegrenzte QR Codes</p>
+                    <!-- NEU: Erweiterte Funktionen Sektion -->
+                    <div class="settings-section">
+                        <h3>Funktionen</h3>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4>Smart Notifications</h4>
+                                <p>Intelligente Benachrichtigungen basierend auf Nutzung</p>
+                            </div>
+                            <label class="toggle-label">
+                                <input type="checkbox" id="smart-notifications" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4>Automatisches Backup</h4>
+                                <p>Historie automatisch im Browser speichern</p>
+                            </div>
+                            <label class="toggle-label">
+                                <input type="checkbox" id="auto-backup" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4>Cache aktivieren</h4>
+                                <p>QR Codes zwischenspeichern für bessere Performance</p>
+                            </div>
+                            <label class="toggle-label">
+                                <input type="checkbox" id="cache-enabled" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4>Analytics</h4>
+                                <p>Nutzungsstatistiken erfassen für bessere Insights</p>
+                            </div>
+                            <label class="toggle-label">
+                                <input type="checkbox" id="analytics-enabled" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
                     </div>
-                </div>
-            </div>
-        </div>
 
-        <div class="settings-section">
-            <h3>App-Features</h3>
-            <div class="feature-preview">
-                <div class="feature-list">
-                    <div class="feature-item">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                            <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2"/>
-                        </svg>
-                        <span>Unbegrenzte QR Code Generierung</span>
+                    <!-- NEU: Sicherheit & Datenschutz -->
+                    <div class="settings-section">
+                        <h3>Sicherheit & Datenschutz</h3>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4>Automatische Bereinigung</h4>
+                                <p>Sensible Daten nach 24 Stunden automatisch löschen</p>
+                            </div>
+                            <label class="toggle-label">
+                                <input type="checkbox" id="auto-cleanup" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <h4>Daten verschlüsseln</h4>
+                                <p>Sensible QR Code Inhalte verschlüsselt speichern</p>
+                            </div>
+                            <label class="toggle-label">
+                                <input type="checkbox" id="encrypt-data">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="setting-actions">
+                            <button class="btn btn--outline btn--full-width" id="clear-all-data">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3,6 5,6 21,6"/>
+                                    <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6"/>
+                                </svg>
+                                Alle Daten löschen
+                            </button>
+                        </div>
                     </div>
-                    <div class="feature-item">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                            <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2"/>
-                        </svg>
-                        <span>Alle Templates & Designs</span>
-                    </div>
-                    <div class="feature-item">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                            <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2"/>
-                        </svg>
-                        <span>Alle Dateiformate (SVG, PDF, EPS)</span>
-                    </div>
-                    <div class="feature-item">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                            <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2"/>
-                        </svg>
-                        <span>Analytics & Tracking</span>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <div class="settings-section">
-            <h3>App-Informationen</h3>
-            <div class="app-info">
-                <div class="info-item">
-                    <span>Version</span>
-                    <span>1.0.0</span>
-                </div>
-                <div class="info-item">
-                    <span>Speicher verwendet</span>
-                    <span id="storage-usage">0 MB</span>
-                </div>
-                <div class="info-item">
-                    <span>QR Codes erstellt</span>
-                    <span id="total-qr-created">0</span>
+                    <div class="settings-section">
+                        <h3>Account</h3>
+                        <div class="account-info">
+                            <div class="account-status">
+                                <div class="status-icon">👤</div>
+                                <div class="status-content">
+                                    <h4>Kostenlos verfügbar</h4>
+                                    <p>Alle Features • Unbegrenzte QR Codes</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>App-Features</h3>
+                        <div class="feature-preview">
+                            <div class="feature-list">
+                                <div class="feature-item">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                        <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                    <span>Unbegrenzte QR Code Generierung</span>
+                                </div>
+                                <div class="feature-item">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                        <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                    <span>Alle Templates & Designs</span>
+                                </div>
+                                <div class="feature-item">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                        <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                    <span>Alle Dateiformate (SVG, PDF, EPS)</span>
+                                </div>
+                                <div class="feature-item">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                        <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                    <span>Analytics & Tracking</span>
+                                </div>
+                                <div class="feature-item">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                        <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                    <span>Batch-Generierung</span>
+                                </div>
+                                <div class="feature-item">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                        <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                    <span>Erweiterte Scanner-Features</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>App-Informationen</h3>
+                        <div class="app-info">
+                            <div class="info-item">
+                                <span>Version</span>
+                                <span>1.0.0</span>
+                            </div>
+                            <div class="info-item">
+                                <span>Speicher verwendet</span>
+                                <span id="storage-usage">0 MB</span>
+                            </div>
+                            <div class="info-item">
+                                <span>QR Codes erstellt</span>
+                                <span id="total-qr-created">0</span>
+                            </div>
+                            <div class="info-item">
+                                <span>Cache-Einträge</span>
+                                <span id="cache-entries">0</span>
+                            </div>
+                            <div class="info-item">
+                                <span>Produktivitäts-Score</span>
+                                <span id="productivity-score-settings">0</span>
+                            </div>
+                        </div>
+                        
+                        <!-- NEU: Debug & Entwickler Optionen -->
+                        <div class="debug-section" id="debug-section" style="display: none;">
+                            <h4>🔧 Debug-Optionen</h4>
+                            <div class="debug-actions">
+                                <button class="btn btn--sm btn--outline" id="debug-cache">Cache-Status anzeigen</button>
+                                <button class="btn btn--sm btn--outline" id="debug-analytics">Analytics-Log anzeigen</button>
+                                <button class="btn btn--sm btn--outline" id="debug-storage">Storage-Details</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
 
         </main>
     </div>
 
-<!-- Template Modal -->
-<div id="template-modal" class="template-modal">
-    <div class="template-modal-backdrop"></div>
-    <div class="template-modal-content">
-        <!-- Modal Header -->
-        <div class="modal-header">
-            <div class="modal-title-section">
-                <div class="modal-logo">
-                    <div class="logo-gradient">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="3" width="7" height="7"/>
-                            <rect x="14" y="3" width="7" height="7"/>
-                            <rect x="3" y="14" width="7" height="7"/>
-                            <rect x="14" y="14" width="7" height="7"/>
-                        </svg>
+    <!-- Template Modal (erweitert) -->
+    <div id="template-modal" class="template-modal">
+        <div class="template-modal-backdrop"></div>
+        <div class="template-modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <div class="modal-title-section">
+                    <div class="modal-logo">
+                        <div class="logo-gradient">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7"/>
+                                <rect x="14" y="3" width="7" height="7"/>
+                                <rect x="3" y="14" width="7" height="7"/>
+                                <rect x="14" y="14" width="7" height="7"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="modal-text">
+                        <h2 class="modal-title">QR Code Templates</h2>
+                        <p class="modal-subtitle">Professionelle Vorlagen für jeden Anwendungsfall</p>
                     </div>
                 </div>
-                <div class="modal-text">
-                    <h2 class="modal-title">QR Code Templates</h2>
-                    <p class="modal-subtitle">Professionelle Vorlagen für jeden Anwendungsfall</p>
-                </div>
+                <button class="modal-close" aria-label="Modal schließen">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M15 5L5 15M5 5L15 15"/>
+                    </svg>
+                </button>
             </div>
-            <button class="modal-close" aria-label="Modal schließen">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M15 5L5 15M5 5L15 15"/>
-                </svg>
-            </button>
-        </div>
 
-        <!-- Modal Body -->
-        <div class="modal-body">
-            <!-- Sidebar -->
-            <aside class="template-sidebar">
-                <!-- Search Section -->
-                <div class="search-section">
-                    <div class="search-wrapper">
-                        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="11" cy="11" r="8"/>
-                            <path d="M21 21L16.65 16.65"/>
-                        </svg>
-                        <input 
-                            type="text" 
-                            id="template-search" 
-                            class="search-input" 
-                            placeholder="Templates durchsuchen..."
-                            autocomplete="off"
-                            spellcheck="false"
-                        />
-                        <button class="search-clear" id="search-clear" style="display: none;">
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-                                <path d="M12 4L4 12M4 4L12 12"/>
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <!-- Sidebar -->
+                <aside class="template-sidebar">
+                    <!-- Search Section -->
+                    <div class="search-section">
+                        <div class="search-wrapper">
+                            <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"/>
+                                <path d="M21 21L16.65 16.65"/>
                             </svg>
-                        </button>
-                    </div>
-                    <div class="search-suggestions" id="search-suggestions"></div>
-                </div>
-
-                <!-- Categories Section -->
-                <div class="categories-section">
-                    <div class="section-header">
-                        <h3 class="section-title">Kategorien</h3>
-                        <div class="category-count" id="category-count">6 verfügbar</div>
-                    </div>
-                    <nav class="template-categories" id="template-categories">
-                        <!-- Dynamisch geladen -->
-                    </nav>
-                </div>
-
-                <!-- Quick Actions -->
-                <div class="quick-actions-section">
-                    <h3 class="section-title">Schnellzugriff</h3>
-                    <div class="quick-buttons">
-                        <button class="quick-btn" data-filter="recent">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"/>
-                                <polyline points="12,6 12,12 16,14"/>
-                            </svg>
-                            Zuletzt verwendet
-                        </button>
-                        <button class="quick-btn" data-filter="popular">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
-                            </svg>
-                            Beliebt
-                        </button>
-                        <button class="quick-btn" data-filter="new">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"/>
-                                <path d="M8 12l2 2 4-4"/>
-                            </svg>
-                            Neu
-                        </button>
-                    </div>
-                </div>
-            </aside>
-
-            <!-- Main Content -->
-            <main class="template-main">
-                <!-- Toolbar -->
-                <div class="template-toolbar">
-  <div class="toolbar-section breadcrumb-section">
-    <div class="breadcrumb">
-      <h2 class="breadcrumb-item">Wählen Sie ein Template aus</h2>
-    </div>
-    <div class="template-stats">
-      <div class="results-count">19 Templates</div>
-      <div class="template-count-details">
-        <div class="count-item">
-          <span class="count-number">18</span>
-          <span class="count-label">Kostenlos</span>
-        </div>
-        <div class="count-item">
-          <span class="count-number">1</span>
-          <span class="count-label">Premium</span>
-        </div>
-      </div>
-    </div>
-  </div>
-                    
-                    <div class="toolbar-section">
-                        <!-- View Toggle -->
-                        <div class="view-toggle">
-                            <button class="view-btn active" data-view="grid" title="Rasteransicht">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="3" y="3" width="7" height="7"/>
-                                    <rect x="14" y="3" width="7" height="7"/>
-                                    <rect x="3" y="14" width="7" height="7"/>
-                                    <rect x="14" y="14" width="7" height="7"/>
-                                </svg>
-                            </button>
-                            <button class="view-btn" data-view="list" title="Listenansicht">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <line x1="8" y1="6" x2="21" y2="6"/>
-                                    <line x1="8" y1="12" x2="21" y2="12"/>
-                                    <line x1="8" y1="18" x2="21" y2="18"/>
-                                    <line x1="3" y1="6" x2="3.01" y2="6"/>
-                                    <line x1="3" y1="12" x2="3.01" y2="12"/>
-                                    <line x1="3" y1="18" x2="3.01" y2="18"/>
+                            <input 
+                                type="text" 
+                                id="template-search" 
+                                class="search-input" 
+                                placeholder="Templates durchsuchen..."
+                                autocomplete="off"
+                                spellcheck="false"
+                            />
+                            <button class="search-clear" id="search-clear" style="display: none;">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M12 4L4 12M4 4L12 12"/>
                                 </svg>
                             </button>
                         </div>
+                        <div class="search-suggestions" id="search-suggestions"></div>
+                    </div>
 
-                        <!-- Filter & Sort -->
-                        <div class="filter-controls">
-                            <select class="filter-select" id="template-filter">
-                                <option value="all">Alle Templates</option>
-                                <option value="recent">Zuletzt verwendet</option>
-                                <option value="popular">Beliebt</option>
-                            </select>
-                            
-                            <select class="sort-select" id="template-sort">
-                                <option value="name">Nach Name</option>
-                                <option value="popular">Nach Beliebtheit</option>
-                                <option value="newest">Neueste zuerst</option>
-                                <option value="type">Nach Typ</option>
-                            </select>
+                    <!-- Categories Section -->
+                    <div class="categories-section">
+                        <div class="section-header">
+                            <h3 class="section-title">Kategorien</h3>
+                            <div class="category-count" id="category-count">6 verfügbar</div>
+                        </div>
+                        <nav class="template-categories" id="template-categories">
+                            <!-- Dynamisch geladen -->
+                        </nav>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="quick-actions-section">
+                        <h3 class="section-title">Schnellzugriff</h3>
+                        <div class="quick-buttons">
+                            <button class="quick-btn" data-filter="recent">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12,6 12,12 16,14"/>
+                                </svg>
+                                Zuletzt verwendet
+                            </button>
+                            <button class="quick-btn" data-filter="popular">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+                                </svg>
+                                Beliebt
+                            </button>
+                            <button class="quick-btn" data-filter="new">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M8 12l2 2 4-4"/>
+                                </svg>
+                                Neu
+                            </button>
                         </div>
                     </div>
-                </div>
+                </aside>
 
-                <!-- Templates Grid -->
-                <div class="templates-container">
-                    <div class="template-grid" id="template-grid">
-                        <!-- Dynamisch geladen -->
-                    </div>
-                    
-                    <!-- Pagination -->
-                    <div class="pagination" id="template-pagination" style="display: none;">
-                        <button class="pagination-btn" id="prev-page" disabled>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="15,18 9,12 15,6"/>
-                            </svg>
-                        </button>
-                        <div class="pagination-info">
-                            <span id="current-page">1</span> von <span id="total-pages">1</span>
+                <!-- Main Content -->
+                <main class="template-main">
+                    <!-- Toolbar -->
+                    <div class="template-toolbar">
+                        <div class="toolbar-section breadcrumb-section">
+                            <div class="breadcrumb">
+                                <h2 class="breadcrumb-item">Wählen Sie ein Template aus</h2>
+                            </div>
+                            <div class="template-stats">
+                                <div class="results-count">19 Templates</div>
+                                <div class="template-count-details">
+                                    <div class="count-item">
+                                        <span class="count-number">18</span>
+                                        <span class="count-label">Kostenlos</span>
+                                    </div>
+                                    <div class="count-item">
+                                        <span class="count-number">1</span>
+                                        <span class="count-label">Premium</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <button class="pagination-btn" id="next-page">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="9,18 15,12 9,6"/>
+                        
+                        <div class="toolbar-section">
+                            <!-- View Toggle -->
+                            <div class="view-toggle">
+                                <button class="view-btn active" data-view="grid" title="Rasteransicht">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="3" width="7" height="7"/>
+                                        <rect x="14" y="3" width="7" height="7"/>
+                                        <rect x="3" y="14" width="7" height="7"/>
+                                        <rect x="14" y="14" width="7" height="7"/>
+                                    </svg>
+                                </button>
+                                <button class="view-btn" data-view="list" title="Listenansicht">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="8" y1="6" x2="21" y2="6"/>
+                                        <line x1="8" y1="12" x2="21" y2="12"/>
+                                        <line x1="8" y1="18" x2="21" y2="18"/>
+                                        <line x1="3" y1="6" x2="3.01" y2="6"/>
+                                        <line x1="3" y1="12" x2="3.01" y2="12"/>
+                                        <line x1="3" y1="18" x2="3.01" y2="18"/>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Filter & Sort -->
+                            <div class="filter-controls">
+                                <select class="filter-select" id="template-filter">
+                                    <option value="all">Alle Templates</option>
+                                    <option value="recent">Zuletzt verwendet</option>
+                                    <option value="popular">Beliebt</option>
+                                </select>
+                                
+                                <select class="sort-select" id="template-sort">
+                                    <option value="name">Nach Name</option>
+                                    <option value="popular">Nach Beliebtheit</option>
+                                    <option value="newest">Neueste zuerst</option>
+                                    <option value="type">Nach Typ</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Templates Grid -->
+                    <div class="templates-container">
+                        <div class="template-grid" id="template-grid">
+                            <!-- Dynamisch geladen -->
+                        </div>
+                        
+                        <!-- Pagination -->
+                        <div class="pagination" id="template-pagination" style="display: none;">
+                            <button class="pagination-btn" id="prev-page" disabled>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="15,18 9,12 15,6"/>
+                                </svg>
+                            </button>
+                            <div class="pagination-info">
+                                <span id="current-page">1</span> von <span id="total-pages">1</span>
+                            </div>
+                            <button class="pagination-btn" id="next-page">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="9,18 15,12 9,6"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div class="empty-state" id="empty-state" style="display: none;">
+                        <div class="empty-icon">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                                <circle cx="11" cy="11" r="8"/>
+                                <path d="M21 21L16.65 16.65"/>
                             </svg>
+                        </div>
+                        <h3 class="empty-title">Keine Templates gefunden</h3>
+                        <p class="empty-description">Versuchen Sie andere Suchbegriffe oder wählen Sie eine andere Kategorie.</p>
+                        <button class="btn btn--outline" onclick="document.getElementById('template-search').value=''; window.templateManager.searchTemplates('');">
+                            Alle Templates anzeigen
                         </button>
                     </div>
-                </div>
+                </main>
+            </div>
 
-                <!-- Empty State -->
-                <div class="empty-state" id="empty-state" style="display: none;">
-                    <div class="empty-icon">
-                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-                            <circle cx="11" cy="11" r="8"/>
-                            <path d="M21 21L16.65 16.65"/>
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <div class="footer-left">
+                    <div class="selected-info" id="selected-template-info">
+                        <span class="info-text">Wählen Sie ein Template aus</span>
+                    </div>
+                </div>
+                
+                <div class="footer-right">
+                    <button class="btn btn--secondary" id="cancel-template">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6L18 18"/>
                         </svg>
-                    </div>
-                    <h3 class="empty-title">Keine Templates gefunden</h3>
-                    <p class="empty-description">Versuchen Sie andere Suchbegriffe oder wählen Sie eine andere Kategorie.</p>
-                    <button class="btn btn--outline" onclick="document.getElementById('template-search').value=''; window.templateManager.searchTemplates('');">
-                        Alle Templates anzeigen
+                        Abbrechen
+                    </button>
+                    <button class="btn btn--primary" id="use-template" disabled>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20,6 9,17 4,12"/>
+                        </svg>
+                        Template verwenden
                     </button>
                 </div>
-            </main>
-        </div>
-
-        <!-- Modal Footer -->
-        <div class="modal-footer">
-            <div class="footer-left">
-                <div class="selected-info" id="selected-template-info">
-                    <span class="info-text">Wählen Sie ein Template aus</span>
-                </div>
-            </div>
-            
-            <div class="footer-right">
-                <button class="btn btn--secondary" id="cancel-template">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M18 6L6 18M6 6L18 18"/>
-                    </svg>
-                    Abbrechen
-                </button>
-                <button class="btn btn--primary" id="use-template" disabled>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="20,6 9,17 4,12"/>
-                    </svg>
-                    Template verwenden
-                </button>
             </div>
         </div>
     </div>
-</div>
+
+    <!-- NEU: Analytics Modal -->
+    <div id="analytics-modal" class="analytics-modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content analytics-modal-content">
+            <div class="modal-header">
+                <h2>📊 Analytics & Insights</h2>
+                <button class="modal-close" id="close-analytics">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6L18 18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <h3>Nutzungsstatistiken</h3>
+                        <div id="usage-stats">
+                            <!-- Dynamisch gefüllt -->
+                        </div>
+                    </div>
+                    <div class="analytics-card">
+                        <h3>Trend-Analyse</h3>
+                        <div id="trend-chart">
+                            <!-- Chart hier -->
+                        </div>
+                    </div>
+                    <div class="analytics-card">
+                        <h3>Top QR Code Typen</h3>
+                        <div id="top-types">
+                            <!-- Dynamisch gefüllt -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEU: Share Modal -->
+    <div id="share-modal" class="share-modal-overlay" style="display: none;">
+        <div class="share-modal">
+            <div class="share-header">
+                <h3>QR Code Inhalt teilen</h3>
+                <button class="close-modal">✕</button>
+            </div>
+            <div class="share-content">
+                <div class="share-text" id="share-content-text"></div>
+                <div class="share-actions">
+                    <button class="share-btn" data-platform="whatsapp">
+                        <span class="share-icon">📱</span>
+                        WhatsApp
+                    </button>
+                    <button class="share-btn" data-platform="telegram">
+                        <span class="share-icon">✈️</span>
+                        Telegram
+                    </button>
+                    <button class="share-btn" data-platform="email">
+                        <span class="share-icon">📧</span>
+                        E-Mail
+                    </button>
+                    <button class="share-btn" data-platform="sms">
+                        <span class="share-icon">💬</span>
+                        SMS
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEU: Delete Confirmation Modal -->
+    <div id="delete-modal" class="delete-modal-overlay" style="display: none;">
+        <div class="delete-modal">
+            <div class="delete-header">
+                <span class="delete-icon">🗑️</span>
+                <h3>Eintrag löschen</h3>
+            </div>
+            <div class="delete-content">
+                <p>Möchten Sie diesen Eintrag wirklich aus dem Verlauf löschen?</p>
+                <div class="delete-actions">
+                    <button class="btn btn--outline cancel-delete">Abbrechen</button>
+                    <button class="btn btn--danger confirm-delete">Löschen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEU: Batch Generation Modal -->
+    <div id="batch-modal" class="batch-modal" style="display: none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📦 Batch QR Code Generator</h2>
+                <button class="modal-close" id="close-batch-modal">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="batch-input-section">
+                    <label>QR Code Inhalte (einer pro Zeile):</label>
+                    <textarea id="batch-content-modal" rows="8" placeholder="https://example1.com&#10;https://example2.com&#10;Text für QR 3"></textarea>
+                </div>
+                <div class="batch-options">
+                    <div class="option-row">
+                        <label>Dateiformat:</label>
+                        <select id="batch-format">
+                            <option value="png">PNG</option>
+                            <option value="jpg">JPG</option>
+                            <option value="svg">SVG</option>
+                        </select>
+                    </div>
+                    <div class="option-row">
+                        <label>Größe:</label>
+                        <select id="batch-size">
+                            <option value="300">300px</option>
+                            <option value="500">500px</option>
+                            <option value="800">800px</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="batch-progress" id="batch-modal-progress" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <div class="progress-text">0 von 0 erstellt</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn--secondary" id="cancel-batch">Abbrechen</button>
+                <button class="btn btn--primary" id="start-batch">Batch erstellen</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Floating Install Button -->
     <button id="floating-install" class="floating-install" aria-label="App installieren">
@@ -924,7 +1460,7 @@
     <div id="install-success" class="install-success">
         <div class="install-success-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M20 6L9 17L4 12"></path>
+                <path d="M20 6L9 17L4 12"/>
             </svg>
         </div>
         <div class="install-success-text">
@@ -935,15 +1471,43 @@
     <!-- Toast Notifications -->
     <div id="toast-container" class="toast-container"></div>
 
+    <!-- NEU: Permission Request Modal -->
+    <div id="permission-modal" class="permission-modal" style="display: none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📷 Kamera-Berechtigung erforderlich</h3>
+            </div>
+            <div class="modal-body">
+                <p>Um QR Codes zu scannen, benötigt die App Zugriff auf Ihre Kamera.</p>
+                <div class="permission-steps">
+                    <div class="step">1. Klicken Sie auf "Erlauben" wenn der Browser fragt</div>
+                    <div class="step">2. Falls bereits blockiert: Klicken Sie auf das Schloss-Symbol in der Adressleiste</div>
+                    <div class="step">3. Setzen Sie Kamera auf "Erlauben"</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn--secondary" id="cancel-permission">Abbrechen</button>
+                <button class="btn btn--primary" id="request-permission">Berechtigung anfordern</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    
+    <!-- NEU: Zusätzliche Libraries für erweiterte Funktionen -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    
+    <!-- Main App Script -->
     <script src="app.js"></script>
     <script>
     // App-Initialisierung
     document.addEventListener('DOMContentLoaded', () => {
         window.qrApp = new QRProApp();
     });
-</script>
+    </script>
 </body>
 </html>

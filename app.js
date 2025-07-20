@@ -75,7 +75,6 @@ class QRProApp {
   async init() {
     this.showLoadingScreen();
     this.setupEventListeners();
-    this.setupBackgroundPresets();
     this.initializeData();
     await this.loadLibraries();
     this.registerServiceWorker();
@@ -158,265 +157,37 @@ class QRProApp {
   }
 
   initializeData() {
-    console.log('🔄 Initialisiere App-Daten...');
+    // Load data from localStorage
+    const savedHistory = localStorage.getItem('qr-pro-history');
+    const savedScanHistory = localStorage.getItem('qr-pro-scan-history');
+    const savedSettings = localStorage.getItem('qr-pro-settings');
+    const savedDailyCount = localStorage.getItem('qr-pro-daily-count');
+    const savedDate = localStorage.getItem('qr-pro-last-date');
     
-    try {
-        // Gespeicherte Daten laden
-        const savedHistory = localStorage.getItem('qr-pro-history');
-        const savedScanHistory = localStorage.getItem('qr-pro-scan-history');
-        const savedSettings = localStorage.getItem('qr-pro-settings');
-        const savedDailyCount = localStorage.getItem('qr-pro-daily-count');
-        const savedDate = localStorage.getItem('qr-pro-last-date');
-        const savedUserTier = localStorage.getItem('qr-pro-user-tier');
-        
-        // Verlauf wiederherstellen
-        if (savedHistory) {
-            try {
-                this.qrHistory = JSON.parse(savedHistory);
-                console.log(`📊 ${this.qrHistory.length} QR-Codes im Verlauf geladen`);
-            } catch (error) {
-                console.warn('Fehler beim Laden des QR-Verlaufs:', error);
-                this.qrHistory = [];
-            }
-        }
-        
-        if (savedScanHistory) {
-            try {
-                this.scanHistory = JSON.parse(savedScanHistory);
-                console.log(`📱 ${this.scanHistory.length} Scans im Verlauf geladen`);
-            } catch (error) {
-                console.warn('Fehler beim Laden des Scan-Verlaufs:', error);
-                this.scanHistory = [];
-            }
-        }
-        
-        // User Tier wiederherstellen
-        if (savedUserTier) {
-            this.userTier = savedUserTier;
-        }
-        
-        // Einstellungen wiederherstellen und anwenden
-        if (savedSettings) {
-            try {
-                const parsedSettings = JSON.parse(savedSettings);
-                this.settings = { ...this.settings, ...parsedSettings };
-                console.log('⚙️ Einstellungen wiederhergestellt:', this.settings);
-                
-                // UI-Einstellungen anwenden
-                this.applySettingsToUI();
-                
-            } catch (error) {
-                console.warn('Fehler beim Laden der Einstellungen:', error);
-                this.resetToDefaultSettings();
-            }
-        } else {
-            // Erste Nutzung - Standard-Einstellungen setzen
-            console.log('🆕 Erste Nutzung - Standard-Einstellungen werden gesetzt');
-            this.setDefaultSettings();
-        }
-        
-        // Tägliche Zählung zurücksetzen falls neuer Tag
-        const today = new Date().toDateString();
-        if (savedDate !== today) {
-            console.log('📅 Neuer Tag erkannt - Zähler zurückgesetzt');
-            this.dailyQRCount = 0;
-            localStorage.setItem('qr-pro-daily-count', '0');
-            localStorage.setItem('qr-pro-last-date', today);
-            
-            // Alte Verlaufseinträge bereinigen falls eingestellt
-            if (this.settings.autoDeleteHistory) {
-                this.cleanupOldHistory();
-            }
-        } else if (savedDailyCount) {
-            this.dailyQRCount = parseInt(savedDailyCount) || 0;
-        }
-        
-        // Theme anwenden
-        this.applyTheme();
-        
-        // Statistiken aktualisieren
-        this.updateStatsCards();
-        
-        console.log('✅ App-Daten erfolgreich initialisiert');
-        
-    } catch (error) {
-        console.error('❌ Kritischer Fehler bei der Dateninitialisierung:', error);
-        
-        // Fallback: App in sicherem Modus starten
-        this.startSafeMode();
-    }
-}
-
-// UI-Einstellungen anwenden
-applySettingsToUI() {
-    // Theme Selector
-    const themeSelector = document.getElementById('theme-selector');
-    if (themeSelector && this.settings.theme) {
-        themeSelector.value = this.settings.theme;
+    if (savedHistory) {
+      this.qrHistory = JSON.parse(savedHistory);
     }
     
-    // Benachrichtigungen Toggle
-    const notificationsToggle = document.getElementById('notifications-toggle');
-    if (notificationsToggle) {
-        notificationsToggle.checked = this.settings.notifications !== false;
+    if (savedScanHistory) {
+      this.scanHistory = JSON.parse(savedScanHistory);
     }
     
-    // Auto-Save Toggle
-    const autoSaveToggle = document.getElementById('auto-save-toggle');
-    if (autoSaveToggle) {
-        autoSaveToggle.checked = this.settings.autoSave !== false;
+    if (savedSettings) {
+      this.settings = { ...this.settings, ...JSON.parse(savedSettings) };
     }
     
-    // Farb-Presets wiederherstellen
-    const colorPresetSelect = document.getElementById('qr-color-preset');
-    if (colorPresetSelect && this.settings.colorPreset) {
-        colorPresetSelect.value = this.settings.colorPreset;
+    // Reset daily count if it's a new day
+    const today = new Date().toDateString();
+    if (savedDate !== today) {
+      this.dailyQRCount = 0;
+      localStorage.setItem('qr-pro-daily-count', '0');
+      localStorage.setItem('qr-pro-last-date', today);
+    } else if (savedDailyCount) {
+      this.dailyQRCount = parseInt(savedDailyCount);
     }
     
-    // Hintergrund-Presets wiederherstellen (NEU)
-    const bgPresetSelect = document.getElementById('qr-bg-preset');
-    if (bgPresetSelect && this.settings.bgPreset) {
-        bgPresetSelect.value = this.settings.bgPreset;
-        
-        // Preset anwenden falls nicht 'custom'
-        if (this.settings.bgPreset !== 'custom' && this.bgPresets && this.bgPresets[this.settings.bgPreset]) {
-            const bgColorInput = document.getElementById('qr-bg-color');
-            if (bgColorInput) {
-                bgColorInput.value = this.bgPresets[this.settings.bgPreset];
-                bgColorInput.disabled = true;
-                console.log(`🎨 Hintergrund-Preset "${this.settings.bgPreset}" angewendet`);
-            }
-        }
-    }
-    
-    // Letzte verwendete Farben wiederherstellen
-    if (this.settings.lastUsedColors) {
-        const qrColorInput = document.getElementById('qr-color');
-        const qrBgColorInput = document.getElementById('qr-bg-color');
-        
-        if (qrColorInput && this.settings.lastUsedColors.foreground) {
-            qrColorInput.value = this.settings.lastUsedColors.foreground;
-        }
-        
-        if (qrBgColorInput && this.settings.lastUsedColors.background && this.settings.bgPreset === 'custom') {
-            qrBgColorInput.value = this.settings.lastUsedColors.background;
-        }
-    }
-    
-    // Scanner Einstellungen
-    if (this.settings.preferredCamera && navigator.mediaDevices) {
-        this.preferredCameraId = this.settings.preferredCamera;
-    }
-}
-
-// Standard-Einstellungen setzen
-setDefaultSettings() {
-    this.settings = {
-        theme: 'auto',
-        notifications: true,
-        autoSave: true,
-        language: 'de',
-        soundEnabled: true,
-        vibrationEnabled: true,
-        defaultQRSize: 'medium',
-        defaultErrorLevel: 'M',
-        defaultFormat: 'PNG',
-        colorPreset: 'custom',
-        bgPreset: 'custom', // NEU
-        lastUsedColors: {
-            foreground: '#000000',
-            background: '#ffffff'
-        },
-        quickScanMode: false,
-        autoDownload: false,
-        showPreview: true,
-        preferredCamera: 'environment',
-        scanDelay: 500,
-        maxHistoryItems: 100,
-        autoDeleteHistory: false,
-        historyRetentionDays: 30,
-        premiumFeatures: {},
-        version: '1.0.0'
-    };
-    
-    // Sofort speichern
-    this.saveSettings();
-}
-
-// Alte Verlaufseinträge bereinigen
-cleanupOldHistory() {
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - this.settings.historyRetentionDays);
-    
-    const originalQRCount = this.qrHistory.length;
-    const originalScanCount = this.scanHistory.length;
-    
-    // Alte QR-Codes entfernen
-    this.qrHistory = this.qrHistory.filter(item => {
-        const itemDate = new Date(item.timestamp);
-        return itemDate > cutoffDate;
-    });
-    
-    // Alte Scans entfernen
-    this.scanHistory = this.scanHistory.filter(item => {
-        const itemDate = new Date(item.timestamp);
-        return itemDate > cutoffDate;
-    });
-    
-    // Speichern falls Änderungen
-    if (this.qrHistory.length !== originalQRCount || this.scanHistory.length !== originalScanCount) {
-        localStorage.setItem('qr-pro-history', JSON.stringify(this.qrHistory));
-        localStorage.setItem('qr-pro-scan-history', JSON.stringify(this.scanHistory));
-        
-        const removedItems = (originalQRCount - this.qrHistory.length) + (originalScanCount - this.scanHistory.length);
-        console.log(`🧹 ${removedItems} alte Verlaufseinträge bereinigt`);
-        
-        if (this.settings.notifications) {
-            this.showToast(`${removedItems} alte Einträge bereinigt`, 'info');
-        }
-    }
-}
-
-// Sicherer Modus bei kritischen Fehlern
-startSafeMode() {
-    console.warn('🔒 Starte App im sicheren Modus');
-    
-    // Minimal-Einstellungen
-    this.settings = {
-        theme: 'auto',
-        notifications: true,
-        autoSave: true
-    };
-    
-    // Leere Verläufe
-    this.qrHistory = [];
-    this.scanHistory = [];
-    this.dailyQRCount = 0;
-    
-    // Theme anwenden
     this.applyTheme();
-    
-    // Benutzer informieren
-    this.showToast('App im sicheren Modus gestartet. Einige Funktionen sind eingeschränkt.', 'warning', 5000);
-}
-
-// Einstellungen zurücksetzen
-resetToDefaultSettings() {
-    console.log('🔄 Setze Einstellungen auf Standard zurück');
-    
-    // Alte Einstellungen löschen
-    localStorage.removeItem('qr-pro-settings');
-    
-    // Standard-Einstellungen setzen
-    this.setDefaultSettings();
-    
-    // UI aktualisieren
-    this.applySettingsToUI();
-    
-    if (this.settings.notifications) {
-        this.showToast('Einstellungen zurückgesetzt', 'info');
-    }
-}
+  }
 
   setupEventListeners() {
   // Onboarding Event Listeners
@@ -474,23 +245,12 @@ resetToDefaultSettings() {
     });
   }
   
-  // WICHTIG: Sofortige Updates für Farb-/Größenänderungen
   if (qrColor) {
-    qrColor.addEventListener('change', () => this.updatePreviewImmediate());
-    qrColor.addEventListener('input', () => this.updatePreviewImmediate());
+    qrColor.addEventListener('change', () => this.updatePreview());
   }
   
   if (qrBgColor) {
-    qrBgColor.addEventListener('change', () => this.updatePreviewImmediate());
-    qrBgColor.addEventListener('input', () => {
-      // Bei manueller Farbänderung automatisch auf "custom" setzen
-      const bgPresetSelect = document.getElementById('qr-bg-preset');
-      if (bgPresetSelect && bgPresetSelect.value !== 'custom') {
-        bgPresetSelect.value = 'custom';
-        this.updateBackgroundPresetUI();
-      }
-      this.updatePreviewImmediate();
-    });
+    qrBgColor.addEventListener('change', () => this.updatePreview());
   }
   
   if (downloadBtn) {
@@ -543,6 +303,7 @@ resetToDefaultSettings() {
       this.filterHistory(e.target.value);
     });
     
+    // Suchfeld leeren mit Escape
     searchHistory.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         e.target.value = '';
@@ -585,6 +346,7 @@ resetToDefaultSettings() {
       this.handleQuickAction(action);
     });
     
+    // Keyboard Navigation für Accessibility
     card.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
@@ -630,26 +392,31 @@ resetToDefaultSettings() {
 
   // Global Keyboard Shortcuts
   document.addEventListener('keydown', (e) => {
+    // Ctrl/Cmd + G = Generator öffnen
     if ((e.ctrlKey || e.metaKey) && e.key === 'g') {
       e.preventDefault();
       this.navigateToPage('generator');
     }
     
+    // Ctrl/Cmd + S = Scanner öffnen
     if ((e.ctrlKey || e.metaKey) && e.key === 's') {
       e.preventDefault();
       this.navigateToPage('scanner');
     }
     
+    // Ctrl/Cmd + H = History/Verlauf öffnen
     if ((e.ctrlKey || e.metaKey) && e.key === 'h') {
       e.preventDefault();
       this.navigateToPage('history');
     }
     
+    // Ctrl/Cmd + D = Dashboard öffnen
     if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
       e.preventDefault();
       this.navigateToPage('dashboard');
     }
     
+    // Escape = Scanner stoppen (falls aktiv)
     if (e.key === 'Escape' && this.isScanning) {
       this.stopScanner();
     }
@@ -694,10 +461,12 @@ resetToDefaultSettings() {
   // Visibility Change (Tab wechseln)
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
+      // Tab ist nicht mehr sichtbar - Scanner pausieren falls aktiv
       if (this.isScanning) {
         this.pauseScanner();
       }
     } else {
+      // Tab ist wieder sichtbar - Scanner fortsetzen falls pausiert
       if (this.scannerPaused) {
         this.resumeScanner();
       }
@@ -706,6 +475,7 @@ resetToDefaultSettings() {
 
   // Dynamic History Event Listeners (für später hinzugefügte Elemente)
   document.addEventListener('click', (e) => {
+    // History Item Actions
     if (e.target.classList.contains('history-copy-btn')) {
       const content = e.target.dataset.content;
       this.copyToClipboard(content);
@@ -736,6 +506,17 @@ resetToDefaultSettings() {
       this.handleResize();
     }, 250);
   });
+
+  // TEMPORÄRER TEST-BUTTON
+  const scannerPage = document.getElementById('scanner-page');
+  if (scannerPage) {
+    const testBtn = document.createElement('button');
+    testBtn.textContent = '🧪 Test Scan';
+    testBtn.className = 'btn btn--outline';
+    testBtn.onclick = () => this.testQRRecognition();
+    testBtn.style.margin = '1rem';
+    scannerPage.appendChild(testBtn);
+    }
 
   // Paste Event für schnelles QR Code generieren
   document.addEventListener('paste', (e) => {
@@ -779,33 +560,6 @@ updateStatsCards() {
     this.updateStatCard('qr-scanned', stats.qrScanned);
     this.updateStatCard('today-active', stats.todayActive);
     this.updateStatCard('templates-count', stats.templatesCount);
-}
-
-// Statistik-Methoden für Dashboard
-getGeneratedCount() {
-    return this.qrHistory.length;
-}
-
-getScannedCount() {
-    return this.scanHistory.length;
-}
-
-getTodayActivity() {
-    const today = new Date().toDateString();
-    const todayQRs = this.qrHistory.filter(item => 
-        new Date(item.timestamp).toDateString() === today
-    ).length;
-    
-    const todayScans = this.scanHistory.filter(item => 
-        new Date(item.timestamp).toDateString() === today
-    ).length;
-    
-    return todayQRs + todayScans;
-}
-
-getTemplatesCount() {
-    // Anzahl der verfügbaren Templates
-    return this.userTier === 'premium' ? 25 : 5;
 }
 
 updateStatCard(cardId, value) {
@@ -1130,104 +884,7 @@ handleResize() {
 
 // Settings speichern
 saveSettings() {
-    const settings = {
-        // Bestehende Einstellungen
-        theme: this.settings.theme,
-        notifications: this.settings.notifications,
-        autoSave: this.settings.autoSave,
-        
-        // UI Einstellungen
-        language: this.settings.language || 'de',
-        soundEnabled: this.settings.soundEnabled || true,
-        vibrationEnabled: this.settings.vibrationEnabled || true,
-        
-        // Generator Einstellungen
-        defaultQRSize: this.settings.defaultQRSize || 'medium',
-        defaultErrorLevel: this.settings.defaultErrorLevel || 'M',
-        defaultFormat: this.settings.defaultFormat || 'PNG',
-        
-        // Farb-Presets
-        colorPreset: document.getElementById('qr-color-preset')?.value || 'custom',
-        lastUsedColors: {
-            foreground: document.getElementById('qr-color')?.value || '#000000',
-            background: document.getElementById('qr-bg-color')?.value || '#ffffff'
-        },
-        
-        // Hintergrund-Presets (neu hinzugefügt)
-        bgPreset: document.getElementById('qr-bg-preset')?.value || 'custom',
-        
-        // Erweiterte Einstellungen
-        quickScanMode: this.settings.quickScanMode || false,
-        autoDownload: this.settings.autoDownload || false,
-        showPreview: this.settings.showPreview !== false, // Standard: true
-        
-        // Scanner Einstellungen
-        preferredCamera: this.settings.preferredCamera || 'environment',
-        scanDelay: this.settings.scanDelay || 500,
-        
-        // Verlauf Einstellungen
-        maxHistoryItems: this.settings.maxHistoryItems || 100,
-        autoDeleteHistory: this.settings.autoDeleteHistory || false,
-        historyRetentionDays: this.settings.historyRetentionDays || 30,
-        
-        // Premium Einstellungen
-        premiumFeatures: this.settings.premiumFeatures || {},
-        
-        // Letzte Aktualisierung
-        lastUpdated: new Date().toISOString(),
-        version: '1.0.0'
-    };
-    
-    try {
-        // In localStorage speichern
-        localStorage.setItem('qr-pro-settings', JSON.stringify(settings));
-        
-        // Backup in IndexedDB falls verfügbar
-        if (this.isOnline && 'indexedDB' in window) {
-            this.saveToIndexedDB('settings', settings);
-        }
-        
-        // Einstellungen in Instanz aktualisieren
-        this.settings = { ...this.settings, ...settings };
-        
-        console.log('✅ Einstellungen gespeichert:', settings);
-        
-        // Benachrichtigung anzeigen
-        if (this.settings.notifications) {
-            this.showToast('Einstellungen gespeichert', 'success');
-        }
-        
-        return true;
-        
-    } catch (error) {
-        console.error('❌ Fehler beim Speichern der Einstellungen:', error);
-        this.showToast('Fehler beim Speichern der Einstellungen', 'error');
-        return false;
-    }
-}
-
-// Hilfsmethode für IndexedDB Backup
-async saveToIndexedDB(key, data) {
-    try {
-        const request = indexedDB.open('QRProDB', 1);
-        
-        request.onupgradeneeded = (e) => {
-            const db = e.target.result;
-            if (!db.objectStoreNames.contains('settings')) {
-                db.createObjectStore('settings');
-            }
-        };
-        
-        request.onsuccess = (e) => {
-            const db = e.target.result;
-            const transaction = db.transaction(['settings'], 'readwrite');
-            const store = transaction.objectStore('settings');
-            store.put(data, key);
-        };
-        
-    } catch (error) {
-        console.warn('IndexedDB Backup fehlgeschlagen:', error);
-    }
+  localStorage.setItem('qr-pro-settings', JSON.stringify(this.settings));
 }
 
   // QR Code Generation
@@ -1442,163 +1099,16 @@ detectContentType(content) {
     return 'Text';
 }
 
-// In der QRProApp Klasse - verbesserte updatePreview Methode
 updatePreview() {
-    // Preview-Timeout clearen für bessere Performance
+    // Preview-Timeout clearen um Performance zu verbessern
     if (this.previewTimeout) {
         clearTimeout(this.previewTimeout);
     }
     
-    // Verzögerung nur bei Text-Input, sofort bei Farb-/Größenänderungen
-    const delay = arguments[0] === 'immediate' ? 0 : 300;
-    
+    // Verzögerung für bessere Performance bei schnellem Tippen
     this.previewTimeout = setTimeout(() => {
         this.generateQRCodePreview();
-    }, delay);
-}
-
-// Erweiterte generateQRCodePreview Methode
-generateQRCodePreview() {
-    const content = document.getElementById('qr-content')?.value.trim();
-    const preview = document.querySelector('.qr-preview');
-    
-    if (!preview) {
-        console.warn('QR Preview Container nicht gefunden');
-        return;
-    }
-
-    // Leeren Inhalt behandeln
-    if (!content) {
-        preview.innerHTML = `
-            <div class="preview-placeholder">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="3" width="7" height="7"></rect>
-                    <rect x="14" y="3" width="7" height="7"></rect>
-                    <rect x="3" y="14" width="7" height="7"></rect>
-                    <path d="M14 14h7v7h-7z"></path>
-                </svg>
-                <p>QR Code Vorschau</p>
-                <small>Geben Sie Inhalt ein um die Vorschau zu sehen</small>
-            </div>
-        `;
-        return;
-    }
-
-    // QRCode Library Check
-    if (!window.QRCode) {
-        preview.innerHTML = `
-            <div class="preview-error">
-                <p>⚠️ QR Library wird geladen...</p>
-            </div>
-        `;
-        
-        this.loadLibraries().then(() => {
-            setTimeout(() => this.generateQRCodePreview(), 500);
-        });
-        return;
-    }
-
-    try {
-        console.log('🔄 Generiere QR Preview für:', content.substring(0, 50) + '...');
-        
-        // Loading-Zustand anzeigen
-        preview.innerHTML = `
-            <div class="preview-loading">
-                <div class="loading-spinner"></div>
-                <p>Generiere Vorschau...</p>
-            </div>
-        `;
-
-        // Alten QR Code löschen
-        setTimeout(() => {
-            preview.innerHTML = '';
-            
-            // Container für QR Code erstellen
-            const qrContainer = document.createElement('div');
-            qrContainer.className = 'qr-preview-container';
-            qrContainer.style.cssText = `
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 200px;
-                background: white;
-                border-radius: 8px;
-                padding: 20px;
-            `;
-            
-            preview.appendChild(qrContainer);
-
-            // QR Code Optionen - ALLE Anpassungen berücksichtigen
-            const options = {
-                text: content,
-                width: this.getQRSize(),
-                height: this.getQRSize(),
-                colorDark: this.getQRColor(),
-                colorLight: this.getQRBgColor(),
-                correctLevel: QRCode.CorrectLevel.M,
-                quietZone: 10,
-                quietZoneColor: this.getQRBgColor()
-            };
-
-            // QR Code erstellen
-            const qr = new QRCode(qrContainer, options);
-
-            console.log('✅ QR Preview erfolgreich generiert');
-            
-            // Content-Info hinzufügen
-            const infoDiv = document.createElement('div');
-            infoDiv.className = 'preview-info';
-            infoDiv.innerHTML = `
-                <small>
-                    <strong>Typ:</strong> ${this.detectContentType(content)} • 
-                    <strong>Länge:</strong> ${content.length} Zeichen • 
-                    <strong>Größe:</strong> ${this.getQRSize()}px
-                </small>
-            `;
-            infoDiv.style.cssText = `
-                text-align: center;
-                margin-top: 10px;
-                color: #666;
-                font-size: 12px;
-            `;
-            preview.appendChild(infoDiv);
-
-        }, 100);
-
-    } catch (error) {
-        console.error('❌ QR Preview Fehler:', error);
-        preview.innerHTML = `
-            <div class="preview-error">
-                <p>⚠️ Vorschau fehlgeschlagen</p>
-                <small>${error.message}</small>
-            </div>
-        `;
-    }
-}
-
-// QR-Einstellungen abrufen - zentral verwaltet
-getQRColor() {
-    return document.getElementById('qr-color')?.value || '#000000';
-}
-
-getQRBgColor() {
-    return document.getElementById('qr-bg-color')?.value || '#ffffff';
-}
-
-getQRSize() {
-    const sizeInput = document.getElementById('qr-size');
-    return parseInt(sizeInput?.value || '300');
-}
-
-// Sofortiges Preview-Update (ohne Verzögerung)
-updatePreviewImmediate() {
-    // Vorheriges Timeout clearen
-    if (this.previewTimeout) {
-        clearTimeout(this.previewTimeout);
-    }
-    
-    // Sofort ausführen
-    this.generateQRCodePreview();
+    }, 300);
 }
 
   async loadLibraries() {
@@ -2393,546 +1903,6 @@ restartScanner() {
     }, 300);
   }
 
-  setupBackgroundPresets() {
-    console.log('🎨 Initialisiere Hintergrund-Kachel-Presets...');
-    
-    const bgColorInput = document.getElementById('qr-bg-color');
-    const tilesContainer = document.getElementById('bg-preset-tiles');
-    
-    if (!bgColorInput || !tilesContainer) {
-        console.error('❌ FEHLER: Hintergrund-Preset Elemente nicht gefunden!');
-        return false;
-    }
-    
-    // Preset-Farben definieren
-    this.bgPresets = {
-        'white': '#ffffff',
-        'cream': '#fefef7', 
-        'pearl': '#f8f8ff',
-        'light-gray': '#f5f5f5',
-        'warm-gray': '#f7f5f3',
-        'cool-gray': '#f1f3f4',
-        'beige': '#f5f5dc',
-        'sand': '#f4e8d0', 
-        'ivory': '#fffff0',
-        'linen': '#faf0e6',
-        'mint': '#f0fff4',
-        'lavender': '#f8f4ff'
-    };
-    
-    console.log('✅ Presets definiert:', Object.keys(this.bgPresets));
-    
-    // Preset Tiles erstellen
-    this.createBackgroundPresetTiles();
-    
-    // Event Listener für manuelle Farb-Input Änderung
-    if (this.bgColorInputHandler) {
-        bgColorInput.removeEventListener('input', this.bgColorInputHandler);
-    }
-    
-    this.bgColorInputHandler = (e) => {
-        console.log('🎨 Manuelle Farbänderung:', e.target.value);
-        
-        // Alle Kacheln deaktivieren und Custom aktivieren
-        this.setActiveBackgroundTile('custom');
-        this.updatePreviewImmediate();
-        this.saveSettings();
-    };
-    
-    bgColorInput.addEventListener('input', this.bgColorInputHandler);
-    bgColorInput.addEventListener('change', this.bgColorInputHandler);
-    
-    // Initialer Zustand
-    this.updateBackgroundPresetUI();
-    
-    console.log('✅ Hintergrund-Kachel-Presets erfolgreich initialisiert');
-    return true;
-}
-
-// Kachel-Erstellung nur für Hintergrund
-createBackgroundPresetTiles() {
-    const tilesContainer = document.getElementById('bg-preset-tiles');
-    if (!tilesContainer) return;
-    
-    // Vorhandene Preset-Kacheln löschen (Custom Tile bleibt)
-    const existingTiles = tilesContainer.querySelectorAll('.preset-tile:not([data-preset="custom"])');
-    existingTiles.forEach(tile => tile.remove());
-    
-    // Preset Tiles hinzufügen
-    Object.entries(this.bgPresets).forEach(([key, color]) => {
-        const tile = document.createElement('div');
-        tile.className = 'preset-tile';
-        tile.dataset.preset = key;
-        tile.setAttribute('tabindex', '0');
-        tile.setAttribute('role', 'button');
-        tile.setAttribute('aria-label', `Hintergrund-Preset ${this.getPresetName(key)} auswählen`);
-        
-        const colorDiv = document.createElement('div');
-        colorDiv.className = 'tile-color';
-        colorDiv.style.backgroundColor = color;
-        
-        const label = document.createElement('span');
-        label.className = 'tile-label';
-        label.textContent = this.getPresetName(key);
-        
-        tile.appendChild(colorDiv);
-        tile.appendChild(label);
-        
-        // Click Event für Kachel
-        tile.addEventListener('click', () => {
-            this.handleBackgroundTileClick(key, color);
-        });
-        
-        // Keyboard Support
-        tile.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                this.handleBackgroundTileClick(key, color);
-            }
-        });
-        
-        tilesContainer.appendChild(tile);
-    });
-    
-    // Custom Tile Event Listener hinzufügen
-    const customTile = tilesContainer.querySelector('[data-preset="custom"]');
-    if (customTile) {
-        customTile.addEventListener('click', () => {
-            this.handleBackgroundTileClick('custom', null);
-        });
-        
-        customTile.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                this.handleBackgroundTileClick('custom', null);
-            }
-        });
-    }
-    
-    console.log('✅ Hintergrund-Kacheln erstellt');
-}
-
-// Kachel-Klick verarbeiten
-handleBackgroundTileClick(presetKey, color) {
-    console.log(`🎨 Hintergrund-Kachel geklickt: ${presetKey}`);
-    
-    const bgColorInput = document.getElementById('qr-bg-color');
-    
-    if (presetKey === 'custom') {
-        // Custom-Modus aktivieren
-        bgColorInput.disabled = false;
-        bgColorInput.style.opacity = '1';
-        bgColorInput.style.cursor = 'pointer';
-        bgColorInput.focus(); // Fokus auf Input für bessere UX
-        
-    } else if (color) {
-        // Preset-Farbe anwenden
-        bgColorInput.value = color;
-        bgColorInput.disabled = true;
-        bgColorInput.style.opacity = '0.7';
-        bgColorInput.style.cursor = 'not-allowed';
-        
-        // Toast-Benachrichtigung
-        this.showToast(`Hintergrund "${this.getPresetName(presetKey)}" angewendet`, 'success', 2000);
-    }
-    
-    // Aktive Kachel markieren
-    this.setActiveBackgroundTile(presetKey);
-    
-    // Preview sofort aktualisieren
-    this.updatePreviewImmediate();
-    
-    // Einstellungen speichern
-    this.saveSettings();
-}
-
-// Aktive Kachel setzen
-setActiveBackgroundTile(activePreset) {
-    const tiles = document.querySelectorAll('#bg-preset-tiles .preset-tile');
-    tiles.forEach(tile => {
-        const isActive = tile.dataset.preset === activePreset;
-        tile.classList.toggle('active', isActive);
-        tile.setAttribute('aria-pressed', isActive.toString());
-    });
-}
-
-// Debug-Funktion für Funktionstests
-testBackgroundPresetFunctionality() {
-    console.log('🧪 Teste Hintergrund-Preset Funktionalität...');
-    
-    const bgPresetSelect = document.getElementById('qr-bg-preset');
-    const bgColorInput = document.getElementById('qr-bg-color');
-    
-    if (!bgPresetSelect || !bgColorInput) {
-        console.error('❌ Test fehlgeschlagen - Elemente nicht gefunden');
-        return;
-    }
-    
-    // Test 1: Preset-Wechsel
-    const originalValue = bgPresetSelect.value;
-    bgPresetSelect.value = 'white';
-    bgPresetSelect.dispatchEvent(new Event('change'));
-    
-    setTimeout(() => {
-        if (bgColorInput.value === '#ffffff') {
-            console.log('✅ Test 1 erfolgreich: Preset-Wechsel funktioniert');
-        } else {
-            console.error('❌ Test 1 fehlgeschlagen: Preset-Wechsel');
-        }
-        
-        // Zurücksetzen
-        bgPresetSelect.value = originalValue;
-        bgPresetSelect.dispatchEvent(new Event('change'));
-        
-    }, 100);
-}
-
-// Hintergrund-Preset Änderung verarbeiten
-handleBackgroundPresetChange(selectedPreset) {
-    console.log(`🎨 handleBackgroundPresetChange aufgerufen mit: "${selectedPreset}"`);
-    
-    const bgColorInput = document.getElementById('qr-bg-color');
-    const bgPresetSelect = document.getElementById('qr-bg-preset');
-    
-    // Strikte Validierung
-    if (!bgColorInput) {
-        console.error('❌ bgColorInput nicht gefunden!');
-        return;
-    }
-    
-    if (!this.bgPresets) {
-        console.error('❌ this.bgPresets nicht definiert!');
-        this.setupBackgroundPresets(); // Erneut initialisieren
-        return;
-    }
-    
-    console.log('📋 Verfügbare Presets:', Object.keys(this.bgPresets));
-    
-    if (selectedPreset === 'custom') {
-        console.log('🎨 Custom-Modus aktiviert');
-        
-        bgColorInput.disabled = false;
-        bgColorInput.style.opacity = '1';
-        bgColorInput.style.cursor = 'pointer';
-        bgColorInput.style.backgroundColor = bgColorInput.value;
-        
-        // Visual Feedback
-        bgColorInput.classList.add('custom-active');
-        
-    } else if (this.bgPresets[selectedPreset]) {
-        const presetColor = this.bgPresets[selectedPreset];
-        
-        console.log(`🎨 Preset "${selectedPreset}" wird angewendet:`, presetColor);
-        
-        // Farbe setzen
-        bgColorInput.value = presetColor;
-        bgColorInput.disabled = true;
-        bgColorInput.style.opacity = '0.7';
-        bgColorInput.style.cursor = 'not-allowed';
-        bgColorInput.style.backgroundColor = presetColor;
-        
-        // Visual Classes
-        bgColorInput.classList.remove('custom-active');
-        bgColorInput.classList.add('preset-active');
-        
-        // Success-Feedback
-        const presetName = this.getPresetName(selectedPreset);
-        console.log(`✅ Preset "${presetName}" erfolgreich angewendet`);
-        
-        this.showToast(`Hintergrund "${presetName}" angewendet`, 'success', 2000);
-        
-    } else {
-        console.error(`❌ Ungültiges Preset: "${selectedPreset}"`);
-        console.log('Verfügbare Presets:', Object.keys(this.bgPresets));
-        
-        // Fallback
-        if (bgPresetSelect) {
-            bgPresetSelect.value = 'custom';
-            this.handleBackgroundPresetChange('custom');
-        }
-        return;
-    }
-    
-    // Preview SOFORT aktualisieren
-    console.log('🔄 Aktualisiere Preview...');
-    this.updatePreviewImmediate();
-    
-    // Einstellungen speichern
-    this.saveSettings();
-    
-    console.log('✅ handleBackgroundPresetChange erfolgreich abgeschlossen');
-}
-
-// Screen Reader Ankündigung für Accessibility
-announceToScreenReader(message) {
-    const announcement = document.createElement('div');
-    announcement.setAttribute('aria-live', 'polite');
-    announcement.setAttribute('aria-atomic', 'true');
-    announcement.style.cssText = `
-        position: absolute;
-        left: -10000px;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-    `;
-    
-    document.body.appendChild(announcement);
-    announcement.textContent = message;
-    
-    // Nach 1 Sekunde entfernen
-    setTimeout(() => {
-        if (announcement.parentNode) {
-            announcement.parentNode.removeChild(announcement);
-        }
-    }, 1000);
-}
-
-// Event Tracking (optional für Analytics)
-trackEvent(eventName, properties = {}) {
-    if (typeof gtag !== 'undefined') {
-        gtag('event', eventName, properties);
-    }
-    
-    console.log(`📊 Event tracked: ${eventName}`, properties);
-}
-
-// Kachel-Ansicht erstellen
-createPresetTiles() {
-    const tilesContainer = document.getElementById('bg-preset-tiles');
-    if (!tilesContainer) {
-        console.log('🔄 Preset-Tiles Container nicht gefunden - überspringe Kachelerstellung');
-        return;
-    }
-    
-    // Custom Tile bereits im HTML vorhanden, nur Preset Tiles hinzufügen
-    Object.entries(this.bgPresets).forEach(([key, color]) => {
-        const tile = document.createElement('div');
-        tile.className = 'preset-tile';
-        tile.dataset.preset = key;
-        
-        const colorDiv = document.createElement('div');
-        colorDiv.className = 'tile-color';
-        colorDiv.style.backgroundColor = color;
-        colorDiv.style.border = '1px solid #ddd';
-        
-        const label = document.createElement('span');
-        label.className = 'tile-label';
-        label.textContent = this.getPresetName(key);
-        
-        tile.appendChild(colorDiv);
-        tile.appendChild(label);
-        
-        // Click Event für Kachel
-        tile.addEventListener('click', () => {
-            console.log('🎨 Kachel geklickt:', key);
-            this.handleTileClick(key);
-        });
-        
-        // Keyboard Support
-        tile.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                this.handleTileClick(key);
-            }
-        });
-        
-        tile.setAttribute('tabindex', '0');
-        tile.setAttribute('role', 'button');
-        tile.setAttribute('aria-label', `Hintergrund-Preset ${this.getPresetName(key)} auswählen`);
-        
-        tilesContainer.appendChild(tile);
-    });
-    
-    console.log('✅ Preset-Tiles erstellt');
-}
-
-// Kachel-Klick verarbeiten
-handleTileClick(presetKey) {
-    const bgPresetSelect = document.getElementById('qr-bg-preset');
-    
-    if (!bgPresetSelect) {
-        console.error('❌ Select-Element für Tile-Click nicht gefunden');
-        return;
-    }
-    
-    // Select aktualisieren
-    bgPresetSelect.value = presetKey;
-    
-    // Preset-Änderung verarbeiten
-    this.handleBackgroundPresetChange(presetKey);
-}
-
-// Aktive Kachel markieren
-updateActiveTile(activePreset) {
-    const tiles = document.querySelectorAll('.preset-tile');
-    if (tiles.length === 0) return;
-    
-    tiles.forEach(tile => {
-        const isActive = tile.dataset.preset === activePreset;
-        tile.classList.toggle('active', isActive);
-        
-        if (isActive) {
-            tile.setAttribute('aria-pressed', 'true');
-        } else {
-            tile.setAttribute('aria-pressed', 'false');
-        }
-    });
-}
-
-// Ansicht zwischen Select und Kacheln wechseln
-togglePresetView() {
-    const selectElement = document.getElementById('qr-bg-preset');
-    const tilesContainer = document.getElementById('bg-preset-tiles');
-    const toggleBtn = document.getElementById('toggle-preset-view');
-    
-    if (!selectElement || !tilesContainer || !toggleBtn) {
-        console.warn('⚠️ Nicht alle Elemente für View-Toggle gefunden');
-        return;
-    }
-    
-    const isSelectVisible = selectElement.style.display !== 'none';
-    
-    if (isSelectVisible) {
-        // Zu Kachel-Ansicht wechseln
-        selectElement.style.display = 'none';
-        tilesContainer.style.display = 'grid';
-        toggleBtn.innerHTML = '📝 Liste';
-        toggleBtn.setAttribute('aria-label', 'Zur Listen-Ansicht wechseln');
-        console.log('🔄 Gewechselt zu Kachel-Ansicht');
-    } else {
-        // Zu Select-Ansicht wechseln
-        selectElement.style.display = 'block';
-        tilesContainer.style.display = 'none';
-        toggleBtn.innerHTML = '📋 Kacheln';
-        toggleBtn.setAttribute('aria-label', 'Zur Kachel-Ansicht wechseln');
-        console.log('🔄 Gewechselt zu Listen-Ansicht');
-    }
-}
-
-// Select Options mit Farb-Hintergründen erweitern
-enhanceSelectOptions() {
-    const bgPresetSelect = document.getElementById('qr-bg-preset');
-    if (!bgPresetSelect) return;
-    
-    try {
-        // CSS-Regeln für Option-Hintergründe dynamisch hinzufügen
-        const styleId = 'preset-option-styles';
-        let existingStyle = document.getElementById(styleId);
-        
-        if (!existingStyle) {
-            existingStyle = document.createElement('style');
-            existingStyle.id = styleId;
-            document.head.appendChild(existingStyle);
-        }
-        
-        let optionStyles = '';
-        
-        Object.entries(this.bgPresets).forEach(([key, color]) => {
-            const contrastColor = this.getContrastColor(color);
-            optionStyles += `
-                #qr-bg-preset option[value="${key}"] {
-                    background-color: ${color} !important;
-                    color: ${contrastColor} !important;
-                }
-            `;
-        });
-        
-        existingStyle.textContent = optionStyles;
-        console.log('✅ Select-Optionen mit Farb-Previews erweitert');
-        
-    } catch (error) {
-        console.warn('⚠️ Fehler beim Erweitern der Select-Optionen:', error);
-    }
-}
-
-// Kontrast-Farbe berechnen
-getContrastColor(hexColor) {
-    if (!hexColor || hexColor.length !== 7) return '#000000';
-    
-    // Hex zu RGB konvertieren
-    const r = parseInt(hexColor.substr(1, 2), 16);
-    const g = parseInt(hexColor.substr(3, 2), 16);
-    const b = parseInt(hexColor.substr(5, 2), 16);
-    
-    // Helligkeit nach WCAG-Standard berechnen
-    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-    
-    // Schwarz für helle Farben, Weiß für dunkle
-    return brightness > 125 ? '#000000' : '#ffffff';
-}
-
-// UI-Zustand aktualisieren
-updateBackgroundPresetUI() {
-    const bgColorInput = document.getElementById('qr-bg-color');
-    if (!bgColorInput) return;
-    
-    // Bestimme aktuellen Preset basierend auf gespeicherten Einstellungen
-    let currentPreset = this.settings?.bgPreset || 'custom';
-    
-    // Wenn ein Preset gesetzt ist und die Farbe übereinstimmt, aktiviere das Preset
-    if (currentPreset !== 'custom' && this.bgPresets && this.bgPresets[currentPreset]) {
-        bgColorInput.value = this.bgPresets[currentPreset];
-        bgColorInput.disabled = true;
-        bgColorInput.style.opacity = '0.7';
-        bgColorInput.style.cursor = 'not-allowed';
-    } else {
-        // Custom-Modus
-        currentPreset = 'custom';
-        bgColorInput.disabled = false;
-        bgColorInput.style.opacity = '1';
-        bgColorInput.style.cursor = 'pointer';
-    }
-    
-    // Aktive Kachel markieren
-    this.setActiveBackgroundTile(currentPreset);
-    
-    console.log('✅ Hintergrund-UI aktualisiert für Preset:', currentPreset);
-}
-
-// Preset-Namen für Benutzeranzeige
-getPresetName(presetKey) {
-    const presetNames = {
-        'white': 'Weiß',
-        'cream': 'Creme',
-        'pearl': 'Perl',
-        'light-gray': 'Hellgrau',
-        'warm-gray': 'Warmgrau',
-        'cool-gray': 'Kühlgrau',
-        'beige': 'Beige',
-        'sand': 'Sand',
-        'ivory': 'Elfenbein', 
-        'linen': 'Leinen',
-        'mint': 'Mint',
-        'lavender': 'Lavendel'
-    };
-    
-    return presetNames[presetKey] || presetKey;
-}
-
-// Visuelle Preset-Vorschau erstellen
-createPresetOptions() {
-    const bgPresetSelect = document.getElementById('qr-bg-preset');
-    if (!bgPresetSelect) return;
-    
-    // Optionen mit visuellen Indikatoren ersetzen
-    bgPresetSelect.innerHTML = '';
-    
-    // Custom Option
-    const customOption = document.createElement('option');
-    customOption.value = 'custom';
-    customOption.textContent = 'Eigene Farbe';
-    bgPresetSelect.appendChild(customOption);
-    
-    // Preset Options mit Farb-Indikatoren
-    Object.entries(this.bgPresets).forEach(([key, color]) => {
-        const option = document.createElement('option');
-        option.value = key;
-        option.textContent = `${this.getPresetName(key)}`;
-        option.style.background = color;
-        bgPresetSelect.appendChild(option);
-    });
-}
-
   showPremiumPrompt() {
     this.showToast('Premium Feature - Upgrade für unbegrenzte QR Codes!', 'warning', 5000);
   }
@@ -3102,6 +2072,7 @@ class QRCustomization {
                 if (qrColorInput) {
                     qrColorInput.value = color;
                     this.qrColor = color;
+                    this.updatePreview();
                 }
             });
         });
@@ -3130,11 +2101,15 @@ class QRCustomization {
                         preset.classList.remove('active');
                     }
                 });
+                
+                this.updatePreview();
             });
         }
+
         if (qrBgColorInput) {
             qrBgColorInput.addEventListener('change', (e) => {
                 this.qrBgColor = e.target.value;
+                this.updatePreview();
             });
         }
     }
@@ -3158,6 +2133,35 @@ class QRCustomization {
                 this.updatePreview();
                 this.showSizeToast(selectedSize);
             });
+        }
+    }
+
+    // Preview aktualisieren
+    updatePreview() {
+        const content = document.getElementById('qr-content')?.value.trim();
+        if (!content || !window.QRCode) return;
+
+        const preview = document.querySelector('.qr-preview');
+        if (!preview) return;
+
+        try {
+            // Vorherigen QR Code löschen
+            preview.innerHTML = '';
+
+            // QR Code mit aktuellen Einstellungen generieren
+            const qr = new QRCode(preview, {
+                text: content,
+                width: parseInt(this.qrSize),
+                height: parseInt(this.qrSize),
+                colorDark: this.qrColor,
+                colorLight: this.qrBgColor,
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            console.log(`QR Code aktualisiert: ${this.qrSize}px, Farbe: ${this.qrColor}`);
+
+        } catch (error) {
+            console.error('Fehler beim QR Preview Update:', error);
         }
     }
 

@@ -341,39 +341,10 @@
                                         </div>
                                     </div>
                                     
-                                    <!-- Hintergrund-Einstellungen Section -->
-<div class="customization-section">
-    <h3 class="section-title">
-        <i class="icon-palette"></i>
-        Hintergrund-Einstellungen
-    </h3>
-    
-    <!-- Nur Kachel-Ansicht, kein Select mehr -->
-    <div id="bg-preset-tiles" class="preset-tiles" role="radiogroup" aria-label="Hintergrund-Preset Auswahl">
-        <!-- Custom Tile -->
-        <div class="preset-tile active" data-preset="custom" tabindex="0" 
-             role="button" aria-label="Eigene Farbe auswählen" aria-pressed="true">
-            <div class="tile-color custom-tile-pattern"></div>
-            <span class="tile-label">Eigene</span>
-        </div>
-        <!-- Preset Tiles werden durch JavaScript hinzugefügt -->
-    </div>
-    
-    <!-- Farb-Input -->
-    <div class="form-group">
-        <label for="qr-bg-color" class="form-label">
-            <i class="icon-dropper"></i>
-            Hintergrund-Farbe
-        </label>
-        <div class="color-input-wrapper">
-            <input type="color" id="qr-bg-color" class="form-control color-input" value="#ffffff">
-            <span class="color-value-display">#ffffff</span>
-        </div>
-        <small class="form-text text-muted">
-            Wählen Sie eine Kachel oder eine eigene Farbe
-        </small>
-    </div>
-</div>
+                                    <div class="form-group">
+                                        <label class="form-label">Hintergrund</label>
+                                        <input type="color" id="qr-bg-color" value="#ffffff">
+                                    </div>
                                     
                                     <div class="form-group">
                                         <label class="form-label">Größe</label>
@@ -756,42 +727,6 @@
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-    <script>
-// Sicherstellen dass die App-Instanz global verfügbar ist
-window.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 DOM geladen - initialisiere QR Pro App');
-    
-    if (typeof QRProApp !== 'undefined') {
-        window.app = new QRProApp();
-        window.app.init();
-    } else {
-        console.error('❌ QRProApp Klasse nicht gefunden!');
-    }
-});
-
-// Farb-Input Live-Update für Display
-document.addEventListener('DOMContentLoaded', () => {
-    const updateColorDisplays = () => {
-        const colorInputs = document.querySelectorAll('.color-input');
-        colorInputs.forEach(input => {
-            const wrapper = input.closest('.color-input-wrapper');
-            const display = wrapper?.querySelector('.color-value-display');
-            
-            if (display) {
-                const updateDisplay = () => {
-                    display.textContent = input.value.toUpperCase();
-                };
-                
-                input.addEventListener('input', updateDisplay);
-                input.addEventListener('change', updateDisplay);
-                updateDisplay(); // Initial
-            }
-        });
-    };
-    
-    updateColorDisplays();
-});
-</script>
     <script src="app.js"></script>
 </body>
 </html>

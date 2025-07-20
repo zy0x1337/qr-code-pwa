@@ -667,22 +667,234 @@
 
 <!-- Template Modal -->
 <div id="template-modal" class="template-modal">
+    <div class="template-modal-backdrop"></div>
     <div class="template-modal-content">
+        <!-- Modal Header -->
         <div class="modal-header">
-            <h2><span class="modal-icon">📝</span>QR-Code Templates</h2>
-            <button class="modal-close" aria-label="Modal schließen">&times;</button>
+            <div class="modal-title-section">
+                <div class="modal-logo">
+                    <div class="logo-gradient">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7"/>
+                            <rect x="14" y="3" width="7" height="7"/>
+                            <rect x="3" y="14" width="7" height="7"/>
+                            <rect x="14" y="14" width="7" height="7"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="modal-text">
+                    <h2 class="modal-title">QR Code Templates</h2>
+                    <p class="modal-subtitle">Professionelle Vorlagen für jeden Anwendungsfall</p>
+                </div>
+            </div>
+            <button class="modal-close" aria-label="Modal schließen">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M15 5L5 15M5 5L15 15"/>
+                </svg>
+            </button>
         </div>
+
+        <!-- Modal Body -->
         <div class="modal-body">
-            <div class="template-categories">
-                <!-- Kategorien werden dynamisch geladen -->
-            </div>
-            <div class="template-grid">
-                <!-- Templates werden dynamisch geladen -->
-            </div>
+            <!-- Sidebar -->
+            <aside class="template-sidebar">
+                <!-- Search Section -->
+                <div class="search-section">
+                    <div class="search-wrapper">
+                        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="M21 21L16.65 16.65"/>
+                        </svg>
+                        <input 
+                            type="text" 
+                            id="template-search" 
+                            class="search-input" 
+                            placeholder="Templates durchsuchen..."
+                            autocomplete="off"
+                            spellcheck="false"
+                        />
+                        <button class="search-clear" id="search-clear" style="display: none;">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M12 4L4 12M4 4L12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="search-suggestions" id="search-suggestions"></div>
+                </div>
+
+                <!-- Categories Section -->
+                <div class="categories-section">
+                    <div class="section-header">
+                        <h3 class="section-title">Kategorien</h3>
+                        <div class="category-count" id="category-count">6 verfügbar</div>
+                    </div>
+                    <nav class="template-categories" id="template-categories">
+                        <!-- Dynamisch geladen -->
+                    </nav>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="stats-section">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="total-templates">24</div>
+                            <div class="stat-label">Templates</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="free-templates">18</div>
+                            <div class="stat-label">Kostenlos</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="premium-templates">6</div>
+                            <div class="stat-label">Premium</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions-section">
+                    <h3 class="section-title">Schnellzugriff</h3>
+                    <div class="quick-buttons">
+                        <button class="quick-btn" data-filter="recent">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12,6 12,12 16,14"/>
+                            </svg>
+                            Zuletzt verwendet
+                        </button>
+                        <button class="quick-btn" data-filter="popular">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+                            </svg>
+                            Beliebt
+                        </button>
+                        <button class="quick-btn" data-filter="new">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M8 12l2 2 4-4"/>
+                            </svg>
+                            Neu
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="template-main">
+                <!-- Toolbar -->
+                <div class="template-toolbar">
+                    <div class="toolbar-section">
+                        <div class="breadcrumb">
+                            <span class="breadcrumb-item active" id="current-category">Business Templates</span>
+                            <span class="results-count" id="results-count">(12 Templates)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="toolbar-section">
+                        <!-- View Toggle -->
+                        <div class="view-toggle">
+                            <button class="view-btn active" data-view="grid" title="Rasteransicht">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="7" height="7"/>
+                                    <rect x="14" y="3" width="7" height="7"/>
+                                    <rect x="3" y="14" width="7" height="7"/>
+                                    <rect x="14" y="14" width="7" height="7"/>
+                                </svg>
+                            </button>
+                            <button class="view-btn" data-view="list" title="Listenansicht">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="8" y1="6" x2="21" y2="6"/>
+                                    <line x1="8" y1="12" x2="21" y2="12"/>
+                                    <line x1="8" y1="18" x2="21" y2="18"/>
+                                    <line x1="3" y1="6" x2="3.01" y2="6"/>
+                                    <line x1="3" y1="12" x2="3.01" y2="12"/>
+                                    <line x1="3" y1="18" x2="3.01" y2="18"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Filter & Sort -->
+                        <div class="filter-controls">
+                            <select class="filter-select" id="template-filter">
+                                <option value="all">Alle Templates</option>
+                                <option value="free">Kostenlos</option>
+                                <option value="premium">Premium</option>
+                                <option value="recent">Zuletzt verwendet</option>
+                            </select>
+                            
+                            <select class="sort-select" id="template-sort">
+                                <option value="name">Nach Name</option>
+                                <option value="popular">Nach Beliebtheit</option>
+                                <option value="newest">Neueste zuerst</option>
+                                <option value="type">Nach Typ</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Templates Grid -->
+                <div class="templates-container">
+                    <div class="template-grid" id="template-grid">
+                        <!-- Dynamisch geladen -->
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div class="pagination" id="template-pagination" style="display: none;">
+                        <button class="pagination-btn" id="prev-page" disabled>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="15,18 9,12 15,6"/>
+                            </svg>
+                        </button>
+                        <div class="pagination-info">
+                            <span id="current-page">1</span> von <span id="total-pages">1</span>
+                        </div>
+                        <button class="pagination-btn" id="next-page">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="9,18 15,12 9,6"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-state" id="empty-state" style="display: none;">
+                    <div class="empty-icon">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="M21 21L16.65 16.65"/>
+                        </svg>
+                    </div>
+                    <h3 class="empty-title">Keine Templates gefunden</h3>
+                    <p class="empty-description">Versuchen Sie andere Suchbegriffe oder wählen Sie eine andere Kategorie.</p>
+                    <button class="btn btn--outline" onclick="document.getElementById('template-search').value=''; window.templateManager.searchTemplates('');">
+                        Alle Templates anzeigen
+                    </button>
+                </div>
+            </main>
         </div>
+
+        <!-- Modal Footer -->
         <div class="modal-footer">
-            <button class="btn btn--secondary">Abbrechen</button>
-            <button class="btn btn--primary" disabled>Template verwenden</button>
+            <div class="footer-left">
+                <div class="selected-info" id="selected-template-info">
+                    <span class="info-text">Wählen Sie ein Template aus</span>
+                </div>
+            </div>
+            
+            <div class="footer-right">
+                <button class="btn btn--secondary" id="cancel-template">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6L18 18"/>
+                    </svg>
+                    Abbrechen
+                </button>
+                <button class="btn btn--primary" id="use-template" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20,6 9,17 4,12"/>
+                    </svg>
+                    Template verwenden
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -757,5 +969,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="app.js"></script>
+    <script>
+    // App-Initialisierung
+    document.addEventListener('DOMContentLoaded', () => {
+        window.qrApp = new QRProApp();
+    });
+</script>
 </body>
 </html>

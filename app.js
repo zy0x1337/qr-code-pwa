@@ -157,37 +157,265 @@ class QRProApp {
   }
 
   initializeData() {
-    // Load data from localStorage
-    const savedHistory = localStorage.getItem('qr-pro-history');
-    const savedScanHistory = localStorage.getItem('qr-pro-scan-history');
-    const savedSettings = localStorage.getItem('qr-pro-settings');
-    const savedDailyCount = localStorage.getItem('qr-pro-daily-count');
-    const savedDate = localStorage.getItem('qr-pro-last-date');
+    console.log('🔄 Initialisiere App-Daten...');
     
-    if (savedHistory) {
-      this.qrHistory = JSON.parse(savedHistory);
+    try {
+        // Gespeicherte Daten laden
+        const savedHistory = localStorage.getItem('qr-pro-history');
+        const savedScanHistory = localStorage.getItem('qr-pro-scan-history');
+        const savedSettings = localStorage.getItem('qr-pro-settings');
+        const savedDailyCount = localStorage.getItem('qr-pro-daily-count');
+        const savedDate = localStorage.getItem('qr-pro-last-date');
+        const savedUserTier = localStorage.getItem('qr-pro-user-tier');
+        
+        // Verlauf wiederherstellen
+        if (savedHistory) {
+            try {
+                this.qrHistory = JSON.parse(savedHistory);
+                console.log(`📊 ${this.qrHistory.length} QR-Codes im Verlauf geladen`);
+            } catch (error) {
+                console.warn('Fehler beim Laden des QR-Verlaufs:', error);
+                this.qrHistory = [];
+            }
+        }
+        
+        if (savedScanHistory) {
+            try {
+                this.scanHistory = JSON.parse(savedScanHistory);
+                console.log(`📱 ${this.scanHistory.length} Scans im Verlauf geladen`);
+            } catch (error) {
+                console.warn('Fehler beim Laden des Scan-Verlaufs:', error);
+                this.scanHistory = [];
+            }
+        }
+        
+        // User Tier wiederherstellen
+        if (savedUserTier) {
+            this.userTier = savedUserTier;
+        }
+        
+        // Einstellungen wiederherstellen und anwenden
+        if (savedSettings) {
+            try {
+                const parsedSettings = JSON.parse(savedSettings);
+                this.settings = { ...this.settings, ...parsedSettings };
+                console.log('⚙️ Einstellungen wiederhergestellt:', this.settings);
+                
+                // UI-Einstellungen anwenden
+                this.applySettingsToUI();
+                
+            } catch (error) {
+                console.warn('Fehler beim Laden der Einstellungen:', error);
+                this.resetToDefaultSettings();
+            }
+        } else {
+            // Erste Nutzung - Standard-Einstellungen setzen
+            console.log('🆕 Erste Nutzung - Standard-Einstellungen werden gesetzt');
+            this.setDefaultSettings();
+        }
+        
+        // Tägliche Zählung zurücksetzen falls neuer Tag
+        const today = new Date().toDateString();
+        if (savedDate !== today) {
+            console.log('📅 Neuer Tag erkannt - Zähler zurückgesetzt');
+            this.dailyQRCount = 0;
+            localStorage.setItem('qr-pro-daily-count', '0');
+            localStorage.setItem('qr-pro-last-date', today);
+            
+            // Alte Verlaufseinträge bereinigen falls eingestellt
+            if (this.settings.autoDeleteHistory) {
+                this.cleanupOldHistory();
+            }
+        } else if (savedDailyCount) {
+            this.dailyQRCount = parseInt(savedDailyCount) || 0;
+        }
+        
+        // Theme anwenden
+        this.applyTheme();
+        
+        // Statistiken aktualisieren
+        this.updateStatsCards();
+        
+        console.log('✅ App-Daten erfolgreich initialisiert');
+        
+    } catch (error) {
+        console.error('❌ Kritischer Fehler bei der Dateninitialisierung:', error);
+        
+        // Fallback: App in sicherem Modus starten
+        this.startSafeMode();
+    }
+}
+
+// UI-Einstellungen anwenden
+applySettingsToUI() {
+    // Theme Selector
+    const themeSelector = document.getElementById('theme-selector');
+    if (themeSelector && this.settings.theme) {
+        themeSelector.value = this.settings.theme;
     }
     
-    if (savedScanHistory) {
-      this.scanHistory = JSON.parse(savedScanHistory);
+    // Benachrichtigungen Toggle
+    const notificationsToggle = document.getElementById('notifications-toggle');
+    if (notificationsToggle) {
+        notificationsToggle.checked = this.settings.notifications !== false;
     }
     
-    if (savedSettings) {
-      this.settings = { ...this.settings, ...JSON.parse(savedSettings) };
+    // Auto-Save Toggle
+    const autoSaveToggle = document.getElementById('auto-save-toggle');
+    if (autoSaveToggle) {
+        autoSaveToggle.checked = this.settings.autoSave !== false;
     }
     
-    // Reset daily count if it's a new day
-    const today = new Date().toDateString();
-    if (savedDate !== today) {
-      this.dailyQRCount = 0;
-      localStorage.setItem('qr-pro-daily-count', '0');
-      localStorage.setItem('qr-pro-last-date', today);
-    } else if (savedDailyCount) {
-      this.dailyQRCount = parseInt(savedDailyCount);
+    // Farb-Presets wiederherstellen
+    const colorPresetSelect = document.getElementById('qr-color-preset');
+    if (colorPresetSelect && this.settings.colorPreset) {
+        colorPresetSelect.value = this.settings.colorPreset;
     }
     
+    // Hintergrund-Presets wiederherstellen (NEU)
+    const bgPresetSelect = document.getElementById('qr-bg-preset');
+    if (bgPresetSelect && this.settings.bgPreset) {
+        bgPresetSelect.value = this.settings.bgPreset;
+        
+        // Preset anwenden falls nicht 'custom'
+        if (this.settings.bgPreset !== 'custom' && this.bgPresets && this.bgPresets[this.settings.bgPreset]) {
+            const bgColorInput = document.getElementById('qr-bg-color');
+            if (bgColorInput) {
+                bgColorInput.value = this.bgPresets[this.settings.bgPreset];
+                bgColorInput.disabled = true;
+                console.log(`🎨 Hintergrund-Preset "${this.settings.bgPreset}" angewendet`);
+            }
+        }
+    }
+    
+    // Letzte verwendete Farben wiederherstellen
+    if (this.settings.lastUsedColors) {
+        const qrColorInput = document.getElementById('qr-color');
+        const qrBgColorInput = document.getElementById('qr-bg-color');
+        
+        if (qrColorInput && this.settings.lastUsedColors.foreground) {
+            qrColorInput.value = this.settings.lastUsedColors.foreground;
+        }
+        
+        if (qrBgColorInput && this.settings.lastUsedColors.background && this.settings.bgPreset === 'custom') {
+            qrBgColorInput.value = this.settings.lastUsedColors.background;
+        }
+    }
+    
+    // Scanner Einstellungen
+    if (this.settings.preferredCamera && navigator.mediaDevices) {
+        this.preferredCameraId = this.settings.preferredCamera;
+    }
+}
+
+// Standard-Einstellungen setzen
+setDefaultSettings() {
+    this.settings = {
+        theme: 'auto',
+        notifications: true,
+        autoSave: true,
+        language: 'de',
+        soundEnabled: true,
+        vibrationEnabled: true,
+        defaultQRSize: 'medium',
+        defaultErrorLevel: 'M',
+        defaultFormat: 'PNG',
+        colorPreset: 'custom',
+        bgPreset: 'custom', // NEU
+        lastUsedColors: {
+            foreground: '#000000',
+            background: '#ffffff'
+        },
+        quickScanMode: false,
+        autoDownload: false,
+        showPreview: true,
+        preferredCamera: 'environment',
+        scanDelay: 500,
+        maxHistoryItems: 100,
+        autoDeleteHistory: false,
+        historyRetentionDays: 30,
+        premiumFeatures: {},
+        version: '1.0.0'
+    };
+    
+    // Sofort speichern
+    this.saveSettings();
+}
+
+// Alte Verlaufseinträge bereinigen
+cleanupOldHistory() {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - this.settings.historyRetentionDays);
+    
+    const originalQRCount = this.qrHistory.length;
+    const originalScanCount = this.scanHistory.length;
+    
+    // Alte QR-Codes entfernen
+    this.qrHistory = this.qrHistory.filter(item => {
+        const itemDate = new Date(item.timestamp);
+        return itemDate > cutoffDate;
+    });
+    
+    // Alte Scans entfernen
+    this.scanHistory = this.scanHistory.filter(item => {
+        const itemDate = new Date(item.timestamp);
+        return itemDate > cutoffDate;
+    });
+    
+    // Speichern falls Änderungen
+    if (this.qrHistory.length !== originalQRCount || this.scanHistory.length !== originalScanCount) {
+        localStorage.setItem('qr-pro-history', JSON.stringify(this.qrHistory));
+        localStorage.setItem('qr-pro-scan-history', JSON.stringify(this.scanHistory));
+        
+        const removedItems = (originalQRCount - this.qrHistory.length) + (originalScanCount - this.scanHistory.length);
+        console.log(`🧹 ${removedItems} alte Verlaufseinträge bereinigt`);
+        
+        if (this.settings.notifications) {
+            this.showToast(`${removedItems} alte Einträge bereinigt`, 'info');
+        }
+    }
+}
+
+// Sicherer Modus bei kritischen Fehlern
+startSafeMode() {
+    console.warn('🔒 Starte App im sicheren Modus');
+    
+    // Minimal-Einstellungen
+    this.settings = {
+        theme: 'auto',
+        notifications: true,
+        autoSave: true
+    };
+    
+    // Leere Verläufe
+    this.qrHistory = [];
+    this.scanHistory = [];
+    this.dailyQRCount = 0;
+    
+    // Theme anwenden
     this.applyTheme();
-  }
+    
+    // Benutzer informieren
+    this.showToast('App im sicheren Modus gestartet. Einige Funktionen sind eingeschränkt.', 'warning', 5000);
+}
+
+// Einstellungen zurücksetzen
+resetToDefaultSettings() {
+    console.log('🔄 Setze Einstellungen auf Standard zurück');
+    
+    // Alte Einstellungen löschen
+    localStorage.removeItem('qr-pro-settings');
+    
+    // Standard-Einstellungen setzen
+    this.setDefaultSettings();
+    
+    // UI aktualisieren
+    this.applySettingsToUI();
+    
+    if (this.settings.notifications) {
+        this.showToast('Einstellungen zurückgesetzt', 'info');
+    }
+}
 
   setupEventListeners() {
   // Onboarding Event Listeners
@@ -562,6 +790,33 @@ updateStatsCards() {
     this.updateStatCard('templates-count', stats.templatesCount);
 }
 
+// Statistik-Methoden für Dashboard
+getGeneratedCount() {
+    return this.qrHistory.length;
+}
+
+getScannedCount() {
+    return this.scanHistory.length;
+}
+
+getTodayActivity() {
+    const today = new Date().toDateString();
+    const todayQRs = this.qrHistory.filter(item => 
+        new Date(item.timestamp).toDateString() === today
+    ).length;
+    
+    const todayScans = this.scanHistory.filter(item => 
+        new Date(item.timestamp).toDateString() === today
+    ).length;
+    
+    return todayQRs + todayScans;
+}
+
+getTemplatesCount() {
+    // Anzahl der verfügbaren Templates
+    return this.userTier === 'premium' ? 25 : 5;
+}
+
 updateStatCard(cardId, value) {
     const card = document.querySelector(`[data-stat="${cardId}"]`);
     if (card) {
@@ -884,7 +1139,104 @@ handleResize() {
 
 // Settings speichern
 saveSettings() {
-  localStorage.setItem('qr-pro-settings', JSON.stringify(this.settings));
+    const settings = {
+        // Bestehende Einstellungen
+        theme: this.settings.theme,
+        notifications: this.settings.notifications,
+        autoSave: this.settings.autoSave,
+        
+        // UI Einstellungen
+        language: this.settings.language || 'de',
+        soundEnabled: this.settings.soundEnabled || true,
+        vibrationEnabled: this.settings.vibrationEnabled || true,
+        
+        // Generator Einstellungen
+        defaultQRSize: this.settings.defaultQRSize || 'medium',
+        defaultErrorLevel: this.settings.defaultErrorLevel || 'M',
+        defaultFormat: this.settings.defaultFormat || 'PNG',
+        
+        // Farb-Presets
+        colorPreset: document.getElementById('qr-color-preset')?.value || 'custom',
+        lastUsedColors: {
+            foreground: document.getElementById('qr-color')?.value || '#000000',
+            background: document.getElementById('qr-bg-color')?.value || '#ffffff'
+        },
+        
+        // Hintergrund-Presets (neu hinzugefügt)
+        bgPreset: document.getElementById('qr-bg-preset')?.value || 'custom',
+        
+        // Erweiterte Einstellungen
+        quickScanMode: this.settings.quickScanMode || false,
+        autoDownload: this.settings.autoDownload || false,
+        showPreview: this.settings.showPreview !== false, // Standard: true
+        
+        // Scanner Einstellungen
+        preferredCamera: this.settings.preferredCamera || 'environment',
+        scanDelay: this.settings.scanDelay || 500,
+        
+        // Verlauf Einstellungen
+        maxHistoryItems: this.settings.maxHistoryItems || 100,
+        autoDeleteHistory: this.settings.autoDeleteHistory || false,
+        historyRetentionDays: this.settings.historyRetentionDays || 30,
+        
+        // Premium Einstellungen
+        premiumFeatures: this.settings.premiumFeatures || {},
+        
+        // Letzte Aktualisierung
+        lastUpdated: new Date().toISOString(),
+        version: '1.0.0'
+    };
+    
+    try {
+        // In localStorage speichern
+        localStorage.setItem('qr-pro-settings', JSON.stringify(settings));
+        
+        // Backup in IndexedDB falls verfügbar
+        if (this.isOnline && 'indexedDB' in window) {
+            this.saveToIndexedDB('settings', settings);
+        }
+        
+        // Einstellungen in Instanz aktualisieren
+        this.settings = { ...this.settings, ...settings };
+        
+        console.log('✅ Einstellungen gespeichert:', settings);
+        
+        // Benachrichtigung anzeigen
+        if (this.settings.notifications) {
+            this.showToast('Einstellungen gespeichert', 'success');
+        }
+        
+        return true;
+        
+    } catch (error) {
+        console.error('❌ Fehler beim Speichern der Einstellungen:', error);
+        this.showToast('Fehler beim Speichern der Einstellungen', 'error');
+        return false;
+    }
+}
+
+// Hilfsmethode für IndexedDB Backup
+async saveToIndexedDB(key, data) {
+    try {
+        const request = indexedDB.open('QRProDB', 1);
+        
+        request.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('settings')) {
+                db.createObjectStore('settings');
+            }
+        };
+        
+        request.onsuccess = (e) => {
+            const db = e.target.result;
+            const transaction = db.transaction(['settings'], 'readwrite');
+            const store = transaction.objectStore('settings');
+            store.put(data, key);
+        };
+        
+    } catch (error) {
+        console.warn('IndexedDB Backup fehlgeschlagen:', error);
+    }
 }
 
   // QR Code Generation
@@ -1902,6 +2254,107 @@ restartScanner() {
       this.showMainApp();
     }, 300);
   }
+
+  // In der QRProApp Klasse hinzufügen
+setupBackgroundPresets() {
+    const bgPresetSelect = document.getElementById('qr-bg-preset');
+    const bgColorInput = document.getElementById('qr-bg-color');
+    
+    if (!bgPresetSelect || !bgColorInput) return;
+    
+    // Preset-Farben definieren
+    this.bgPresets = {
+        'white': '#ffffff',
+        'cream': '#fefef7', 
+        'pearl': '#f8f8ff',
+        'light-gray': '#f5f5f5',
+        'warm-gray': '#f7f5f3',
+        'cool-gray': '#f1f3f4',
+        'beige': '#f5f5dc',
+        'sand': '#f4e8d0', 
+        'ivory': '#fffff0',
+        'linen': '#faf0e6',
+        'mint': '#f0fff4',
+        'lavender': '#f8f4ff'
+    };
+    
+    // Event Listener für Preset-Auswahl
+    bgPresetSelect.addEventListener('change', (e) => {
+        const selectedPreset = e.target.value;
+        
+        if (selectedPreset === 'custom') {
+            // Benutzer kann eigene Farbe wählen
+            bgColorInput.disabled = false;
+        } else if (this.bgPresets[selectedPreset]) {
+            // Preset-Farbe anwenden
+            bgColorInput.value = this.bgPresets[selectedPreset];
+            bgColorInput.disabled = true;
+            
+            // Vorschau aktualisieren
+            this.updatePreview();
+            
+            // Toast-Benachrichtigung
+            this.showToast(`Hintergrund-Preset "${this.getPresetName(selectedPreset)}" angewendet`, 'success');
+        }
+    });
+    
+    // Initialer Zustand
+    bgColorInput.disabled = bgPresetSelect.value !== 'custom';
+}
+
+// Preset-Namen für Benutzeranzeige
+getPresetName(presetKey) {
+    const presetNames = {
+        'white': 'Reines Weiß',
+        'cream': 'Cremeweiß',
+        'pearl': 'Perlweiß',
+        'light-gray': 'Hellgrau',
+        'warm-gray': 'Warmes Grau',
+        'cool-gray': 'Kühles Grau',
+        'beige': 'Beige',
+        'sand': 'Sandton',
+        'ivory': 'Elfenbein', 
+        'linen': 'Leinen',
+        'mint': 'Mint',
+        'lavender': 'Lavendel'
+    };
+    
+    return presetNames[presetKey] || presetKey;
+}
+
+// In der init() Methode hinzufügen
+async init() {
+    this.showLoadingScreen();
+    this.setupEventListeners();
+    this.setupBackgroundPresets(); // Neue Zeile hinzufügen
+    this.initializeData();
+    await this.loadLibraries();
+    this.registerServiceWorker();
+}
+
+// Visuelle Preset-Vorschau erstellen
+createPresetOptions() {
+    const bgPresetSelect = document.getElementById('qr-bg-preset');
+    if (!bgPresetSelect) return;
+    
+    // Optionen mit visuellen Indikatoren ersetzen
+    bgPresetSelect.innerHTML = '';
+    
+    // Custom Option
+    const customOption = document.createElement('option');
+    customOption.value = 'custom';
+    customOption.textContent = 'Eigene Farbe';
+    bgPresetSelect.appendChild(customOption);
+    
+    // Preset Options mit Farb-Indikatoren
+    Object.entries(this.bgPresets).forEach(([key, color]) => {
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = `${this.getPresetName(key)}`;
+        option.style.background = color;
+        bgPresetSelect.appendChild(option);
+    });
+}
 
   showPremiumPrompt() {
     this.showToast('Premium Feature - Upgrade für unbegrenzte QR Codes!', 'warning', 5000);

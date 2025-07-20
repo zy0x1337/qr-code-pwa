@@ -3253,6 +3253,83 @@ select.form-control {
   }
 }
 
+/* Farbenvorauswahl - Color Presets Styling */
+.color-picker {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+}
+
+.color-picker input[type="color"] {
+    width: 60px;
+    height: 40px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-base);
+    cursor: pointer;
+    background: none;
+    padding: 0;
+}
+
+.color-picker input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+    border-radius: var(--radius-base);
+}
+
+.color-picker input[type="color"]::-webkit-color-swatch {
+    border: none;
+    border-radius: var(--radius-base);
+}
+
+.color-presets {
+    display: flex;
+    gap: var(--space-8);
+    margin-top: var(--space-8);
+}
+
+.color-preset {
+    width: 32px;
+    height: 32px;
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-base);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-standard);
+    position: relative;
+}
+
+.color-preset:hover {
+    transform: scale(1.1);
+    border-color: var(--color-primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.color-preset.active {
+    border-color: var(--color-primary);
+    border-width: 3px;
+}
+
+.color-preset.active::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Dark Mode Anpassungen */
+@media (prefers-color-scheme: dark) {
+    .color-preset {
+        border-color: var(--color-card-border);
+    }
+    
+    .color-preset:hover {
+        border-color: var(--color-primary);
+    }
+}
+
 /* ==========================================
    DYNAMISCHE VORSCHAU-ANPASSUNG
    ========================================== */
@@ -3317,4 +3394,82 @@ select.form-control {
     min-height: auto;
     aspect-ratio: 1;
   }
+}
+
+/* QR Background Preset Colors */
+:root {
+    /* Neutrale Töne */
+    --qr-bg-white: #ffffff;
+    --qr-bg-cream: #fefef7;
+    --qr-bg-pearl: #f8f8ff;
+    --qr-bg-light-gray: #f5f5f5;
+    --qr-bg-warm-gray: #f7f5f3;
+    --qr-bg-cool-gray: #f1f3f4;
+    
+    /* Beige/Brauntöne */
+    --qr-bg-beige: #f5f5dc;
+    --qr-bg-sand: #f4e8d0;
+    --qr-bg-ivory: #fffff0;
+    --qr-bg-linen: #faf0e6;
+    
+    /* Sanfte Akzentfarben */
+    --qr-bg-mint: #f0fff4;
+    --qr-bg-lavender: #f8f4ff;
+}
+
+/* Preset selector styling */
+#qr-bg-preset {
+    margin-bottom: var(--space-12);
+}
+
+/* Preview indicator for presets */
+.bg-preset-preview {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+    margin-right: var(--space-8);
+    vertical-align: middle;
+}
+
+/* Mobile Optimierung für Preset-Auswahl */
+@media (max-width: 768px) {
+    #qr-bg-preset {
+        font-size: var(--font-size-base);
+        padding: var(--space-12);
+    }
+    
+    .bg-preset-preview {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+/* Touch-freundliche Preset-Buttons als Alternative */
+.preset-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+    gap: var(--space-8);
+    margin-top: var(--space-12);
+}
+
+.preset-button {
+    width: 60px;
+    height: 40px;
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-base);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-standard);
+    position: relative;
+}
+
+.preset-button.active {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(var(--color-teal-500-rgb), 0.2);
+}
+
+.preset-button:hover {
+    transform: scale(1.05);
+    box-shadow: var(--shadow-sm);
 }

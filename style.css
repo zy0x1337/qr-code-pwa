@@ -1347,12 +1347,12 @@ select.form-control {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--space-4);
+    gap: var(--space-6);
     padding: var(--space-12);
-    border: 1px solid var(--color-card-border);
+    border: 2px solid var(--color-card-border);
     border-radius: var(--radius-base);
     background: var(--color-surface);
-    color: var(--color-text);
+    color: var(--color-text-secondary);
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-medium);
     cursor: pointer;
@@ -1361,16 +1361,25 @@ select.form-control {
 
 .format-btn:hover {
     border-color: var(--color-primary);
-    background: rgba(var(--color-primary-rgb), 0.05);
+    color: var(--color-primary);
     transform: translateY(-1px);
 }
 
+.format-btn.active {
+    border-color: var(--color-primary);
+    background: rgba(var(--color-primary-rgb), 0.1);
+    color: var(--color-primary);
+}
+
 .format-btn svg {
-    color: var(--color-text-secondary);
     transition: color var(--duration-fast) var(--ease-standard);
 }
 
 .format-btn:hover svg {
+    color: var(--color-primary);
+}
+
+.format-btn.active svg {
     color: var(--color-primary);
 }
 
@@ -2057,62 +2066,6 @@ select.form-control {
     flex-direction: column;
     text-align: center;
   }
-}
-
-/* Enhanced form controls for premium options */
-.form-control.premium-option {
-  background: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 2px,
-    rgba(255, 255, 255, 0.1) 2px,
-    rgba(255, 255, 255, 0.1) 4px
-  );
-  opacity: 0.6;
-}
-
-/* Input suggestions */
-.input-helper {
-  margin-top: var(--space-8);
-}
-
-.helper-suggestions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-8);
-}
-
-.suggestion-chip {
-  background: var(--color-secondary);
-  color: var(--color-text);
-  padding: var(--space-4) var(--space-8);
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-sm);
-  cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-standard);
-}
-
-.suggestion-chip:hover {
-  background: var(--color-secondary-hover);
-  transform: scale(1.05);
-}
-
-/* Premium unlock overlay */
-.premium-unlock-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: inherit;
-  color: white;
-  font-weight: var(--font-weight-medium);
-  backdrop-filter: blur(5px);
-  z-index: 10;
 }
 
 /* QR Code animation */
@@ -4369,14 +4322,45 @@ input:checked + .toggle-slider:before {
 
 /* Download Section */
 .download-section {
-  margin-top: var(--space-24);
-  padding: var(--space-20);
-  background: linear-gradient(135deg, 
-    rgba(var(--color-success-rgb), 0.08), 
-    rgba(var(--color-primary-rgb), 0.05));
-  border: 1px solid var(--color-card-border);
-  border-radius: var(--radius-lg);
-  backdrop-filter: blur(8px);
+    margin-top: var(--space-20);
+    padding: var(--space-20);
+    background: var(--color-surface);
+    border: 1px solid var(--color-card-border);
+    border-radius: var(--radius-lg);
+}
+
+.download-section h3 {
+    margin: 0 0 var(--space-20) 0;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text);
+}
+
+.main-download {
+    position: relative;
+    padding: var(--space-16) var(--space-20);
+    margin-bottom: var(--space-24);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-12);
+    font-weight: var(--font-weight-semibold);
+}
+
+.download-text {
+    flex-grow: 1;
+    text-align: center;
+}
+
+.download-size {
+    position: absolute;
+    right: var(--space-16);
+    font-size: var(--font-size-xs);
+    font-family: var(--font-mono);
+    opacity: 0.8;
+    background: rgba(255, 255, 255, 0.2);
+    padding: var(--space-2) var(--space-6);
+    border-radius: var(--radius-sm);
 }
 
 .download-header {
@@ -4400,9 +4384,37 @@ input:checked + .toggle-slider:before {
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
 }
 
+/* Download-Optionen */
+.download-options {
+    display: grid;
+    gap: var(--space-16);
+}
+
+.option-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+}
+
+.option-group label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+}
+
 /* Format Selection */
 .format-selection {
   margin-bottom: var(--space-20);
+}
+
+.format-selection h4 {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    margin: 0 0 var(--space-12) 0;
 }
 
 .format-label {
@@ -4486,11 +4498,12 @@ input:checked + .toggle-slider:before {
 }
 
 .quality-value {
-  font-family: var(--font-mono);
-  color: var(--color-primary);
-  background: rgba(var(--color-primary-rgb), 0.1);
-  padding: var(--space-2) var(--space-6);
-  border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    color: var(--color-primary);
+    background: rgba(var(--color-primary-rgb), 0.1);
+    padding: var(--space-2) var(--space-8);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
 }
 
 .quality-slider {
@@ -4515,7 +4528,7 @@ input:checked + .toggle-slider:before {
 }
 
 .quality-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
+  transform: scale(1.1);
 }
 
 .filename-setting {
@@ -4531,17 +4544,42 @@ input:checked + .toggle-slider:before {
 }
 
 .filename-input {
-  padding: var(--space-12);
-  border: 1px solid var(--color-card-border);
-  border-radius: var(--radius-base);
-  font-size: var(--font-size-sm);
-  transition: border-color var(--duration-fast) var(--ease-standard);
+    padding: var(--space-12);
+    border: 1px solid var(--color-card-border);
+    border-radius: var(--radius-base);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-size: var(--font-size-sm);
+    transition: border-color var(--duration-fast) var(--ease-standard);
 }
 
 .filename-input:focus {
   border-color: var(--color-primary);
   outline: none;
   box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.1);
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 480px) {
+    .format-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--space-6);
+    }
+    
+    .format-btn {
+        padding: var(--space-8);
+        gap: var(--space-4);
+    }
+    
+    .download-size {
+        position: static;
+        margin-top: var(--space-4);
+    }
+    
+    .main-download {
+        flex-direction: column;
+        gap: var(--space-8);
+    }
 }
 
 /* Download Actions */

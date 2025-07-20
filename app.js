@@ -1119,113 +1119,37 @@ updatePreview() {
 
   async loadLibraries() {
     try {
-        console.log('📚 Lade QR Code Libraries...');
-        
-        // Prüfe ob bereits geladen
-        if (this.librariesLoaded && window.QRCode && typeof window.QRCode.toCanvas === 'function') {
-            console.log('✅ Libraries bereits verfügbar');
+        // Verhindere mehrfaches Laden
+        if (window.QRCode && this.librariesLoaded) {
+            console.log('✅ Libraries already loaded');
             return;
         }
+
+        console.log('📚 Loading QRCode library...');
         
-        // Sequenzielles Laden mit Wartezeiten
-        await this.loadQRCodeLibrary();
-        await this.loadHtml5QrCodeLibrary();
-        
-        // Finale Verfügbarkeitsprüfung mit mehreren Versuchen
-        let attempts = 0;
-        const maxAttempts = 10;
-        
-        while (attempts < maxAttempts) {
-            if (window.QRCode && typeof window.QRCode.toCanvas === 'function') {
-                this.librariesLoaded = true;
-                console.log('✅ Alle QR Libraries erfolgreich geladen');
-                return;
-            }
-            
-            console.log(`⏳ Warte auf Library-Initialisierung (${attempts + 1}/${maxAttempts})`);
-            await new Promise(resolve => setTimeout(resolve, 200));
-            attempts++;
+        // QRCode.js für Generierung laden - KORREKTE URL
+        if (!window.QRCode) {
+            await this.loadScript('https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js');
         }
         
-        throw new Error('QRCode.toCanvas not available after loading attempts');
+        // Html5Qrcode für Scanning (bereits verfügbar)
+        if (!window.Html5Qrcode) {
+            await this.loadScript('https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js');
+        }
+        
+        // Prüfen ob QRCode verfügbar ist
+        if (typeof window.QRCode !== 'undefined') {
+            console.log('✅ QRCode library loaded successfully');
+            console.log('QRCode methods:', Object.keys(window.QRCode));
+            this.librariesLoaded = true;
+        } else {
+            throw new Error('QRCode library not available after loading');
+        }
         
     } catch (error) {
-        console.error('❌ Kritischer Fehler beim Laden der Libraries:', error);
-        this.librariesLoaded = false;
-        this.showToast('QR Libraries konnten nicht geladen werden. Bitte Seite neu laden.', 'error');
+        console.error('❌ Failed to load libraries:', error);
+        this.showToast('QR-Bibliotheken konnten nicht geladen werden', 'error');
     }
-}
-
-async loadQRCodeLibrary() {
-    return new Promise((resolve, reject) => {
-        // Prüfe ob bereits geladen
-        if (window.QRCode && typeof window.QRCode.toCanvas === 'function') {
-            resolve();
-            return;
-        }
-        
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
-        script.crossOrigin = 'anonymous';
-        
-        const timeout = setTimeout(() => {
-            reject(new Error('QRCode library loading timeout'));
-        }, 10000);
-        
-        script.onload = () => {
-            clearTimeout(timeout);
-            console.log('📦 QRCode.js Script geladen');
-            
-            // Warte zusätzliche Zeit für Initialisierung
-            setTimeout(() => {
-                if (window.QRCode && typeof window.QRCode.toCanvas === 'function') {
-                    console.log('✅ QRCode.toCanvas verfügbar');
-                    resolve();
-                } else {
-                    console.warn('⚠️ QRCode geladen, aber toCanvas nicht verfügbar');
-                    // Trotzdem resolven, da manchmal die Funktion später verfügbar wird
-                    resolve();
-                }
-            }, 100);
-        };
-        
-        script.onerror = () => {
-            clearTimeout(timeout);
-            reject(new Error('Failed to load QRCode library'));
-        };
-        
-        document.head.appendChild(script);
-    });
-}
-
-async loadHtml5QrCodeLibrary() {
-    return new Promise((resolve, reject) => {
-        if (window.Html5Qrcode) {
-            resolve();
-            return;
-        }
-        
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js';
-        script.crossOrigin = 'anonymous';
-        
-        const timeout = setTimeout(() => {
-            reject(new Error('Html5Qrcode library loading timeout'));
-        }, 10000);
-        
-        script.onload = () => {
-            clearTimeout(timeout);
-            console.log('✅ Html5Qrcode.js geladen');
-            resolve();
-        };
-        
-        script.onerror = () => {
-            clearTimeout(timeout);
-            reject(new Error('Failed to load Html5Qrcode library'));
-        };
-        
-        document.head.appendChild(script);
-    });
 }
 
 loadScript(src) {
@@ -1812,70 +1736,12 @@ restartScanner() {
 
   // UI Updates
   updateDashboard() {
-    try {
-        // Sichere Element-Abfrage
-        const statElements = {
-            generated: document.querySelector('[data-stat="qr-generated"] .stat-number'),
-            scanned: document.querySelector('[data-stat="qr-scanned"] .stat-number'),
-            todayActive: document.querySelector('[data-stat="today-active"] .stat-number'),
-            templatesCount: document.querySelector('[data-stat="templates-count"] .stat-number')
-        };
-        
-        // Nur existierende Elemente aktualisieren
-        if (statElements.generated) {
-            statElements.generated.textContent = this.getGeneratedCount();
-        }
-        if (statElements.scanned) {
-            statElements.scanned.textContent = this.getScannedCount();
-        }
-        if (statElements.todayActive) {
-            statElements.todayActive.textContent = this.getTodayActivity();
-        }
-        if (statElements.templatesCount) {
-            statElements.templatesCount.textContent = this.getTemplatesCount();
-        }
-        
-        // Recent Activity
-        this.updateRecentActivity();
-        
-        console.log('✅ Dashboard erfolgreich aktualisiert');
-        
-    } catch (error) {
-        console.error('Dashboard Update Error:', error);
-        // Dashboard-Fehler sollten nicht die gesamte App crashen
-    }
-}
-
-// Verhindert Memory-Leaks durch unendliche Timeouts
-clearAllTimeouts() {
-    if (this.previewTimeout) {
-        clearTimeout(this.previewTimeout);
-        this.previewTimeout = null;
-    }
-}
-
-// Bessere Error-Recovery
-async recoverFromLibraryError() {
-    console.log('🔄 Versuche Library-Recovery...');
-    this.librariesLoaded = false;
+    document.getElementById('total-created').textContent = this.qrHistory.length;
+    document.getElementById('total-scanned').textContent = this.scanHistory.length;
+    document.getElementById('daily-limit').textContent = `${this.dailyQRCount}/${this.dailyLimit}`;
     
-    try {
-        // Alle existierenden Scripts entfernen
-        document.querySelectorAll('script[src*="qrcode"], script[src*="html5-qrcode"]').forEach(script => {
-            script.remove();
-        });
-        
-        // Neu laden nach kurzer Pause
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        await this.loadLibraries();
-        
-        console.log('✅ Library-Recovery erfolgreich');
-        return true;
-    } catch (error) {
-        console.error('❌ Library-Recovery fehlgeschlagen:', error);
-        return false;
-    }
-}
+    this.updateRecentActivity();
+  }
 
   updateRecentActivity() {
     const recentItems = document.getElementById('recent-items');
@@ -1992,27 +1858,25 @@ async recoverFromLibraryError() {
   }
 
   updateContentPlaceholder() {
-    const qrType = document.getElementById('qr-type');
     const qrContent = document.getElementById('qr-content');
+    const qrType = document.getElementById('qr-type');
     
-    if (!qrType || !qrContent) return;
+    if (!qrContent || !qrType) return;
     
     const placeholders = {
         'text': 'Geben Sie Ihren Text ein...',
         'url': 'https://www.beispiel.de',
-        'email': 'ihre@email.de',
-        'phone': '+49 123 456789',
-        'sms': '+49 123 456789',
-        'wifi': 'SSID:MeinWifi;T:WPA;P:passwort;H:false;',
-        'vcard': 'BEGIN:VCARD\nFN:Max Mustermann\nTEL:+49123456789\nEMAIL:max@beispiel.de\nEND:VCARD'
+        'email': 'mailto:name@beispiel.de',
+        'phone': 'tel:+49123456789',
+        'sms': 'sms:+49123456789:Ihre Nachricht',
+        'wifi': 'WIFI:T:WPA;S:NetzwerkName;P:Passwort;;',
+        'vcard': 'BEGIN:VCARD\nVERSION:3.0\nFN:Max Mustermann\nEND:VCARD'
     };
     
     qrContent.placeholder = placeholders[qrType.value] || placeholders.text;
     
-    // Auto-update preview when type changes
-    if (qrContent.value.trim()) {
-        this.updatePreview();
-    }
+    // Automatische Vorschau-Aktualisierung
+    this.updatePreview();
 }
 
   // Onboarding
@@ -2182,15 +2046,12 @@ document.addEventListener('DOMContentLoaded', () => {
     new PWAInstaller();
 });
 
-// QR Customization
+// QR Customization für Größe und Hintergrund
 class QRCustomization {
     constructor() {
         this.qrColor = '#000000';
         this.qrBgColor = '#ffffff';
         this.qrSize = '300';
-        this.qrInstance = null;
-        this.isGenerating = false;
-        this.lastContent = '';
         this.init();
     }
 
@@ -2202,133 +2063,128 @@ class QRCustomization {
         this.setupDynamicPreview();
     }
 
-    async loadLibraries() {
-    try {
-        console.log('📚 Lade QR Code Libraries...');
+    // Hintergrund-Preset Setup
+    setupBgColorPresets() {
+        const bgPresets = document.querySelectorAll('.bg-preset');
+        const qrBgColorInput = document.getElementById('qr-bg-color');
         
-        // Prüfe ob bereits geladen
-        if (this.librariesLoaded && window.QRCode && typeof window.QRCode.toCanvas === 'function') {
-            console.log('✅ Libraries bereits verfügbar');
-            return;
+        bgPresets.forEach(preset => {
+            preset.addEventListener('click', (e) => {
+                e.preventDefault();
+                const bgColor = preset.dataset.bgColor;
+                
+                // Aktiven Zustand setzen
+                bgPresets.forEach(p => p.classList.remove('active'));
+                preset.classList.add('active');
+                
+                // Hintergrundfarbe übernehmen
+                if (qrBgColorInput && bgColor !== 'transparent') {
+                    qrBgColorInput.value = bgColor;
+                }
+                
+                this.qrBgColor = bgColor;
+                this.updatePreview();
+                
+                // Toast für Feedback
+                const colorName = preset.title || bgColor;
+                if (typeof app !== 'undefined' && app.showToast) {
+                    app.showToast(`Hintergrund: ${colorName}`, 'info');
+                }
+            });
+        });
+
+        // Standard-Preset (weiß) als aktiv markieren
+        const defaultBgPreset = document.querySelector('.bg-preset[data-bg-color="#ffffff"]');
+        if (defaultBgPreset) {
+            defaultBgPreset.classList.add('active');
         }
+    }
+
+    // Korrigierte Größenauswahl
+    setupSizeSelector() {
+        const sizeSelector = document.getElementById('qr-size');
         
-        // Sequenzielles Laden mit Wartezeiten
-        await this.loadQRCodeLibrary();
-        await this.loadHtml5QrCodeLibrary();
+        if (sizeSelector) {
+            sizeSelector.addEventListener('change', (e) => {
+                const selectedSize = e.target.value;
+                
+                console.log('Größe gewählt:', selectedSize);
+                
+                // Premium-Check für große Größen
+                if (selectedSize === '800' && !this.hasPremium()) {
+                    this.showPremiumModal();
+                    sizeSelector.value = this.qrSize; // Zurücksetzen
+                    return;
+                }
+                
+                // Größe setzen
+                this.qrSize = selectedSize;
+                this.updatePreviewSize(selectedSize);
+                this.updatePreview();
+                this.showSizeToast(selectedSize);
+            });
+            
+            // Initial-Größe setzen
+            this.updatePreviewSize(this.qrSize);
+        }
+    }
+
+    // Dynamische Vorschau-Größe
+    updatePreviewSize(size) {
+        const preview = document.querySelector('.qr-preview');
         
-        // Finale Verfügbarkeitsprüfung mit mehreren Versuchen
-        let attempts = 0;
-        const maxAttempts = 10;
-        
-        while (attempts < maxAttempts) {
-            if (window.QRCode && typeof window.QRCode.toCanvas === 'function') {
-                this.librariesLoaded = true;
-                console.log('✅ Alle QR Libraries erfolgreich geladen');
-                return;
+        if (preview) {
+            // Alte Size-Klassen entfernen
+            preview.classList.remove('size-200', 'size-300', 'size-500', 'size-800');
+            
+            // Neue Size-Klasse hinzufügen
+            preview.classList.add(`size-${size}`);
+            
+            // Größen-Indikator hinzufügen/aktualisieren
+            let sizeIndicator = preview.querySelector('.size-indicator');
+            if (!sizeIndicator) {
+                sizeIndicator = document.createElement('div');
+                sizeIndicator.className = 'size-indicator';
+                preview.appendChild(sizeIndicator);
             }
             
-            console.log(`⏳ Warte auf Library-Initialisierung (${attempts + 1}/${maxAttempts})`);
-            await new Promise(resolve => setTimeout(resolve, 200));
-            attempts++;
-        }
-        
-        throw new Error('QRCode.toCanvas not available after loading attempts');
-        
-    } catch (error) {
-        console.error('❌ Kritischer Fehler beim Laden der Libraries:', error);
-        this.librariesLoaded = false;
-        this.showToast('QR Libraries konnten nicht geladen werden. Bitte Seite neu laden.', 'error');
-    }
-}
-
-async loadQRCodeLibrary() {
-    return new Promise((resolve, reject) => {
-        // Prüfe ob bereits geladen
-        if (window.QRCode && typeof window.QRCode.toCanvas === 'function') {
-            resolve();
-            return;
-        }
-        
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
-        script.crossOrigin = 'anonymous';
-        
-        const timeout = setTimeout(() => {
-            reject(new Error('QRCode library loading timeout'));
-        }, 10000);
-        
-        script.onload = () => {
-            clearTimeout(timeout);
-            console.log('📦 QRCode.js Script geladen');
+            const sizeNames = {
+                '200': 'Klein (200px)',
+                '300': 'Mittel (300px)', 
+                '500': 'Groß (500px)',
+                '800': 'Sehr groß (800px)'
+            };
+            sizeIndicator.textContent = sizeNames[size] || `${size}px`;
             
-            // Warte zusätzliche Zeit für Initialisierung
-            setTimeout(() => {
-                if (window.QRCode && typeof window.QRCode.toCanvas === 'function') {
-                    console.log('✅ QRCode.toCanvas verfügbar');
-                    resolve();
-                } else {
-                    console.warn('⚠️ QRCode geladen, aber toCanvas nicht verfügbar');
-                    // Trotzdem resolven, da manchmal die Funktion später verfügbar wird
-                    resolve();
-                }
-            }, 100);
-        };
-        
-        script.onerror = () => {
-            clearTimeout(timeout);
-            reject(new Error('Failed to load QRCode library'));
-        };
-        
-        document.head.appendChild(script);
-    });
-}
-
-async loadHtml5QrCodeLibrary() {
-    return new Promise((resolve, reject) => {
-        if (window.Html5Qrcode) {
-            resolve();
-            return;
+            console.log('Vorschau-Größe aktualisiert:', size);
         }
-        
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js';
-        script.crossOrigin = 'anonymous';
-        
-        const timeout = setTimeout(() => {
-            reject(new Error('Html5Qrcode library loading timeout'));
-        }, 10000);
-        
-        script.onload = () => {
-            clearTimeout(timeout);
-            console.log('✅ Html5Qrcode.js geladen');
-            resolve();
-        };
-        
-        script.onerror = () => {
-            clearTimeout(timeout);
-            reject(new Error('Failed to load Html5Qrcode library'));
-        };
-        
-        document.head.appendChild(script);
-    });
-}
+    }
 
-    // Sichere QR Code Generierung
-    generateQRCode(preview, content) {
-        this.isGenerating = true;
+    // Erweiterte Preview-Aktualisierung
+    updatePreview() {
+        const content = document.getElementById('qr-content')?.value.trim();
+        if (!content || !window.QRCode) return;
+
+        const preview = document.querySelector('.qr-preview');
+        if (!preview) return;
 
         try {
-            console.log('🔄 Generiere QR Code...');
+            // QR Code Container erstellen
+            const qrContainer = document.createElement('div');
+            qrContainer.style.position = 'relative';
+            qrContainer.style.display = 'flex';
+            qrContainer.style.justifyContent = 'center';
+            qrContainer.style.alignItems = 'center';
             
-            // SCHRITT 1: VOLLSTÄNDIGE BEREINIGUNG
-            this.destroyPreviousQRCode();
-            this.clearPreviewContainer(preview);
+            // Vorherigen QR Code löschen (aber Size-Indikator behalten)
+            const sizeIndicator = preview.querySelector('.size-indicator');
+            preview.innerHTML = '';
+            if (sizeIndicator) {
+                preview.appendChild(sizeIndicator);
+            }
+            preview.appendChild(qrContainer);
 
-            // SCHRITT 2: NEUEN CONTAINER ERSTELLEN
-            const qrContainer = this.createQRContainer();
-            preview.appendChild(qrContainer.wrapper);
-
-            // SCHRITT 3: QR CODE OPTIONEN
+            // QR Code Optionen mit korrekter Größe
             const qrOptions = {
                 text: content,
                 width: parseInt(this.qrSize),
@@ -2338,259 +2194,17 @@ async loadHtml5QrCodeLibrary() {
                 correctLevel: QRCode.CorrectLevel.H
             };
 
-            // SCHRITT 4: QR CODE GENERIEREN
-            this.qrInstance = new QRCode(qrContainer.element, qrOptions);
+            // QR Code generieren
+            const qr = new QRCode(qrContainer, qrOptions);
 
-            // SCHRITT 5: CANVAS STYLING
-            setTimeout(() => {
-                this.styleGeneratedQRCode(qrContainer.element);
-                this.addSizeIndicator(preview);
-                this.isGenerating = false;
-                console.log(`✅ QR Code erfolgreich generiert: ${this.qrSize}px`);
-            }, 200);
+            console.log(`QR Preview aktualisiert: ${this.qrSize}px, ${this.qrColor} auf ${this.qrBgColor}`);
 
         } catch (error) {
-            console.error('❌ QR Generation Error:', error);
-            this.showError(preview, error.message);
-            this.isGenerating = false;
+            console.error('Fehler beim QR Preview Update:', error);
         }
     }
 
-    // NEUE METHODE: Vorherige QR Instanz zerstören
-    destroyPreviousQRCode() {
-        if (this.qrInstance) {
-            try {
-                if (typeof this.qrInstance.clear === 'function') {
-                    this.qrInstance.clear();
-                }
-                this.qrInstance = null;
-            } catch (error) {
-                console.warn('QR Instance cleanup error:', error);
-                this.qrInstance = null;
-            }
-        }
-    }
-
-    // NEUE METHODE: Preview Container vollständig leeren
-    clearPreviewContainer(preview) {
-        // Alle QR-bezogenen Elemente entfernen
-        const qrElements = preview.querySelectorAll(`
-            canvas, 
-            img, 
-            table,
-            .qr-wrapper,
-            .qr-container,
-            [id^="qr-"],
-            [class*="qr-"]:not(.qr-preview):not(.qr-size)
-        `);
-        
-        qrElements.forEach(element => {
-            try {
-                element.remove();
-            } catch (error) {
-                console.warn('Element removal error:', error);
-            }
-        });
-
-        // Fallback: innerHTML leeren (aber vorsichtig)
-        const children = Array.from(preview.children);
-        children.forEach(child => {
-            if (!child.classList.contains('size-indicator') && 
-                !child.classList.contains('preview-placeholder') &&
-                !child.classList.contains('preview-loading') &&
-                !child.classList.contains('preview-error')) {
-                child.remove();
-            }
-        });
-    }
-
-    // NEUE METHODE: QR Container erstellen
-    createQRContainer() {
-        const timestamp = Date.now();
-        const uniqueId = `qr-${timestamp}`;
-
-        const wrapper = document.createElement('div');
-        wrapper.className = 'qr-wrapper';
-        wrapper.setAttribute('data-qr-timestamp', timestamp);
-        wrapper.style.cssText = `
-            width: 100% !important;
-            height: 100% !important;
-            display: flex !important;
-            justify-content: center !important;
-            align-items: center !important;
-            position: relative !important;
-        `;
-
-        const element = document.createElement('div');
-        element.id = uniqueId;
-        element.className = 'qr-container';
-        element.style.cssText = `
-            display: inline-block !important;
-            position: relative !important;
-            line-height: 0 !important;
-        `;
-
-        wrapper.appendChild(element);
-
-        return { wrapper, element, id: uniqueId };
-    }
-
-    // Canvas Styling optimieren
-    styleGeneratedQRCode(container) {
-        // Warte auf DOM-Aktualisierung
-        setTimeout(() => {
-            const canvas = container.querySelector('canvas');
-            const img = container.querySelector('img');
-            
-            if (canvas) {
-                canvas.style.cssText = `
-                    display: block !important;
-                    margin: 0 auto !important;
-                    max-width: calc(100% - 32px) !important;
-                    max-height: calc(100% - 32px) !important;
-                    border-radius: 6px !important;
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-                `;
-            }
-            
-            if (img) {
-                img.style.cssText = `
-                    display: block !important;
-                    margin: 0 auto !important;
-                    max-width: calc(100% - 32px) !important;
-                    max-height: calc(100% - 32px) !important;
-                    border-radius: 6px !important;
-                `;
-            }
-        }, 50);
-    }
-
-    // Size-Indikator hinzufügen
-    addSizeIndicator(preview) {
-        // Entferne alten Indikator
-        const oldIndicator = preview.querySelector('.size-indicator');
-        if (oldIndicator) oldIndicator.remove();
-
-        // Neuen Indikator erstellen
-        const indicator = document.createElement('div');
-        indicator.className = 'size-indicator';
-        
-        const sizeNames = {
-            '200': 'Klein (200px)',
-            '300': 'Mittel (300px)',
-            '500': 'Groß (500px)'
-        };
-        
-        indicator.textContent = sizeNames[this.qrSize] || `${this.qrSize}px`;
-        preview.appendChild(indicator);
-    }
-
-    // UI-Zustand Methoden
-    showPlaceholder(preview) {
-        this.clearPreviewContainer(preview);
-        preview.innerHTML = `
-            <div class="preview-placeholder">
-                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                    <rect x="7" y="7" width="3" height="3" fill="currentColor"></rect>
-                    <rect x="14" y="7" width="3" height="3" fill="currentColor"></rect>
-                    <rect x="7" y="14" width="3" height="3" fill="currentColor"></rect>
-                    <rect x="14" y="14" width="3" height="3" fill="currentColor"></rect>
-                </svg>
-                <p>QR Code Vorschau</p>
-                <small>Geben Sie Inhalt ein um die Vorschau zu sehen</small>
-            </div>
-        `;
-    }
-
-    showLoading(preview) {
-        this.clearPreviewContainer(preview);
-        preview.innerHTML = `
-            <div class="preview-loading">
-                <div class="loading-spinner"></div>
-                <p>Generiere QR Code...</p>
-            </div>
-        `;
-    }
-
-    showError(preview, message) {
-        this.clearPreviewContainer(preview);
-        preview.innerHTML = `
-            <div class="preview-error">
-                <p>⚠️ Fehler beim Generieren</p>
-                <small>${message}</small>
-            </div>
-        `;
-    }
-
-    // Library Loading sicherstellen
-    async ensureLibrariesLoaded() {
-        if (this.librariesLoaded && window.QRCode) return;
-        
-        try {
-            await this.loadScript('https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js');
-            this.librariesLoaded = true;
-        } catch (error) {
-            console.error('Library loading failed:', error);
-        }
-    }
-
-    loadScript(src) {
-        return new Promise((resolve, reject) => {
-            if (document.querySelector(`script[src="${src}"]`)) {
-                resolve();
-                return;
-            }
-            
-            const script = document.createElement('script');
-            script.src = src;
-            script.onload = resolve;
-            script.onerror = reject;
-            document.head.appendChild(script);
-        });
-    }
-
-    // Event-Handler mit Debouncing
-    setupColorPickers() {
-        const qrColorInput = document.getElementById('qr-color');
-        const qrBgColorInput = document.getElementById('qr-bg-color');
-        
-        let updateTimer = null;
-
-        if (qrColorInput) {
-            qrColorInput.addEventListener('change', (e) => {
-                this.qrColor = e.target.value;
-                this.updateColorPresetSelection(e.target.value);
-                
-                clearTimeout(updateTimer);
-                updateTimer = setTimeout(() => this.updatePreview(), 300);
-            });
-        }
-
-        if (qrBgColorInput) {
-            qrBgColorInput.addEventListener('change', (e) => {
-                this.qrBgColor = e.target.value;
-                this.updateBgPresetSelection(e.target.value);
-                
-                clearTimeout(updateTimer);
-                updateTimer = setTimeout(() => this.updatePreview(), 300);
-            });
-        }
-    }
-
-    // Input-Handler mit Debouncing
-    setupContentListener() {
-        const contentInput = document.getElementById('qr-content');
-        if (!contentInput) return;
-
-        let inputTimer = null;
-        contentInput.addEventListener('input', () => {
-            clearTimeout(inputTimer);
-            inputTimer = setTimeout(() => this.updatePreview(), 500);
-        });
-    }
-
-    // Restliche Methoden bleiben gleich...
+    // Farb-Presets Setup
     setupColorPresets() {
         const colorPresets = document.querySelectorAll('.color-preset');
         const qrColorInput = document.getElementById('qr-color');
@@ -2616,81 +2230,38 @@ async loadHtml5QrCodeLibrary() {
         }
     }
 
-    setupBgColorPresets() {
-        const bgPresets = document.querySelectorAll('.bg-preset');
+    // Color Picker Setup
+    setupColorPickers() {
+        const qrColorInput = document.getElementById('qr-color');
         const qrBgColorInput = document.getElementById('qr-bg-color');
-        
-        bgPresets.forEach(preset => {
-            preset.addEventListener('click', (e) => {
-                e.preventDefault();
-                const bgColor = preset.dataset.bgColor;
-                
-                bgPresets.forEach(p => p.classList.remove('active'));
-                preset.classList.add('active');
-                
-                if (qrBgColorInput && bgColor !== 'transparent') {
-                    qrBgColorInput.value = bgColor;
-                }
-                
-                this.qrBgColor = bgColor;
+
+        if (qrColorInput) {
+            qrColorInput.addEventListener('change', (e) => {
+                this.qrColor = e.target.value;
+                this.updateColorPresetSelection(e.target.value);
                 this.updatePreview();
             });
-        });
-
-        const defaultBgPreset = document.querySelector('.bg-preset[data-bg-color="#ffffff"]');
-        if (defaultBgPreset) {
-            defaultBgPreset.classList.add('active');
         }
-    }
 
-    setupSizeSelector() {
-        const sizeSelector = document.getElementById('qr-size');
-        
-        if (sizeSelector) {
-            sizeSelector.addEventListener('change', (e) => {
-                const selectedSize = e.target.value;
-                const allowedSizes = ['200', '300', '500'];
-                
-                if (!allowedSizes.includes(selectedSize)) {
-                    console.warn('Ungültige Größe:', selectedSize);
-                    return;
-                }
-                
-                this.qrSize = selectedSize;
-                this.updatePreviewSize(selectedSize);
+        if (qrBgColorInput) {
+            qrBgColorInput.addEventListener('change', (e) => {
+                this.qrBgColor = e.target.value;
+                this.updateBgPresetSelection(e.target.value);
                 this.updatePreview();
             });
-            
-            this.updatePreviewSize(this.qrSize);
         }
     }
 
-    updatePreviewSize(size) {
-        const preview = document.querySelector('.qr-preview');
-        
-        if (preview) {
-            const allSizeClasses = ['size-200', 'size-300', 'size-500'];
-            allSizeClasses.forEach(className => {
-                preview.classList.remove(className);
-            });
-            
-            const validSizes = ['200', '300', '500'];
-            if (validSizes.includes(size)) {
-                preview.classList.add(`size-${size}`);
-            }
-        }
-    }
-
+    // Dynamische Vorschau Setup
     setupDynamicPreview() {
         const preview = document.querySelector('.qr-preview');
         if (preview) {
+            // Initial-Größe setzen
             this.updatePreviewSize(this.qrSize);
         }
-        
-        // Content-Input Listener hinzufügen
-        this.setupContentListener();
     }
 
+    // Hilfsmethoden
     updateColorPresetSelection(color) {
         document.querySelectorAll('.color-preset').forEach(preset => {
             if (preset.dataset.color === color) {
@@ -2711,13 +2282,41 @@ async loadHtml5QrCodeLibrary() {
         });
     }
 
+    showSizeToast(size) {
+        const sizeNames = {
+            '200': 'Klein',
+            '300': 'Mittel', 
+            '500': 'Groß',
+            '800': 'Sehr groß'
+        };
+
+        if (typeof app !== 'undefined' && app.showToast) {
+            app.showToast(`QR Code Größe: ${sizeNames[size]} (${size}px)`, 'info');
+        }
+    }
+
+    hasPremium() {
+        return localStorage.getItem('premium-status') === 'active';
+    }
+
+    showPremiumModal() {
+        const modal = document.getElementById('premium-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+        
+        if (typeof app !== 'undefined' && app.showToast) {
+            app.showToast('Premium-Feature: Große QR Codes (800px) benötigen Premium', 'warning');
+        }
+    }
+
+    // Öffentliche API
     getSettings() {
         return {
             color: this.qrColor,
             bgColor: this.qrBgColor,
             size: this.qrSize,
-            isTransparent: this.qrBgColor === 'transparent',
-            availableSizes: ['200', '300', '500']
+            isTransparent: this.qrBgColor === 'transparent'
         };
     }
 }

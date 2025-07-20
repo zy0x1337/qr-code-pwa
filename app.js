@@ -151,348 +151,346 @@ class QRProApp {
   }
 
   setupEventListeners() {
-  // Onboarding Event Listeners
-  const nextBtn = document.getElementById('next-onboarding');
-  const skipBtn = document.getElementById('skip-onboarding');
-  
-  if (nextBtn) {
-    nextBtn.addEventListener('click', () => this.nextSlide());
-  }
-  
-  if (skipBtn) {
-    skipBtn.addEventListener('click', () => this.skipOnboarding());
-  }
-  
-  // Onboarding Dots Navigation
-  document.querySelectorAll('.dot').forEach((dot, index) => {
-    dot.addEventListener('click', () => this.goToSlide(index));
-  });
-
-  // Bottom Navigation Event Listeners
-  document.querySelectorAll('.nav-item').forEach(item => {
-    item.addEventListener('click', (e) => {
-      e.preventDefault();
-      const page = item.dataset.page;
-      this.navigateToPage(page);
-    });
-  });
-
-  // QR Code Generator Event Listeners
-  const generateBtn = document.getElementById('generate-btn');
-  const qrContent = document.getElementById('qr-content');
-  const qrType = document.getElementById('qr-type');
-  const qrColor = document.getElementById('qr-color');
-  const qrBgColor = document.getElementById('qr-bg-color');
-  const downloadBtn = document.getElementById('download-btn');
-  
-  if (generateBtn) {
-    generateBtn.addEventListener('click', () => this.generateQRCode());
-  }
-  
-  if (qrContent) {
-    qrContent.addEventListener('input', () => this.updatePreview());
-    // Enter-Taste für schnelle Generierung
-    qrContent.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter' && e.ctrlKey) {
-        this.generateQRCode();
-      }
-    });
-  }
-  
-  if (qrType) {
-    qrType.addEventListener('change', () => {
-      this.updateContentPlaceholder();
-      this.updatePreview();
-    });
-  }
-  
-  if (qrColor) {
-    qrColor.addEventListener('change', () => this.updatePreview());
-  }
-  
-  if (qrBgColor) {
-    qrBgColor.addEventListener('change', () => this.updatePreview());
-  }
-  
-  if (downloadBtn) {
-    downloadBtn.addEventListener('click', () => this.downloadQRCode());
-  }
-
-  // QR Code Scanner Event Listeners
-  const startScanner = document.getElementById('start-scanner');
-  const stopScanner = document.getElementById('stop-scanner');
-  const copyResult = document.getElementById('copy-result');
-  const fileInput = document.getElementById('file-input');
-  const uploadBtn = document.getElementById('upload-btn');
-  
-  if (startScanner) {
-    startScanner.addEventListener('click', () => this.startScanner());
-  }
-  
-  if (stopScanner) {
-    stopScanner.addEventListener('click', () => this.stopScanner());
-  }
-  
-  if (copyResult) {
-    copyResult.addEventListener('click', () => this.copyResult());
-  }
-  
-  if (uploadBtn) {
-    uploadBtn.addEventListener('click', () => {
-      const fileInput = document.getElementById('file-input');
-      if (fileInput) fileInput.click();
-    });
-  }
-  
-  if (fileInput) {
-    fileInput.addEventListener('change', (e) => {
-      if (e.target.files && e.target.files[0]) {
-        this.scanFromFile(e.target.files[0]);
-      }
-    });
-  }
-
-  // History/Verlauf Event Listeners
-  const searchHistory = document.getElementById('search-history');
-  const clearHistory = document.getElementById('clear-history');
-  const exportHistory = document.getElementById('export-history');
-  const importHistory = document.getElementById('import-history');
-  const importFile = document.getElementById('import-file');
-  
-  if (searchHistory) {
-    searchHistory.addEventListener('input', (e) => {
-      this.filterHistory(e.target.value);
-    });
+    // Onboarding Event Listeners
+    const nextBtn = document.getElementById('next-onboarding');
+    const skipBtn = document.getElementById('skip-onboarding');
     
-    // Suchfeld leeren mit Escape
-    searchHistory.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        e.target.value = '';
-        this.filterHistory('');
-      }
-    });
-  }
-  
-  if (clearHistory) {
-    clearHistory.addEventListener('click', () => {
-      if (confirm('Möchten Sie den gesamten Verlauf löschen? Diese Aktion kann nicht rückgängig gemacht werden.')) {
-        this.clearHistory();
-      }
-    });
-  }
-  
-  if (exportHistory) {
-    exportHistory.addEventListener('click', () => this.exportHistory());
-  }
-  
-  if (importHistory) {
-    importHistory.addEventListener('click', () => {
-      const fileInput = document.getElementById('import-file');
-      if (fileInput) fileInput.click();
-    });
-  }
-  
-  if (importFile) {
-    importFile.addEventListener('change', (e) => {
-      if (e.target.files && e.target.files[0]) {
-        this.importHistory(e.target.files[0]);
-      }
-    });
-  }
-
-  // Dashboard Quick Actions
-  document.querySelectorAll('.action-card').forEach(card => {
-    card.addEventListener('click', () => {
-      const action = card.dataset.action;
-      this.handleQuickAction(action);
-    });
-    
-    // Keyboard Navigation für Accessibility
-    card.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        const action = card.dataset.action;
-        this.handleQuickAction(action);
-      }
-    });
-  });
-
-  // Settings Event Listeners
-  const themeSelector = document.getElementById('theme-selector');
-  const notificationsToggle = document.getElementById('notifications-toggle');
-  const autoSaveToggle = document.getElementById('auto-save-toggle');
-  const resetSettings = document.getElementById('reset-settings');
-  
-  if (themeSelector) {
-    themeSelector.addEventListener('change', (e) => {
-      this.changeTheme(e.target.value);
-    });
-  }
-  
-  if (notificationsToggle) {
-    notificationsToggle.addEventListener('change', (e) => {
-      this.settings.notifications = e.target.checked;
-      this.saveSettings();
-    });
-  }
-  
-  if (autoSaveToggle) {
-    autoSaveToggle.addEventListener('change', (e) => {
-      this.settings.autoSave = e.target.checked;
-      this.saveSettings();
-    });
-  }
-  
-  if (resetSettings) {
-    resetSettings.addEventListener('click', () => {
-      if (confirm('Möchten Sie alle Einstellungen zurücksetzen?')) {
-        this.resetSettings();
-      }
-    });
-  }
-
-  // Global Keyboard Shortcuts
-  document.addEventListener('keydown', (e) => {
-    // Ctrl/Cmd + G = Generator öffnen
-    if ((e.ctrlKey || e.metaKey) && e.key === 'g') {
-      e.preventDefault();
-      this.navigateToPage('generator');
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => this.nextSlide());
     }
     
-    // Ctrl/Cmd + S = Scanner öffnen
-    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-      e.preventDefault();
-      this.navigateToPage('scanner');
+    if (skipBtn) {
+        skipBtn.addEventListener('click', () => this.skipOnboarding());
     }
     
-    // Ctrl/Cmd + H = History/Verlauf öffnen
-    if ((e.ctrlKey || e.metaKey) && e.key === 'h') {
-      e.preventDefault();
-      this.navigateToPage('history');
+    // Onboarding Dots Navigation
+    document.querySelectorAll('.dot').forEach((dot, index) => {
+        dot.addEventListener('click', () => this.goToSlide(index));
+    });
+
+    // Bottom Navigation Event Listeners
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const page = item.dataset.page;
+            this.navigateToPage(page);
+        });
+    });
+
+    // QR Code Generator Event Listeners
+    const generateBtn = document.getElementById('generate-btn');
+    const qrContent = document.getElementById('qr-content');
+    const qrType = document.getElementById('qr-type');
+    const qrColor = document.getElementById('qr-color');
+    const qrBgColor = document.getElementById('qr-bg-color');
+    const downloadBtn = document.getElementById('download-btn');
+    
+    if (generateBtn) {
+        generateBtn.addEventListener('click', () => this.generateQRCode());
     }
     
-    // Ctrl/Cmd + D = Dashboard öffnen
-    if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
-      e.preventDefault();
-      this.navigateToPage('dashboard');
+    if (qrContent) {
+        qrContent.addEventListener('input', () => this.updatePreview());
+        // Enter-Taste für schnelle Generierung
+        qrContent.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                this.generateQRCode();
+            }
+        });
     }
     
-    // Escape = Scanner stoppen (falls aktiv)
-    if (e.key === 'Escape' && this.isScanning) {
-      this.stopScanner();
-    }
-  });
-
-  // Touch/Swipe Events für Mobile Navigation
-  let touchStartX = 0;
-  let touchEndX = 0;
-  
-  document.addEventListener('touchstart', (e) => {
-    touchStartX = e.changedTouches[0].screenX;
-  });
-  
-  document.addEventListener('touchend', (e) => {
-    touchEndX = e.changedTouches[0].screenX;
-    this.handleSwipeGesture();
-  });
-
-  // PWA Installation Event Listeners
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    this.deferredPrompt = e;
-    this.showInstallPrompt();
-  });
-  
-  window.addEventListener('appinstalled', () => {
-    console.log('PWA installed successfully');
-    this.showToast('App erfolgreich installiert!', 'success');
-  });
-
-  // Online/Offline Status
-  window.addEventListener('online', () => {
-    this.showToast('Verbindung wiederhergestellt', 'success');
-    this.isOnline = true;
-  });
-  
-  window.addEventListener('offline', () => {
-    this.showToast('Offline-Modus aktiv', 'info');
-    this.isOnline = false;
-  });
-
-  // Visibility Change (Tab wechseln)
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      // Tab ist nicht mehr sichtbar - Scanner pausieren falls aktiv
-      if (this.isScanning) {
-        this.pauseScanner();
-      }
-    } else {
-      // Tab ist wieder sichtbar - Scanner fortsetzen falls pausiert
-      if (this.scannerPaused) {
-        this.resumeScanner();
-      }
-    }
-  });
-
-  // Dynamic History Event Listeners (für später hinzugefügte Elemente)
-  document.addEventListener('click', (e) => {
-    // History Item Actions
-    if (e.target.classList.contains('history-copy-btn')) {
-      const content = e.target.dataset.content;
-      this.copyToClipboard(content);
+    if (qrType) {
+        qrType.addEventListener('change', () => {
+            this.updateContentPlaceholder();
+            this.updatePreview();
+        });
     }
     
-    if (e.target.classList.contains('history-regenerate-btn')) {
-      const content = e.target.dataset.content;
-      this.regenerateQRCode(content);
+    if (qrColor) {
+        qrColor.addEventListener('change', () => this.updatePreview());
     }
     
-    if (e.target.classList.contains('history-delete-btn')) {
-      const id = e.target.dataset.id;
-      if (confirm('Diesen Eintrag löschen?')) {
-        this.deleteHistoryItem(id);
-      }
+    if (qrBgColor) {
+        qrBgColor.addEventListener('change', () => this.updatePreview());
     }
     
-    if (e.target.classList.contains('history-share-btn')) {
-      const content = e.target.dataset.content;
-      this.shareContent(content);
-    }
-  });
-
-  // Resize Event für responsive Anpassungen
-  window.addEventListener('resize', () => {
-    clearTimeout(this.resizeTimeout);
-    this.resizeTimeout = setTimeout(() => {
-      this.handleResize();
-    }, 250);
-  });
-
-  // TEMPORÄRER TEST-BUTTON
-  const scannerPage = document.getElementById('scanner-page');
-  if (scannerPage) {
-    const testBtn = document.createElement('button');
-    testBtn.textContent = '🧪 Test Scan';
-    testBtn.className = 'btn btn--outline';
-    testBtn.onclick = () => this.testQRRecognition();
-    testBtn.style.margin = '1rem';
-    scannerPage.appendChild(testBtn);
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', () => this.downloadQRCode());
     }
 
-  // Paste Event für schnelles QR Code generieren
-  document.addEventListener('paste', (e) => {
-    if (this.currentPage === 'generator') {
-      const qrContent = document.getElementById('qr-content');
-      if (qrContent && document.activeElement !== qrContent) {
-        const pastedData = e.clipboardData.getData('text');
-        if (pastedData && pastedData.trim()) {
-          qrContent.value = pastedData.trim();
-          this.updatePreview();
-          qrContent.focus();
+    // QR Code Scanner Event Listeners - KORRIGIERT
+    const startScanner = document.getElementById('start-scanner');
+    const stopScanner = document.getElementById('stop-scanner');
+    const copyResult = document.getElementById('copy-result');
+    const fileInput = document.getElementById('file-input');
+    const uploadBtn = document.getElementById('upload-btn');
+    
+    if (startScanner) {
+        // Alle alten Event-Listener entfernen
+        startScanner.replaceWith(startScanner.cloneNode(true));
+        
+        // Neuen Event-Listener setzen
+        document.getElementById('start-scanner').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!this.isScanning) {
+                this.startScanner();
+            }
+        });
+    }
+    
+    if (stopScanner) {
+        stopScanner.addEventListener('click', () => this.stopScanner());
+    }
+    
+    if (copyResult) {
+        copyResult.addEventListener('click', () => this.copyResult());
+    }
+    
+    if (uploadBtn) {
+        uploadBtn.addEventListener('click', () => {
+            const fileInput = document.getElementById('file-input');
+            if (fileInput) fileInput.click();
+        });
+    }
+    
+    if (fileInput) {
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                this.scanFromFile(e.target.files[0]);
+            }
+        });
+    }
+
+    // History/Verlauf Event Listeners
+    const searchHistory = document.getElementById('search-history');
+    const clearHistory = document.getElementById('clear-history');
+    const exportHistory = document.getElementById('export-history');
+    const importHistory = document.getElementById('import-history');
+    const importFile = document.getElementById('import-file');
+    
+    if (searchHistory) {
+        searchHistory.addEventListener('input', (e) => {
+            this.filterHistory(e.target.value);
+        });
+        
+        // Suchfeld leeren mit Escape
+        searchHistory.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                e.target.value = '';
+                this.filterHistory('');
+            }
+        });
+    }
+    
+    if (clearHistory) {
+        clearHistory.addEventListener('click', () => {
+            if (confirm('Möchten Sie den gesamten Verlauf löschen? Diese Aktion kann nicht rückgängig gemacht werden.')) {
+                this.clearHistory();
+            }
+        });
+    }
+    
+    if (exportHistory) {
+        exportHistory.addEventListener('click', () => this.exportHistory());
+    }
+    
+    if (importHistory) {
+        importHistory.addEventListener('click', () => {
+            const fileInput = document.getElementById('import-file');
+            if (fileInput) fileInput.click();
+        });
+    }
+    
+    if (importFile) {
+        importFile.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                this.importHistory(e.target.files[0]);
+            }
+        });
+    }
+
+    // Dashboard Quick Actions
+    document.querySelectorAll('.action-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const action = card.dataset.action;
+            this.handleQuickAction(action);
+        });
+        
+        // Keyboard Navigation für Accessibility
+        card.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                const action = card.dataset.action;
+                this.handleQuickAction(action);
+            }
+        });
+    });
+
+    // Settings Event Listeners
+    const themeSelector = document.getElementById('theme-selector');
+    const notificationsToggle = document.getElementById('notifications-toggle');
+    const autoSaveToggle = document.getElementById('auto-save-toggle');
+    const resetSettings = document.getElementById('reset-settings');
+    
+    if (themeSelector) {
+        themeSelector.addEventListener('change', (e) => {
+            this.changeTheme(e.target.value);
+        });
+    }
+    
+    if (notificationsToggle) {
+        notificationsToggle.addEventListener('change', (e) => {
+            this.settings.notifications = e.target.checked;
+            this.saveSettings();
+        });
+    }
+    
+    if (autoSaveToggle) {
+        autoSaveToggle.addEventListener('change', (e) => {
+            this.settings.autoSave = e.target.checked;
+            this.saveSettings();
+        });
+    }
+    
+    if (resetSettings) {
+        resetSettings.addEventListener('click', () => {
+            if (confirm('Möchten Sie alle Einstellungen zurücksetzen?')) {
+                this.resetSettings();
+            }
+        });
+    }
+
+    // Global Keyboard Shortcuts
+    document.addEventListener('keydown', (e) => {
+        // Ctrl/Cmd + G = Generator öffnen
+        if ((e.ctrlKey || e.metaKey) && e.key === 'g') {
+            e.preventDefault();
+            this.navigateToPage('generator');
         }
-      }
-    }
-  });
+        
+        // Ctrl/Cmd + S = Scanner öffnen
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            this.navigateToPage('scanner');
+        }
+        
+        // Ctrl/Cmd + H = History/Verlauf öffnen
+        if ((e.ctrlKey || e.metaKey) && e.key === 'h') {
+            e.preventDefault();
+            this.navigateToPage('history');
+        }
+        
+        // Ctrl/Cmd + D = Dashboard öffnen
+        if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+            e.preventDefault();
+            this.navigateToPage('dashboard');
+        }
+        
+        // Escape = Scanner stoppen (falls aktiv)
+        if (e.key === 'Escape' && this.isScanning) {
+            this.stopScanner();
+        }
+    });
+
+    // Touch/Swipe Events für Mobile Navigation
+    let touchStartX = 0;
+    let touchEndX = 0;
+    
+    document.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+    });
+    
+    document.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        this.handleSwipeGesture();
+    });
+
+    // PWA Installation Event Listeners
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        this.deferredPrompt = e;
+        this.showInstallPrompt();
+    });
+    
+    window.addEventListener('appinstalled', () => {
+        console.log('PWA installed successfully');
+        this.showToast('App erfolgreich installiert!', 'success');
+    });
+
+    // Online/Offline Status
+    window.addEventListener('online', () => {
+        this.showToast('Verbindung wiederhergestellt', 'success');
+        this.isOnline = true;
+    });
+    
+    window.addEventListener('offline', () => {
+        this.showToast('Offline-Modus aktiv', 'info');
+        this.isOnline = false;
+    });
+
+    // Visibility Change (Tab wechseln)
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            // Tab ist nicht mehr sichtbar - Scanner pausieren falls aktiv
+            if (this.isScanning) {
+                this.pauseScanner();
+            }
+        } else {
+            // Tab ist wieder sichtbar - Scanner fortsetzen falls pausiert
+            if (this.scannerPaused) {
+                this.resumeScanner();
+            }
+        }
+    });
+
+    // Dynamic History Event Listeners (für später hinzugefügte Elemente)
+    document.addEventListener('click', (e) => {
+        // History Item Actions
+        if (e.target.classList.contains('history-copy-btn')) {
+            const content = e.target.dataset.content;
+            this.copyToClipboard(content);
+        }
+        
+        if (e.target.classList.contains('history-regenerate-btn')) {
+            const content = e.target.dataset.content;
+            this.regenerateQRCode(content);
+        }
+        
+        if (e.target.classList.contains('history-delete-btn')) {
+            const id = e.target.dataset.id;
+            if (confirm('Diesen Eintrag löschen?')) {
+                this.deleteHistoryItem(id);
+            }
+        }
+        
+        if (e.target.classList.contains('history-share-btn')) {
+            const content = e.target.dataset.content;
+            this.shareContent(content);
+        }
+    });
+
+    // Resize Event für responsive Anpassungen
+    window.addEventListener('resize', () => {
+        clearTimeout(this.resizeTimeout);
+        this.resizeTimeout = setTimeout(() => {
+            this.handleResize();
+        }, 250);
+    });
+
+    // Paste Event für schnelles QR Code generieren
+    document.addEventListener('paste', (e) => {
+        if (this.currentPage === 'generator') {
+            const qrContent = document.getElementById('qr-content');
+            if (qrContent && document.activeElement !== qrContent) {
+                const pastedData = e.clipboardData.getData('text');
+                if (pastedData && pastedData.trim()) {
+                    qrContent.value = pastedData.trim();
+                    this.updatePreview();
+                    qrContent.focus();
+                }
+            }
+        }
+    });
 }
 
 // (temporär für Testing)
@@ -1228,24 +1226,38 @@ createTempCanvas(sourceCanvas) {
     try {
         console.log('📷 Starte QR Scanner...');
         
+        // SOFORTIGE UI-Aktualisierung
+        this.isScanning = true;
+        this.updateScannerUI();
+        
+        // Prüfen ob bereits ein Scanner läuft
+        if (this.html5QrCode) {
+            try {
+                await this.html5QrCode.stop();
+                await this.html5QrCode.clear();
+            } catch (e) {
+                console.log('Alter Scanner cleanup:', e);
+            }
+        }
+        
         // Prüfen ob Html5Qrcode verfügbar ist
         if (!window.Html5Qrcode) {
             throw new Error('Html5Qrcode Library nicht verfügbar');
         }
 
-        // Scanner-Container finden
+        // Scanner-Container prüfen
         const scannerContainer = document.getElementById('scanner-container');
         if (!scannerContainer) {
             throw new Error('Scanner-Container nicht gefunden');
         }
 
-        // Scanner bereits aktiv?
-        if (this.html5QrCode && this.isScanning) {
-            console.log('Scanner bereits aktiv');
-            return;
+        // Container leeren und Placeholder verstecken
+        const placeholder = scannerContainer.querySelector('.scanner-placeholder');
+        if (placeholder) {
+            placeholder.style.display = 'none';
         }
 
-        // Html5QrCode Instanz erstellen
+        // Neue Html5QrCode Instanz
         this.html5QrCode = new Html5Qrcode("scanner-container");
 
         // Scanner-Konfiguration
@@ -1254,16 +1266,14 @@ createTempCanvas(sourceCanvas) {
             qrbox: { width: 250, height: 250 },
             aspectRatio: 1.0,
             showTorchButtonIfSupported: true,
-            showZoomSliderIfSupported: true,
-            defaultZoomValueIfSupported: 2,
             experimentalFeatures: {
                 useBarCodeDetectorIfSupported: true
             }
         };
 
-        // Scanner starten mit korrigierter Error-Behandlung
+        // Scanner starten
         await this.html5QrCode.start(
-            { facingMode: "environment" }, // Rückkamera bevorzugen
+            { facingMode: "environment" },
             config,
             // SUCCESS CALLBACK
             (decodedText, decodedResult) => {
@@ -1272,41 +1282,23 @@ createTempCanvas(sourceCanvas) {
             },
             // ERROR CALLBACK - KORRIGIERT
             (errorMessage) => {
-                // Sichere Error-Behandlung
-                if (errorMessage !== null && errorMessage !== undefined) {
-                    // Als String behandeln
-                    const errorStr = String(errorMessage);
-                    
-                    // Normale "Kein QR gefunden" Fehler ignorieren
-                    const normalErrors = [
-                        'No MultiFormat Readers',
-                        'NotFoundException', 
-                        'NotFoundError',
-                        'No QR code found',
-                        'QR code parse error'
-                    ];
-                    
-                    const isNormalError = normalErrors.some(err => 
-                        errorStr.includes(err)
-                    );
-                    
-                    if (!isNormalError) {
-                        console.log('Scanner Fehler:', errorStr);
-                    }
-                } else {
-                    // errorMessage ist null/undefined - ignorieren
-                    // (Das ist normal bei jedem Frame ohne QR Code)
+                // Normale Scan-Fehler ignorieren
+                if (errorMessage && !errorMessage.includes('No MultiFormat Readers')) {
+                    console.log('Scanner Fehler:', errorMessage);
                 }
             }
         );
 
-        this.isScanning = true;
-        this.updateScannerUI();
         console.log('✅ Scanner erfolgreich gestartet');
-        this.showToast('Scanner aktiv - Halten Sie einen QR Code vor die Kamera', 'success');
+        this.showToast('Scanner aktiv - QR Code vor die Kamera halten', 'success');
 
     } catch (error) {
         console.error('❌ Scanner-Start fehlgeschlagen:', error);
+        
+        // UI zurücksetzen bei Fehler
+        this.isScanning = false;
+        this.updateScannerUI();
+        
         this.showToast(`Scanner-Fehler: ${error.message}`, 'error');
         this.handleScannerError(error);
     }
@@ -1343,13 +1335,36 @@ handleScannerError(error) {
 updateScannerUI() {
     const startBtn = document.getElementById('start-scanner');
     const stopBtn = document.getElementById('stop-scanner');
+    const placeholder = document.querySelector('.scanner-placeholder');
     
     if (this.isScanning) {
-        if (startBtn) startBtn.textContent = 'Scanner läuft...';
-        if (stopBtn) stopBtn.style.display = 'inline-block';
+        // Scanner läuft
+        if (startBtn) {
+            startBtn.textContent = 'Scanner läuft...';
+            startBtn.disabled = true;
+            startBtn.style.display = 'none';
+        }
+        if (stopBtn) {
+            stopBtn.style.display = 'inline-block';
+            stopBtn.classList.remove('hidden');
+        }
+        if (placeholder) {
+            placeholder.style.display = 'none';
+        }
     } else {
-        if (startBtn) startBtn.textContent = 'Scanner starten';
-        if (stopBtn) stopBtn.style.display = 'none';
+        // Scanner gestoppt
+        if (startBtn) {
+            startBtn.textContent = 'Scanner starten';
+            startBtn.disabled = false;
+            startBtn.style.display = 'inline-block';
+        }
+        if (stopBtn) {
+            stopBtn.style.display = 'none';
+            stopBtn.classList.add('hidden');
+        }
+        if (placeholder) {
+            placeholder.style.display = 'block';
+        }
     }
 }
 
@@ -1469,28 +1484,24 @@ showCameraPermissionHelp() {
   }, 10000);
 }
 
-// Vereinfachte stopScanner Methode
 async stopScanner() {
-  console.log('🛑 Stoppe Scanner...');
-  
-  if (this.html5QrCode && this.isScanning) {
+    console.log('🛑 Stoppe Scanner...');
+    
     try {
-      await this.html5QrCode.stop();
-      await this.html5QrCode.clear();
-      console.log('✅ Scanner gestoppt');
+        if (this.html5QrCode && this.isScanning) {
+            await this.html5QrCode.stop();
+            await this.html5QrCode.clear();
+        }
     } catch (error) {
-      console.warn('Warnung beim Scanner stoppen:', error);
+        console.warn('Scanner-Stop Warnung:', error);
+    } finally {
+        // UI immer zurücksetzen
+        this.isScanning = false;
+        this.html5QrCode = null;
+        this.updateScannerUI();
     }
-  }
-  
-  this.isScanning = false;
-  
-  // UI updaten
-  const startBtn = document.getElementById('start-scanner');
-  const stopBtn = document.getElementById('stop-scanner');
-  
-  if (startBtn) startBtn.style.display = 'block';
-  if (stopBtn) stopBtn.style.display = 'none';
+    
+    console.log('✅ Scanner gestoppt');
 }
 
 handleScanSuccess(decodedText, decodedResult) {
@@ -2135,21 +2146,83 @@ openGenerator() {
 }
 
 // QR Scanner starten
-startScanner() {
-    // Zur Scanner-Seite wechseln
-    this.showPage('scanner');
-    
-    // Scanner automatisch starten nach kurzer Verzögerung
-    setTimeout(() => {
-        const startScannerBtn = document.getElementById('start-scanner');
-        if (startScannerBtn && !startScannerBtn.disabled) {
-            startScannerBtn.click();
+async startScanner() {
+    try {
+        console.log('📷 Starte QR Scanner...');
+        
+        // SOFORTIGE UI-Aktualisierung
+        this.isScanning = true;
+        this.updateScannerUI();
+        
+        // Prüfen ob bereits ein Scanner läuft
+        if (this.html5QrCode) {
+            try {
+                await this.html5QrCode.stop();
+                await this.html5QrCode.clear();
+            } catch (e) {
+                console.log('Alter Scanner cleanup:', e);
+            }
         }
-    }, 500);
-    
-    // Toast-Feedback
-    if (typeof this.showToast === 'function') {
-        this.showToast('Scanner wird gestartet...', 'info', 2000);
+        
+        // Prüfen ob Html5Qrcode verfügbar ist
+        if (!window.Html5Qrcode) {
+            throw new Error('Html5Qrcode Library nicht verfügbar');
+        }
+
+        // Scanner-Container prüfen
+        const scannerContainer = document.getElementById('scanner-container');
+        if (!scannerContainer) {
+            throw new Error('Scanner-Container nicht gefunden');
+        }
+
+        // Container leeren
+        const placeholder = scannerContainer.querySelector('.scanner-placeholder');
+        if (placeholder) {
+            placeholder.style.display = 'none';
+        }
+
+        // Neue Html5QrCode Instanz
+        this.html5QrCode = new Html5Qrcode("scanner-container");
+
+        // Scanner-Konfiguration
+        const config = {
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0,
+            showTorchButtonIfSupported: true,
+            experimentalFeatures: {
+                useBarCodeDetectorIfSupported: true
+            }
+        };
+
+        // Scanner starten
+        await this.html5QrCode.start(
+            { facingMode: "environment" },
+            config,
+            (decodedText, decodedResult) => {
+                console.log('✅ QR Code erkannt:', decodedText);
+                this.onScanSuccess(decodedText, decodedResult);
+            },
+            (errorMessage) => {
+                // Normale Scan-Fehler ignorieren
+                if (errorMessage && !errorMessage.includes('No MultiFormat Readers')) {
+                    console.log('Scanner Fehler:', errorMessage);
+                }
+            }
+        );
+
+        console.log('✅ Scanner erfolgreich gestartet');
+        this.showToast('Scanner aktiv - QR Code vor die Kamera halten', 'success');
+
+    } catch (error) {
+        console.error('❌ Scanner-Start fehlgeschlagen:', error);
+        
+        // UI zurücksetzen bei Fehler
+        this.isScanning = false;
+        this.updateScannerUI();
+        
+        this.showToast(`Scanner-Fehler: ${error.message}`, 'error');
+        this.handleScannerError(error);
     }
 }
 

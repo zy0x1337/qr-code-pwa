@@ -2088,12 +2088,39 @@ handleDashboardAction(action) {
     }
 }
 
+// Seiten-Navigation Methode
+showPage(pageId) {
+    // Alle Seiten ausblenden
+    const pages = document.querySelectorAll('.page');
+    pages.forEach(page => {
+        page.classList.remove('active');
+    });
+    
+    // Gewünschte Seite anzeigen
+    const targetPage = document.getElementById(`${pageId}-page`);
+    if (targetPage) {
+        targetPage.classList.add('active');
+    }
+    
+    // Navigation-Items aktualisieren
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+        item.classList.remove('active');
+        if (item.dataset.page === pageId) {
+            item.classList.add('active');
+        }
+    });
+    
+    // URL aktualisieren
+    window.location.hash = pageId;
+}
+
 // QR Generator öffnen
 openGenerator() {
     // Zur Generator-Seite wechseln
     this.showPage('generator');
     
-    // Optional: Focus auf Inhalt-Textarea setzen
+    // Focus auf Inhalt-Textarea setzen
     setTimeout(() => {
         const contentInput = document.getElementById('qr-content');
         if (contentInput) {
@@ -2139,7 +2166,7 @@ showTemplates() {
         }
     }, 300);
     
-    // Template-Modal erstellen falls nicht vorhanden
+    // Template-Modal erstellen
     this.createTemplateModal();
     
     // Toast-Feedback
@@ -2153,7 +2180,7 @@ showHistory() {
     // Zur History-Seite wechseln
     this.showPage('history');
     
-    // Optional: History aktualisieren
+    // History aktualisieren
     this.refreshHistory();
     
     // Toast-Feedback
@@ -3828,7 +3855,7 @@ updateMainDownloadButton() {
         downloadText.textContent = `Als ${formatName} herunterladen`;
     }
     
-    // Icon je nach Format anpassen (optional)
+    // Icon je nach Format anpassen
     this.updateDownloadIcon();
 }
 

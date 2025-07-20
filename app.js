@@ -3,7 +3,7 @@ class QRProApp {
   constructor() {
     this.currentPage = 'dashboard';
     this.currentSlide = 0;
-    this.userTier = 'free'; // 'free', 'premium', 'trial'
+    this.userTier = 'premium'; // 'free', 'premium', 'trial'
     this.trialDaysLeft = 14;
     this.dailyQRCount = 0;
     this.dailyLimit = 10;

@@ -4362,6 +4362,46 @@ END:VCARD`,
   }
 }
 
+/* ---------- Template-Modal Handling ---------- */
+(function initTemplateModal() {
+  const modal        = document.getElementById('template-modal');
+  const closeBtn     = modal?.querySelector('[data-close-template]');
+
+  if (!modal) return; // Modal existiert nicht
+
+  // Öffnen – Quick-Action + Generator-Button
+  document.querySelectorAll('[data-action="show-templates"], [data-feature="templates"]')
+    .forEach(btn => btn.addEventListener('click', () => openTemplateModal()));
+
+  // Schließen über „×“
+  closeBtn?.addEventListener('click', closeTemplateModal);
+
+  // Schließen bei Klick außerhalb des Inhalts
+  modal.addEventListener('click', e => {
+    if (e.target === modal) closeTemplateModal();
+  });
+
+  // Schließen per ESC
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && modal.classList.contains('open')) {
+      closeTemplateModal();
+    }
+  });
+
+  /* ---------- Helper ---------- */
+  function openTemplateModal() {
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+    // Fokus auf Modal für Accessibility
+    modal.querySelector('.modal-content')?.focus();
+  }
+
+  function closeTemplateModal() {
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+})();
+
 /* Initialisierung nach QRCustomization-Setup */
 document.addEventListener('DOMContentLoaded', () => {
   /* warten bis qrCustomization existiert */

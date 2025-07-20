@@ -733,24 +733,6 @@
                     </nav>
                 </div>
 
-                <!-- Quick Stats -->
-                <div class="stats-section">
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <div class="stat-value" id="total-templates">24</div>
-                            <div class="stat-label">Templates</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value" id="free-templates">18</div>
-                            <div class="stat-label">Kostenlos</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value" id="premium-templates">6</div>
-                            <div class="stat-label">Premium</div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Quick Actions -->
                 <div class="quick-actions-section">
                     <h3 class="section-title">Schnellzugriff</h3>
@@ -803,30 +785,45 @@
   </div>
                     
                     <div class="toolbar-section">
-    <div class="view-toggle">
-      <button class="view-btn active" data-view="grid">
-        <i class="fas fa-th"></i>
-      </button>
-      <button class="view-btn" data-view="list">
-        <i class="fas fa-list"></i>
-      </button>
-    </div>
+                        <!-- View Toggle -->
+                        <div class="view-toggle">
+                            <button class="view-btn active" data-view="grid" title="Rasteransicht">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="7" height="7"/>
+                                    <rect x="14" y="3" width="7" height="7"/>
+                                    <rect x="3" y="14" width="7" height="7"/>
+                                    <rect x="14" y="14" width="7" height="7"/>
+                                </svg>
+                            </button>
+                            <button class="view-btn" data-view="list" title="Listenansicht">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="8" y1="6" x2="21" y2="6"/>
+                                    <line x1="8" y1="12" x2="21" y2="12"/>
+                                    <line x1="8" y1="18" x2="21" y2="18"/>
+                                    <line x1="3" y1="6" x2="3.01" y2="6"/>
+                                    <line x1="3" y1="12" x2="3.01" y2="12"/>
+                                    <line x1="3" y1="18" x2="3.01" y2="18"/>
+                                </svg>
+                            </button>
+                        </div>
 
                         <!-- Filter & Sort -->
                         <div class="filter-controls">
-      <select class="filter-select">
-        <option>Alle Kategorien</option>
-        <option>Business</option>
-        <option>Event</option>
-      </select>
-      <select class="sort-select">
-        <option>Neueste</option>
-        <option>Beliebteste</option>
-        <option>A-Z</option>
-      </select>
-    </div>
-  </div>
-</div>
+                            <select class="filter-select" id="template-filter">
+                                <option value="all">Alle Templates</option>
+                                <option value="recent">Zuletzt verwendet</option>
+                                <option value="popular">Beliebt</option>
+                            </select>
+                            
+                            <select class="sort-select" id="template-sort">
+                                <option value="name">Nach Name</option>
+                                <option value="popular">Nach Beliebtheit</option>
+                                <option value="newest">Neueste zuerst</option>
+                                <option value="type">Nach Typ</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Templates Grid -->
                 <div class="templates-container">

@@ -494,6 +494,22 @@ class QRProApp {
     });
 }
 
+addEventHandler(element, event, handler) {
+    if (!element) return;
+    
+    element.addEventListener(event, handler);
+    
+    // Optional: Event Handler für Cleanup speichern
+    if (!this.eventHandlers) {
+        this.eventHandlers = new Map();
+    }
+    
+    if (!this.eventHandlers.has(element)) {
+        this.eventHandlers.set(element, []);
+    }
+    this.eventHandlers.get(element).push({ event, handler });
+}
+
 // (temporär für Testing)
 testQRRecognition() {
   console.log('🧪 Teste QR-Erkennung...');
@@ -2123,15 +2139,23 @@ clearContentSuggestions() {
 
 // Dashboard Schnellaktionen Setup
 setupDashboardActions() {
-    const quickActions = document.querySelectorAll('[data-action]');
+    console.log('🔧 Dashboard-Aktionen werden eingerichtet...');
     
-    quickActions.forEach(action => {
-        this.addEventHandler(action, 'click', (e) => {
+    const quickActions = document.querySelectorAll('[data-action]');
+    console.log(`📊 ${quickActions.length} Schnellaktions-Buttons gefunden`);
+    
+    quickActions.forEach((action, index) => {
+        console.log(`Button ${index + 1}:`, action.dataset.action);
+        
+        action.addEventListener('click', (e) => {
             e.preventDefault();
             const actionType = action.dataset.action;
+            console.log(`🚀 Aktion ausgeführt: ${actionType}`);
             this.handleQuickAction(actionType);
         });
     });
+    
+    console.log('✅ Dashboard-Aktionen erfolgreich eingerichtet');
 }
 
 // Seiten-Navigation Methode

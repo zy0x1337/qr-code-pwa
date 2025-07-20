@@ -665,15 +665,40 @@
         </main>
     </div>
 
-<div id="template-modal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>QR-Code-Templates</h2>
-      <button class="modal-close" data-close-template>×</button>
+<!-- Modal Wrapper -->
+<div id="template-modal">
+  <div class="tm-dialog">
+    <!-- Header -->
+    <div class="tm-header">
+      <h2 class="tm-title">
+        <svg><!-- icon --></svg>
+        Templates
+      </h2>
+      <button class="tm-close" aria-label="Schließen">✕</button>
     </div>
 
-    <div class="template-grid" id="template-grid">
-      <!-- Karten werden per JS gerendert -->
+    <!-- Body -->
+    <div class="tm-body">
+      <div class="tm-grid">
+        <!-- Template Cards werden per JS generiert -->
+        <div class="tm-card">
+          <img src="template1.jpg" alt="Template 1">
+          <div class="tm-card-footer">
+            <span>E-Commerce</span>
+            <span class="tm-chip">Neu</span>
+          </div>
+        </div>
+        <!-- … -->
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="tm-footer">
+      <button class="tm-btn tm-btn--secondary" id="tm-cancel">Abbrechen</button>
+      <button class="tm-btn tm-btn--primary"   id="tm-apply">
+        <svg><!-- check icon --></svg>
+        Template anwenden
+      </button>
     </div>
   </div>
 </div>

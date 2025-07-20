@@ -1318,23 +1318,60 @@ select.form-control {
   margin-top: var(--space-16);
 }
 
-.premium-downloads {
-  margin-top: var(--space-16);
-  padding-top: var(--space-16);
-  border-top: 1px solid var(--color-border);
-  text-align: center;
+.download-section .btn--primary {
+    margin-bottom: var(--space-16);
 }
 
-.premium-text {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  margin-bottom: var(--space-8);
+.format-downloads {
+    padding: var(--space-16);
+    background: var(--color-surface);
+    border: 1px solid var(--color-card-border);
+    border-radius: var(--radius-base);
 }
 
-.format-buttons {
-  display: flex;
-  gap: var(--space-8);
-  justify-content: center;
+.format-title {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    margin: 0 0 var(--space-12) 0;
+    text-align: center;
+}
+
+.format-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-8);
+}
+
+.format-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-12);
+    border: 1px solid var(--color-card-border);
+    border-radius: var(--radius-base);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-standard);
+}
+
+.format-btn:hover {
+    border-color: var(--color-primary);
+    background: rgba(var(--color-primary-rgb), 0.05);
+    transform: translateY(-1px);
+}
+
+.format-btn svg {
+    color: var(--color-text-secondary);
+    transition: color var(--duration-fast) var(--ease-standard);
+}
+
+.format-btn:hover svg {
+    color: var(--color-primary);
 }
 
 /* Scanner */
@@ -4688,4 +4725,37 @@ input:checked + .toggle-slider:before {
 .suggestion-btn:hover {
     border-color: var(--color-primary);
     background: rgba(var(--color-primary-rgb), 0.05);
+}
+
+/* Kompakte erweiterte Funktionen */
+.advanced-features {
+    margin-top: var(--space-16);
+    padding: var(--space-16);
+    background: var(--color-surface);
+    border: 1px solid var(--color-card-border);
+    border-radius: var(--radius-base);
+}
+
+.advanced-features h4 {
+    font-size: var(--font-size-base);
+    margin-bottom: var(--space-12);
+}
+
+.feature-options {
+    display: flex;
+    gap: var(--space-8);
+}
+
+.feature-options .btn {
+    flex: 1;
+    padding: var(--space-8) var(--space-12);
+    font-size: var(--font-size-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+}
+
+.feature-options .btn svg {
+    width: 16px;
+    height: 16px;
 }

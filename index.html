@@ -295,124 +295,175 @@
             </div>
 
             <!-- Generator Page -->
-            <div id="generator-page" class="page">
-                <div class="page-header">
-                    <h1>QR Code Generator</h1>
-                    <p>Erstelle professionelle QR Codes</p>
+<div id="generator-page" class="page">
+    <div class="page-header">
+        <h1>QR Code Generator</h1>
+        <p>Erstelle professionelle QR Codes</p>
+    </div>
+
+    <div class="generator-container">
+        <div class="generator-input">
+            <div class="input-section">
+                <div class="form-group">
+                    <label class="form-label">QR Code Typ</label>
+                    <select id="qr-type" class="form-control">
+                        <option value="url">Website/URL</option>
+                        <option value="text">Einfacher Text</option>
+                        <option value="email">E-Mail</option>
+                        <option value="phone">Telefon</option>
+                        <option value="sms">SMS</option>
+                        <option value="wifi">WiFi</option>
+                        <option value="vcard">Visitenkarte</option>
+                    </select>
                 </div>
 
-                <div class="generator-container">
-                    <div class="generator-input">
-                        <div class="input-section">
-                            <div class="form-group">
-                                <label class="form-label">QR Code Typ</label>
-                                <select id="qr-type" class="form-control">
-    <option value="url">Website/URL</option>
-    <option value="text">Einfacher Text</option>
-    <option value="email">E-Mail</option>
-    <option value="phone">Telefon</option>
-    <option value="sms">SMS</option>
-    <option value="wifi">WiFi</option>
-    <option value="vcard">Visitenkarte</option>
-</select>
-                            </div>
+                <div class="form-group">
+                    <label class="form-label" for="qr-content">Inhalt</label>
+                    <textarea id="qr-content" class="form-control" rows="4" placeholder="Geben Sie den Inhalt für Ihren QR Code ein..."></textarea>
+                    <div class="input-helper">
+                        <div class="helper-suggestions" id="content-suggestions"></div>
+                    </div>
+                </div>
 
-                            <div class="form-group">
-                                <label class="form-label" for="qr-content">Inhalt</label>
-                                <textarea id="qr-content" class="form-control" rows="4" placeholder="Geben Sie den Inhalt für Ihren QR Code ein..."></textarea>
-                                <div class="input-helper">
-                                    <div class="helper-suggestions" id="content-suggestions"></div>
+                <div class="customization-section">
+                    <h3>Anpassung</h3>
+                    <div class="custom-grid">
+                        <div class="form-group">
+                            <label class="form-label">Farbe</label>
+                            <div class="color-picker">
+                                <input type="color" id="qr-color" value="#000000">
+                                <div class="color-presets">
+                                    <button class="color-preset" data-color="#000000" style="background: #000000"></button>
+                                    <button class="color-preset" data-color="#6366f1" style="background: #6366f1"></button>
+                                    <button class="color-preset" data-color="#ef4444" style="background: #ef4444"></button>
+                                    <button class="color-preset" data-color="#10b981" style="background: #10b981"></button>
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="customization-section">
-                                <h3>Anpassung</h3>
-                                <div class="custom-grid">
-                                    <div class="form-group">
-                                        <label class="form-label">Farbe</label>
-                                        <div class="color-picker">
-                                            <input type="color" id="qr-color" value="#000000">
-                                            <div class="color-presets">
-                                                <button class="color-preset" data-color="#000000" style="background: #000000"></button>
-                                                <button class="color-preset" data-color="#6366f1" style="background: #6366f1"></button>
-                                                <button class="color-preset" data-color="#ef4444" style="background: #ef4444"></button>
-                                                <button class="color-preset" data-color="#10b981" style="background: #10b981"></button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group" id="bg-color-container">
-    <label class="form-label">Hintergrundfarbe</label>
-    <!-- Verstecktes Input für Kompatibilität -->
-    <input type="color" id="qr-bg-color" value="#ffffff" style="display: none;">
-</div>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">Größe</label>
-                                        <select id="qr-size" class="form-control">
-    <option value="200">Klein (200px)</option>
-    <option value="300" selected>Mittel (300px)</option>
-    <option value="500">Groß (500px)</option>
-    <option value="800">Sehr groß (800px)</option>
-</select>
-                                    </div>
-                                </div>
-                                
-                                <div class="advanced-features">
-    <h4>Erweiterte Funktionen</h4>
-    <div class="feature-options">
-        <button class="btn btn--outline" data-feature="logo">
-            <svg>...</svg>
-            Logo hinzufügen
-        </button>
-        <button class="btn btn--outline" data-feature="templates">
-            <svg>...</svg>
-            Templates verwenden
-        </button>
-    </div>
-</div>
-
-                            <div class="generator-actions">
-                                <button id="generate-btn" class="btn btn--primary btn--full-width">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
-                                        <rect x="7" y="7" width="3" height="3" fill="currentColor"/>
-                                        <rect x="14" y="7" width="3" height="3" fill="currentColor"/>
-                                        <rect x="7" y="14" width="3" height="3" fill="currentColor"/>
-                                        <rect x="14" y="14" width="3" height="3" fill="currentColor"/>
-                                    </svg>
-                                    QR Code generieren
-                                </button>
-                            </div>
+                        <div class="form-group" id="bg-color-container">
+                            <label class="form-label">Hintergrundfarbe</label>
+                            <input type="color" id="qr-bg-color" value="#ffffff" style="display: none;">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Größe</label>
+                            <select id="qr-size" class="form-control">
+                                <option value="200">Klein (200px)</option>
+                                <option value="300" selected>Mittel (300px)</option>
+                                <option value="500">Groß (500px)</option>
+                                <option value="800">Sehr groß (800px)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="advanced-features">
+                        <h4>Erweiterte Funktionen</h4>
+                        <div class="feature-options">
+                            <button class="btn btn--sm btn--outline" data-feature="logo">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="11" width="18" height="10" rx="2" ry="2"/>
+                                    <circle cx="12" cy="16" r="1"/>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                </svg>
+                                Logo hinzufügen
+                            </button>
+                            <button class="btn btn--sm btn--outline" data-feature="templates">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="7" height="7"/>
+                                    <rect x="14" y="3" width="7" height="7"/>
+                                    <rect x="3" y="14" width="7" height="7"/>
+                                    <rect x="14" y="14" width="7" height="7"/>
+                                </svg>
+                                Templates verwenden
+                            </button>
                         </div>
                     </div>
 
-                    <div class="generator-preview">
-                        <div class="preview-container">
-                            <h3>Vorschau</h3>
-                            <div class="qr-preview" id="qr-preview">
-                                <div class="preview-placeholder">
-                                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
-                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
-                                        <rect x="7" y="7" width="3" height="3" fill="currentColor"/>
-                                        <rect x="14" y="7" width="3" height="3" fill="currentColor"/>
-                                        <rect x="7" y="14" width="3" height="3" fill="currentColor"/>
-                                        <rect x="14" y="14" width="3" height="3" fill="currentColor"/>
-                                    </svg>
-                                    <p>QR Code Vorschau</p>
-                                </div>
-                            </div>
-                            
-                            <div class="download-section" id="download-section">
-    <button id="download-btn" class="btn btn--secondary btn--full-width">
-        Als PNG herunterladen
-    </button>
-    <div class="additional-downloads">
-        <p class="format-text">Weitere Formate verfügbar:</p>
-        <div class="format-buttons">
-            <button class="btn btn--sm btn--outline" id="download-svg">SVG</button>
-            <button class="btn btn--sm btn--outline" id="download-pdf">PDF</button>
-            <button class="btn btn--sm btn--outline" id="download-eps">EPS</button>
+                    <div class="generator-actions">
+                        <button id="generate-btn" class="btn btn--primary btn--full-width">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                                <rect x="7" y="7" width="3" height="3" fill="currentColor"/>
+                                <rect x="14" y="7" width="3" height="3" fill="currentColor"/>
+                                <rect x="7" y="14" width="3" height="3" fill="currentColor"/>
+                                <rect x="14" y="14" width="3" height="3" fill="currentColor"/>
+                            </svg>
+                            QR Code generieren
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="generator-preview">
+            <div class="preview-container">
+                <h3>Vorschau</h3>
+                <div class="qr-preview" id="qr-preview">
+                    <div class="preview-placeholder">
+                        <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                            <rect x="7" y="7" width="3" height="3" fill="currentColor"/>
+                            <rect x="14" y="7" width="3" height="3" fill="currentColor"/>
+                            <rect x="7" y="14" width="3" height="3" fill="currentColor"/>
+                            <rect x="14" y="14" width="3" height="3" fill="currentColor"/>
+                        </svg>
+                        <p>QR Code Vorschau</p>
+                    </div>
+                </div>
+                
+                <div class="download-section" id="download-section">
+                    <button id="download-btn" class="btn btn--primary btn--full-width">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7,10 12,15 17,10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Als PNG herunterladen
+                    </button>
+                    
+                    <div class="format-downloads">
+                        <p class="format-title">Alle verfügbaren Formate:</p>
+                        <div class="format-grid">
+                            <button class="format-btn" id="download-png">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                                    <polyline points="21,15 16,10 5,21"/>
+                                </svg>
+                                PNG
+                            </button>
+                            <button class="format-btn" id="download-jpg">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                                    <polyline points="14,2 14,8 20,8"/>
+                                    <circle cx="10" cy="12" r="2"/>
+                                    <path d="M9 17c-1 0-2-1-2-2"/>
+                                </svg>
+                                JPG
+                            </button>
+                            <button class="format-btn" id="download-svg">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5"/>
+                                    <line x1="12" y1="8" x2="12" y2="16"/>
+                                    <line x1="8" y1="12" x2="16" y2="12"/>
+                                </svg>
+                                SVG
+                            </button>
+                            <button class="format-btn" id="download-pdf">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14,2 14,8 20,8"/>
+                                    <line x1="16" y1="13" x2="8" y2="13"/>
+                                    <line x1="16" y1="17" x2="8" y2="17"/>
+                                    <polyline points="10,9 9,9 8,9"/>
+                                </svg>
+                                PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

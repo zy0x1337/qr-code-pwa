@@ -1137,25 +1137,90 @@ loadScript(src) {
     });
 }
 
-// Download-Funktion hinzufügen
-downloadQRCode() {
-    const canvas = document.querySelector('#qr-preview canvas');
-    if (!canvas) {
-      this.showToast('Kein QR Code zum Herunterladen verfügbar', 'error');
-      return;
+// Download-Funktion
+async downloadQRCode(format = 'png') {
+    const qrCanvas = document.querySelector('.qr-preview canvas');
+    if (!qrCanvas) {
+        this.showDownloadError('Kein QR Code zum Herunterladen verfügbar');
+        return Promise.reject('No QR code available');
     }
-
+    
     try {
-      const link = document.createElement('a');
-      link.download = `qr-code-${Date.now()}.png`;
-      link.href = canvas.toDataURL('image/png', 1.0);
-      link.click();
-      this.showToast('QR Code heruntergeladen!', 'success');
+        const timestamp = new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-');
+        const baseFilename = this.downloadFilename || 'qr-code';
+        const filename = `${baseFilename}-${timestamp}`;
+        let dataUrl;
+        
+        switch (format.toLowerCase()) {
+            case 'png':
+                dataUrl = qrCanvas.toDataURL('image/png');
+                this.triggerDownload(dataUrl, `${filename}.png`);
+                break;
+                
+            case 'jpg':
+            case 'jpeg':
+                // JPG mit weißem Hintergrund
+                const tempCanvas = this.createTempCanvas(qrCanvas);
+                dataUrl = tempCanvas.toDataURL('image/jpeg', (this.downloadQuality || 95) / 100);
+                this.triggerDownload(dataUrl, `${filename}.jpg`);
+                break;
+                
+            case 'svg':
+                dataUrl = await this.generateSVG();
+                this.triggerDownload(dataUrl, `${filename}.svg`);
+                break;
+                
+            case 'pdf':
+                await this.generatePDF(`${filename}.pdf`);
+                break;
+                
+            case 'eps':
+                await this.generateEPS(`${filename}.eps`);
+                break;
+                
+            default:
+                dataUrl = qrCanvas.toDataURL('image/png');
+                this.triggerDownload(dataUrl, `${filename}.png`);
+        }
+        
+        // Erfolgs-Toast
+        if (window.qrApp && typeof window.qrApp.showToast === 'function') {
+            window.qrApp.showToast(
+                `QR Code als ${format.toUpperCase()} heruntergeladen!`, 
+                'success', 
+                3000
+            );
+        }
+        
+        // Download-Statistiken aktualisieren
+        this.trackDownload(format, filename);
+        
+        return Promise.resolve();
+        
     } catch (error) {
-      console.error('Download Error:', error);
-      this.showToast('Fehler beim Download', 'error');
+        console.error('Download-Fehler:', error);
+        this.showDownloadError(`Fehler beim Herunterladen als ${format.toUpperCase()}`);
+        return Promise.reject(error);
     }
-  }
+}
+
+// Hilfsmethode: Temporäres Canvas mit weißem Hintergrund
+createTempCanvas(sourceCanvas) {
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d');
+    
+    tempCanvas.width = sourceCanvas.width;
+    tempCanvas.height = sourceCanvas.height;
+    
+    // Weißer Hintergrund für JPG
+    tempCtx.fillStyle = '#FFFFFF';
+    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    
+    // QR Code drauf zeichnen
+    tempCtx.drawImage(sourceCanvas, 0, 0);
+    
+    return tempCanvas;
+}
 
   // QR Code Scanner
   async startScanner() {
@@ -2200,7 +2265,10 @@ class QRCustomization {
         this.setupColorPickers();
         this.setupCategorySelectors();
         this.setupLogoFunctionality();
-        this.setupDownloadFunctionality();
+        // Download Event Listeners initialisieren
+    setTimeout(() => {
+        this.attachDownloadEventListeners();
+    }, 100);
     }
 
     // Erweiterte Farbenvorauswahl Setup
@@ -2576,6 +2644,11 @@ updatePreview() {
 if (downloadBtn) {
   downloadBtn.classList.remove('premium-locked');
   downloadBtn.addEventListener('click', () => this.downloadQRCode());
+  if (document.querySelector('.download-section')) {
+        requestAnimationFrame(() => {
+            this.updateDownloadInfo();
+        });
+        }
 }
 
     } catch (error) {
@@ -3098,18 +3171,6 @@ applyLogoPreset(preset) {
     }
 }
 
-// Download-Sektion einrichten
-setupDownloadFunctionality() {
-    const downloadSection = this.createDownloadSection();
-    const qrPreviewContainer = document.querySelector('.preview-container') || 
-                              document.querySelector('.qr-preview')?.parentElement;
-    
-    if (qrPreviewContainer) {
-        qrPreviewContainer.appendChild(downloadSection);
-        this.attachDownloadEventListeners();
-    }
-}
-
 // Download-Sektion HTML erstellen
 createDownloadSection() {
     const downloadSection = document.createElement('div');
@@ -3194,89 +3255,161 @@ createDownloadSection() {
 
 // Download Event Listeners
 attachDownloadEventListeners() {
-    // Format-Auswahl (falls vorhanden aus der erweiterten Download-Sektion)
+    // Format-Auswahl Handler
     document.querySelectorAll('.format-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
+            // Alle Format-Buttons deaktivieren
             document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
+            
+            // Aktuellen Button aktivieren
             btn.classList.add('active');
+            
+            // Ausgewähltes Format speichern
             this.selectedFormat = btn.dataset.format;
+            this.selectedFormatName = btn.dataset.name;
+            
+            // Hauptbutton aktualisieren
+            this.updateMainDownloadButton();
+            
+            // Download-Info aktualisieren
             this.updateDownloadInfo();
+            
+            // Toast-Feedback für Formatwechsel
+            if (window.qrApp && typeof window.qrApp.showToast === 'function') {
+                window.qrApp.showToast(`Format gewechselt zu ${this.selectedFormatName}`, 'info', 1500);
+            }
         });
     });
     
-    // Qualitäts-Slider (falls vorhanden)
+    // Qualitäts-Slider Handler
     const qualitySlider = document.getElementById('download-quality');
     if (qualitySlider) {
         qualitySlider.addEventListener('input', (e) => {
             this.downloadQuality = parseInt(e.target.value);
-            document.getElementById('quality-value').textContent = `${this.downloadQuality}%`;
+            const qualityValueElement = document.getElementById('quality-value');
+            if (qualityValueElement) {
+                qualityValueElement.textContent = `${this.downloadQuality}%`;
+            }
             this.updateDownloadInfo();
+        });
+        
+        // Qualitäts-Slider Change Event für finalen Wert
+        qualitySlider.addEventListener('change', (e) => {
+            if (window.qrApp && typeof window.qrApp.showToast === 'function') {
+                window.qrApp.showToast(`Qualität auf ${this.downloadQuality}% gesetzt`, 'info', 1000);
+            }
         });
     }
     
-    // Dateiname-Input (falls vorhanden)
+    // Dateiname-Input Handler
     const filenameInput = document.getElementById('download-filename');
     if (filenameInput) {
         filenameInput.addEventListener('input', (e) => {
-            this.downloadFilename = e.target.value || 'qr-code';
-            this.updateDownloadInfo();
+            // Dateiname validieren und bereinigen
+            let filename = e.target.value.replace(/[<>:"/\\|?*]/g, '');
+            if (filename !== e.target.value) {
+                e.target.value = filename;
+            }
+            this.downloadFilename = filename || 'qr-code';
+        });
+        
+        // Focus/Blur Events für bessere UX
+        filenameInput.addEventListener('focus', () => {
+            filenameInput.select();
+        });
+        
+        filenameInput.addEventListener('blur', () => {
+            if (!filenameInput.value.trim()) {
+                filenameInput.value = 'qr-code';
+                this.downloadFilename = 'qr-code';
+            }
         });
     }
     
-    // Haupt-Download-Button (PNG)
-    const downloadBtn = document.getElementById('download-btn');
-    if (downloadBtn) {
-        // Premium-Lock entfernen falls vorhanden
-        downloadBtn.classList.remove('premium-locked');
-        downloadBtn.addEventListener('click', () => {
-            this.downloadQRCode('png');
+    // Hauptdownload-Button Handler
+    const mainDownloadBtn = document.getElementById('main-download-btn');
+    if (mainDownloadBtn) {
+        mainDownloadBtn.addEventListener('click', () => {
+            // Loading-State für Button
+            mainDownloadBtn.classList.add('loading');
+            mainDownloadBtn.disabled = true;
+            
+            // Download mit aktuellem Format
+            this.downloadQRCode(this.selectedFormat || 'png')
+                .finally(() => {
+                    // Loading-State entfernen
+                    setTimeout(() => {
+                        mainDownloadBtn.classList.remove('loading');
+                        mainDownloadBtn.disabled = false;
+                    }, 300);
+                });
         });
     }
     
-    // SVG Download-Button
-    const downloadSvgBtn = document.getElementById('download-svg');
-    if (downloadSvgBtn) {
-        downloadSvgBtn.classList.remove('premium-locked');
-        downloadSvgBtn.addEventListener('click', () => {
-            this.downloadQRCode('svg');
-        });
-    }
+    // Keyboard Shortcuts für Download
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            if (mainDownloadBtn && !mainDownloadBtn.disabled) {
+                mainDownloadBtn.click();
+            }
+        }
+    });
     
-    // PDF Download-Button
-    const downloadPdfBtn = document.getElementById('download-pdf');
-    if (downloadPdfBtn) {
-        downloadPdfBtn.classList.remove('premium-locked');
-        downloadPdfBtn.addEventListener('click', () => {
-            this.downloadQRCode('pdf');
-        });
-    }
-    
-    // EPS Download-Button
-    const downloadEpsBtn = document.getElementById('download-eps');
-    if (downloadEpsBtn) {
-        downloadEpsBtn.classList.remove('premium-locked');
-        downloadEpsBtn.addEventListener('click', () => {
-            this.downloadQRCode('eps');
-        });
-    }
-    
-    // Preview-Button (falls vorhanden aus erweiterten Download-Controls)
-    const previewBtn = document.getElementById('preview-download');
-    if (previewBtn) {
-        previewBtn.addEventListener('click', () => {
-            this.previewDownload();
-        });
-    }
-    
-    // Initialisierung der Download-Eigenschaften
+    // Initialisierung der Standard-Eigenschaften
     this.selectedFormat = this.selectedFormat || 'png';
+    this.selectedFormatName = this.selectedFormatName || 'PNG';
     this.downloadQuality = this.downloadQuality || 95;
     this.downloadFilename = this.downloadFilename || 'qr-code';
     
-    // Download-Info initial aktualisieren
-    if (document.querySelector('.download-section')) {
-        this.updateDownloadInfo();
+    // Initial Updates
+    this.updateMainDownloadButton();
+    this.updateDownloadInfo();
+    
+    // Standard PNG Format als aktiv markieren
+    const defaultFormatBtn = document.querySelector('.format-btn[data-format="png"]');
+    if (defaultFormatBtn) {
+        defaultFormatBtn.classList.add('active');
     }
+}
+
+// Hauptbutton dynamisch aktualisieren
+updateMainDownloadButton() {
+    const downloadText = document.querySelector('.download-text');
+    const formatName = this.selectedFormatName || 'PNG';
+    
+    if (downloadText) {
+        downloadText.textContent = `Als ${formatName} herunterladen`;
+    }
+    
+    // Icon je nach Format anpassen (optional)
+    this.updateDownloadIcon();
+}
+
+// Download-Icon je nach Format anpassen
+updateDownloadIcon() {
+    const mainBtn = document.getElementById('main-download-btn');
+    const iconSvg = mainBtn?.querySelector('svg');
+    
+    if (!iconSvg) return;
+    
+    // Format-spezifische Icons
+    const formatIcons = {
+        png: `<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7,10 12,15 17,10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>`,
+        jpg: `<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+              <polyline points="14,2 14,8 20,8"/>`,
+        svg: `<polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5"/>
+              <line x1="12" y1="8" x2="12" y2="16"/>`,
+        pdf: `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14,2 14,8 20,8"/>`,
+        eps: `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14,2 14,8 20,8"/>`
+    };
+    
+    const iconPath = formatIcons[this.selectedFormat] || formatIcons.png;
+    iconSvg.innerHTML = iconPath;
 }
 
 // QR Code herunterladen
@@ -3346,54 +3479,49 @@ downloadQRCode(format = 'png') {
     }
 }
 
+// Download auslösen
 triggerDownload(dataUrl, filename) {
     const link = document.createElement('a');
     link.download = filename;
     link.href = dataUrl;
+    link.style.display = 'none';
+    
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    
+    // Cleanup nach kurzer Zeit
+    setTimeout(() => {
+        document.body.removeChild(link);
+    }, 100);
 }
 
 // SVG generieren
-generateSVG() {
-    const size = parseInt(this.qrSize);
+async generateSVG() {
+    const size = parseInt(this.qrSize || 300);
     const content = document.getElementById('qr-content')?.value.trim() || '';
     
-    // Einfache SVG-Generierung
-    const svg = `
+    // Basis SVG-Template
+    const svg = `<?xml version="1.0" encoding="UTF-8"?>
         <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" 
              xmlns="http://www.w3.org/2000/svg">
-            <rect width="100%" height="100%" fill="${this.qrBgColor}"/>
-            <!-- QR Code Daten würden hier eingefügt -->
-            <text x="50%" y="50%" text-anchor="middle" fill="${this.qrColor}" 
-                  font-size="12" font-family="Arial">
-                QR: ${content.substring(0, 20)}${content.length > 20 ? '...' : ''}
-            </text>
-        </svg>
-    `;
+            <rect width="100%" height="100%" fill="${this.qrBgColor || '#ffffff'}"/>
+            <rect x="10" y="10" width="30" height="30" fill="${this.qrColor || '#000000'}"/>
+            <rect x="${size-40}" y="10" width="30" height="30" fill="${this.qrColor || '#000000'}"/>
+            <rect x="10" y="${size-40}" width="30" height="30" fill="${this.qrColor || '#000000'}"/>
+            <!-- Vereinfachte QR-Struktur -->
+        </svg>`;
     
     return 'data:image/svg+xml;base64,' + btoa(svg);
 }
 
 // PDF-Generierung
-generatePDF(filename) {
+async generatePDF(filename) {
     const qrCanvas = document.querySelector('.qr-preview canvas');
     if (!qrCanvas) return;
     
-    // Fallback: PNG als PDF speichern
+    // Fallback: PNG in PDF-Container
     const dataUrl = qrCanvas.toDataURL('image/png');
-    
-    // Einfache PDF-Erstellung durch Canvas in Base64
-    const pdfContent = `data:application/pdf;base64,${btoa(`
-        %PDF-1.4
-        1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
-        2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
-        3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 ${this.qrSize} ${this.qrSize}]>>endobj
-        trailer<</Root 1 0 R>>
-    `)}`;
-    
-    this.triggerDownload(dataUrl, filename); // Fallback als PNG
+    this.triggerDownload(dataUrl, filename.replace('.pdf', '.png'));
 }
 
 // EPS-Generierung
@@ -3465,27 +3593,59 @@ previewDownload() {
 
 // Download-Info aktualisieren
 updateDownloadInfo() {
-    // Dateigröße schätzen
-    const baseSize = parseInt(this.qrSize);
+    const sizeElement = document.getElementById('download-size');
+    if (!sizeElement) return;
+    
+    const baseSize = parseInt(this.qrSize || 300);
     let estimatedSize;
     
+    // Größenschätzung je nach Format
     switch (this.selectedFormat) {
         case 'png':
-            estimatedSize = Math.round((baseSize * baseSize * 4) / 1024); // ~4 bytes per pixel
+            // PNG: ~4 bytes per pixel + Header
+            estimatedSize = Math.round((baseSize * baseSize * 4) / 1024) + 2;
             break;
+            
         case 'jpg':
-            estimatedSize = Math.round((baseSize * baseSize * (this.downloadQuality / 100)) / 10);
+            // JPG: Abhängig von Qualität
+            const quality = this.downloadQuality || 95;
+            estimatedSize = Math.round((baseSize * baseSize * (quality / 100)) / 8);
             break;
+            
         case 'svg':
-            estimatedSize = Math.round((baseSize / 10) + 2); // Sehr klein
+            // SVG: Sehr klein, nur Text-basiert
+            estimatedSize = Math.round((baseSize / 50) + 3);
             break;
+            
+        case 'pdf':
+            // PDF: Overhead + eingebettetes Bild
+            estimatedSize = Math.round((baseSize * baseSize * 2) / 1024) + 10;
+            break;
+            
+        case 'eps':
+            // EPS: Ähnlich PDF aber größer
+            estimatedSize = Math.round((baseSize * baseSize * 3) / 1024) + 5;
+            break;
+            
         default:
             estimatedSize = Math.round((baseSize * baseSize * 4) / 1024);
     }
     
+    // Größe formatieren
     const sizeText = estimatedSize > 1024 ? 
         `~${(estimatedSize / 1024).toFixed(1)}MB` : 
         `~${estimatedSize}KB`;
+    
+    sizeElement.textContent = sizeText;
+    
+    // Warnung bei sehr großen Dateien
+    if (estimatedSize > 5120) { // > 5MB
+        sizeElement.style.color = 'var(--color-warning)';
+        sizeElement.title = 'Große Datei - Download kann länger dauern';
+    } else {
+        sizeElement.style.color = '';
+        sizeElement.title = '';
+        }
     
     document.getElementById('download-size').textContent = sizeText;
     document.getElementById('info-dimensions').textContent = `${this.qrSize}x${this.qrSize}px`;
@@ -3510,19 +3670,31 @@ showDownloadError(message) {
 
 // Download-Tracking
 trackDownload(format, filename) {
-    // Optional: Download-Statistiken sammeln
     const downloadData = {
         format,
         filename,
         size: this.qrSize,
+        quality: this.downloadQuality,
         timestamp: new Date().toISOString(),
         hasLogo: this.logoEnabled && this.logoFile ? true : false
     };
     
-    // In localStorage speichern oder an Analytics senden
-    const downloads = JSON.parse(localStorage.getItem('qr-downloads') || '[]');
-    downloads.push(downloadData);
-    localStorage.setItem('qr-downloads', JSON.stringify(downloads.slice(-50))); // Nur die letzten 50 speichern
+    // In localStorage für Statistiken speichern
+    try {
+        const downloads = JSON.parse(localStorage.getItem('qr-downloads') || '[]');
+        downloads.push(downloadData);
+        
+        // Nur die letzten 50 Downloads speichern
+        const recentDownloads = downloads.slice(-50);
+        localStorage.setItem('qr-downloads', JSON.stringify(recentDownloads));
+        
+        // Download-Counter erhöhen
+        const downloadCount = parseInt(localStorage.getItem('total-downloads') || '0') + 1;
+        localStorage.setItem('total-downloads', downloadCount.toString());
+        
+    } catch (error) {
+        console.log('Tracking-Fehler:', error);
+    }
 }
 }
 

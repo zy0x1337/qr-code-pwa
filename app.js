@@ -78,6 +78,9 @@ class QRProApp {
     this.initializeData();
     await this.loadLibraries();
     this.registerServiceWorker();
+    this.initializeColorPresets();
+    this.updatePreview();
+     this.updateStatsCards();
   }
 
   async registerServiceWorker() {
@@ -507,16 +510,38 @@ class QRProApp {
     }, 250);
   });
 
-  // TEMPORÄRER TEST-BUTTON
-  const scannerPage = document.getElementById('scanner-page');
-  if (scannerPage) {
-    const testBtn = document.createElement('button');
-    testBtn.textContent = '🧪 Test Scan';
-    testBtn.className = 'btn btn--outline';
-    testBtn.onclick = () => this.testQRRecognition();
-    testBtn.style.margin = '1rem';
-    scannerPage.appendChild(testBtn);
-    }
+  // Hintergrundfarben-Presets Event Listeners
+const bgColorPresets = document.getElementById('bg-color-presets');
+if (bgColorPresets) {
+    bgColorPresets.addEventListener('click', (e) => {
+        if (e.target.classList.contains('color-preset')) {
+            const color = e.target.dataset.color;
+            const bgColorInput = document.getElementById('qr-bg-color');
+            
+            // Farbe setzen
+            if (bgColorInput) {
+                bgColorInput.value = color;
+            }
+            
+            // Aktiven Zustand aktualisieren
+            document.querySelectorAll('#bg-color-presets .color-preset').forEach(preset => {
+                preset.classList.remove('active');
+            });
+            e.target.classList.add('active');
+            
+            // Vorschau aktualisieren
+            this.updatePreview();
+        }
+    });
+}
+
+// Sync zwischen Color Input und Presets für Hintergrundfarbe
+if (qrBgColor) {
+    qrBgColor.addEventListener('change', (e) => {
+        this.syncBgColorPresets(e.target.value);
+        this.updatePreview();
+    });
+}
 
   // Paste Event für schnelles QR Code generieren
   document.addEventListener('paste', (e) => {
@@ -534,16 +559,14 @@ class QRProApp {
   });
 }
 
-// (temporär für Testing)
-testQRRecognition() {
-  console.log('🧪 Teste QR-Erkennung...');
-  
-  // Simuliere erfolgreichen QR-Scan
-  setTimeout(() => {
-    this.onScanSuccess('https://www.google.com', null);
-  }, 2000);
-  
-  this.showToast('🧪 Test-Scan in 2 Sekunden...', 'info');
+syncBgColorPresets(selectedColor) {
+    const presets = document.querySelectorAll('#bg-color-presets .color-preset');
+    presets.forEach(preset => {
+        preset.classList.remove('active');
+        if (preset.dataset.color === selectedColor) {
+            preset.classList.add('active');
+        }
+    });
 }
 
 // Stat Cards mit echten Daten aktualisieren
@@ -1903,6 +1926,34 @@ restartScanner() {
     }, 300);
   }
 
+  initializeColorPresets() {
+    // Standard Vordergrundfarbe aktivieren
+    const defaultFgColor = '#000000';
+    const defaultFgPreset = document.querySelector(`#fg-color-presets .color-preset[data-color="${defaultFgColor}"]`);
+    if (defaultFgPreset) {
+        defaultFgPreset.classList.add('active');
+    }
+
+    // Standard Hintergrundfarbe aktivieren  
+    const defaultBgColor = '#ffffff';
+    const defaultBgPreset = document.querySelector(`#bg-color-presets .color-preset[data-color="${defaultBgColor}"]`);
+    if (defaultBgPreset) {
+        defaultBgPreset.classList.add('active');
+    }
+
+    // Sicherstellen, dass die Color-Inputs die richtigen Werte haben
+    const qrColor = document.getElementById('qr-color');
+    const qrBgColor = document.getElementById('qr-bg-color');
+    
+    if (qrColor && !qrColor.value) {
+        qrColor.value = defaultFgColor;
+    }
+    
+    if (qrBgColor && !qrBgColor.value) {
+        qrBgColor.value = defaultBgColor;
+    }
+}
+
   showPremiumPrompt() {
     this.showToast('Premium Feature - Upgrade für unbegrenzte QR Codes!', 'warning', 5000);
   }
@@ -1958,7 +2009,7 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// PWA Install funktionalität (am Ende von app.js hinzufügen)
+// PWA Install Funktionalität
 class PWAInstaller {
     constructor() {
         this.deferredPrompt = null;

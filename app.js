@@ -64,19 +64,317 @@ class QRProApp {
     this.showLoadingScreen();
     this.setupEventListeners();
     this.initializeData();
+    this.cache = new Map();
+    this.previewCache = new Map();
+    this.behaviorLog = [];
     await this.loadLibraries();
     this.registerServiceWorker();
     this.setupQRTypeHandler();
     this.setupDashboardActions();
     await this.initializeTemplateManager();
+    await this.initializeOfflineSupport();
     this.addHistoryFilters();
     this.setupHistoryEventListeners();
     this.updateDashboard();
+    this.scheduleAutoCleanup();
+    this.setupSmartNotifications();
     // Falls direkt auf History-Seite gestartet
     if (this.currentPage === 'history') {
         setTimeout(() => this.initializeHistoryPage(), 200);
     }
   }
+
+  // NEU: Cache-System Methoden
+cacheQRCode(content, options, dataUrl) {
+    const key = this.generateCacheKey(content, options);
+    this.cache.set(key, {
+        dataUrl,
+        timestamp: Date.now(),
+        hits: (this.cache.get(key)?.hits || 0) + 1
+    });
+    
+    // Cache-Größe begrenzen (LRU-Strategy)
+    if (this.cache.size > 100) {
+        this.clearOldestCacheEntries();
+    }
+}
+
+getCachedQRCode(content, options) {
+    const key = this.generateCacheKey(content, options);
+    const cached = this.cache.get(key);
+    
+    if (cached && Date.now() - cached.timestamp < 3600000) { // 1 Stunde
+        cached.hits++;
+        return cached.dataUrl;
+    }
+    
+    return null;
+}
+
+generateCacheKey(content, options) {
+    return btoa(JSON.stringify({ content, ...options }));
+}
+
+clearOldestCacheEntries() {
+    // Sortiere nach letzter Nutzung und Hits
+    const entries = Array.from(this.cache.entries()).sort((a, b) => {
+        const aScore = a[1].hits / (Date.now() - a[1].timestamp);
+        const bScore = b[1].hits / (Date.now() - b[1].timestamp);
+        return aScore - bScore;
+    });
+    
+    // Lösche die ältesten 20 Einträge
+    entries.slice(0, 20).forEach(([key]) => this.cache.delete(key));
+}
+
+// NEU: Erweiterte Analytics & Insights
+trackUserBehavior(action, data = {}) {
+    const event = {
+        timestamp: Date.now(),
+        action,
+        data,
+        sessionId: this.getSessionId(),
+        userAgent: navigator.userAgent.substring(0, 100) // Begrenzt für Datenschutz
+    };
+    
+    this.behaviorLog.push(event);
+    
+    // Lokale Speicherung (nur letzte 500 Events)
+    if (this.behaviorLog.length > 500) {
+        this.behaviorLog = this.behaviorLog.slice(-400);
+    }
+    
+    localStorage.setItem('qr-pro-analytics', JSON.stringify(this.behaviorLog.slice(-100)));
+    
+    // Real-time Insights aktualisieren
+    this.updateInsights();
+}
+
+getSessionId() {
+    if (!this.sessionId) {
+        this.sessionId = 'session-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+    }
+    return this.sessionId;
+}
+
+updateInsights() {
+    const insights = this.generateInsights();
+    
+    // Insights im Dashboard anzeigen falls sichtbar
+    if (this.currentPage === 'dashboard') {
+        this.updateDashboardInsights(insights);
+    }
+}
+
+generateInsights() {
+    const recentActivity = this.getRecentActivity(7); // Letzte 7 Tage
+    
+    return {
+        productivity: this.calculateProductivityScore(),
+        patterns: this.identifyUsagePatterns(),
+        recommendations: this.generateRecommendations(),
+        efficiency: this.calculateEfficiencyMetrics(),
+        totalEvents: this.behaviorLog.length,
+        uniqueContents: new Set(this.qrHistory.map(item => item.content)).size,
+        favoriteType: this.getMostUsedQRType(),
+        peakHours: this.calculatePeakUsageHours()
+    };
+}
+
+calculateProductivityScore() {
+    const recentActivity = this.getRecentActivity(7);
+    const avgDaily = recentActivity.length / 7;
+    const consistency = this.calculateConsistency(recentActivity);
+    const qualityScore = this.calculateQualityScore();
+    
+    return Math.min(100, Math.round((avgDaily * 10) + (consistency * 20) + (qualityScore * 15)));
+}
+
+identifyUsagePatterns() {
+    const hourlyUsage = new Array(24).fill(0);
+    const typeUsage = {};
+    
+    this.behaviorLog.forEach(event => {
+        const hour = new Date(event.timestamp).getHours();
+        hourlyUsage[hour]++;
+        
+        if (event.data?.type) {
+            typeUsage[event.data.type] = (typeUsage[event.data.type] || 0) + 1;
+        }
+    });
+    
+    return {
+        peakHour: hourlyUsage.indexOf(Math.max(...hourlyUsage)),
+        mostUsedType: Object.keys(typeUsage).reduce((a, b) => typeUsage[a] > typeUsage[b] ? a : b, 'text'),
+        hourlyDistribution: hourlyUsage,
+        typeDistribution: typeUsage,
+        regularUsage: this.behaviorLog.length > 20,
+        avgDailyUsage: this.getRecentActivity(7).length / 7
+    };
+}
+
+generateRecommendations() {
+    const patterns = this.identifyUsagePatterns();
+    const recommendations = [];
+    
+    if (patterns.avgDailyUsage < 1) {
+        recommendations.push({
+            type: 'usage',
+            icon: '📈',
+            title: 'Mehr QR Codes erstellen',
+            description: 'Probieren Sie verschiedene QR Code Typen aus um die App besser zu nutzen.'
+        });
+    }
+    
+    if (patterns.mostUsedType === 'text' && patterns.typeDistribution.text > 10) {
+        recommendations.push({
+            type: 'variety',
+            icon: '🎨',
+            title: 'Verschiedene Typen ausprobieren',
+            description: 'Testen Sie URL, E-Mail oder WLAN QR Codes für mehr Funktionalität.'
+        });
+    }
+    
+    if (this.qrHistory.length > 20 && !this.settings.autoSave) {
+        recommendations.push({
+            type: 'backup',
+            icon: '💾',
+            title: 'Automatisches Speichern aktivieren',
+            description: 'Sichern Sie Ihren Verlauf automatisch in der Cloud.'
+        });
+    }
+    
+    return recommendations;
+}
+
+// NEU: Sicherheitsfeatures
+encryptSensitiveData(data) {
+    if (this.isSensitiveContent(data)) {
+        return this.simpleEncrypt(data);
+    }
+    return data;
+}
+
+isSensitiveContent(content) {
+    const sensitivePatterns = [
+        /password/i,
+        /credit.*card/i,
+        /ssn|social.*security/i,
+        /private.*key/i,
+        /api.*key/i,
+        /secret/i,
+        /token/i
+    ];
+    
+    return sensitivePatterns.some(pattern => pattern.test(content));
+}
+
+simpleEncrypt(data) {
+    // Einfache XOR-Verschlüsselung für Demo-Zwecke
+    const key = 'qr-pro-secure-key';
+    let encrypted = '';
+    
+    for (let i = 0; i < data.length; i++) {
+        encrypted += String.fromCharCode(
+            data.charCodeAt(i) ^ key.charCodeAt(i % key.length)
+        );
+    }
+    
+    return btoa(encrypted);
+}
+
+// NEU: Auto-cleanup für sensible Daten
+scheduleAutoCleanup() {
+    setInterval(() => {
+        const now = Date.now();
+        const oneDay = 24 * 60 * 60 * 1000;
+        
+        // Sensible Einträge nach 24h löschen
+        const itemsToRemove = this.qrHistory.filter(item => {
+            const age = now - item.timestamp;
+            return age > oneDay && this.isSensitiveContent(item.content);
+        });
+        
+        if (itemsToRemove.length > 0) {
+            itemsToRemove.forEach(item => {
+                this.deleteHistoryItem(item.id);
+            });
+            
+            console.log(`🧹 ${itemsToRemove.length} sensible Einträge automatisch gelöscht`);
+        }
+        
+        // Cache aufräumen
+        this.cleanupOldCacheEntries();
+        
+    }, 60 * 60 * 1000); // Jede Stunde prüfen
+}
+
+cleanupOldCacheEntries() {
+    const now = Date.now();
+    const maxAge = 24 * 60 * 60 * 1000; // 24 Stunden
+    
+    for (const [key, value] of this.cache.entries()) {
+        if (now - value.timestamp > maxAge) {
+            this.cache.delete(key);
+        }
+    }
+}
+
+// NEU: Smart Notifications
+setupSmartNotifications() {
+    if (!this.settings.notifications) return;
+    
+    // Nutzungsmuster analysieren
+    setTimeout(() => {
+        const patterns = this.identifyUsagePatterns();
+        
+        // Inaktivitäts-Benachrichtigungen
+        if (patterns.avgDailyUsage > 3) {
+            // Sehr aktiver Nutzer - keine Erinnerungen
+            return;
+        }
+        
+        if (this.getDaysSinceLastUse() > 7) {
+            this.scheduleNotification(
+                'QR Pro vermisst Sie! 📱',
+                'Erstellen Sie heute einen neuen QR-Code',
+                { delay: 24 * 60 * 60 * 1000 } // 24 Stunden
+            );
+        }
+        
+        // Feature-Tipps basierend auf Nutzung
+        if (patterns.mostUsedType === 'text' && this.qrHistory.length > 5) {
+            this.scheduleNotification(
+                '💡 Tipp: Probieren Sie URL-QR-Codes!',
+                'Erstellen Sie QR-Codes für Websites und Links',
+                { delay: 2 * 60 * 60 * 1000 } // 2 Stunden
+            );
+        }
+        
+    }, 5 * 60 * 1000); // Nach 5 Minuten Analyse
+}
+
+getDaysSinceLastUse() {
+    if (this.qrHistory.length === 0) return 999;
+    
+    const lastUse = Math.max(...this.qrHistory.map(item => item.timestamp));
+    return Math.floor((Date.now() - lastUse) / (24 * 60 * 60 * 1000));
+}
+
+scheduleNotification(title, body, options = {}) {
+    if (!('Notification' in window) || Notification.permission !== 'granted') {
+        return;
+    }
+    
+    setTimeout(() => {
+        new Notification(title, {
+            body,
+            icon: './icons/icon-192.png',
+            tag: 'qr-pro-smart',
+            ...options
+        });
+    }, options.delay || 0);
+}
 
   async registerServiceWorker() {
   if ('serviceWorker' in navigator) {
@@ -1108,57 +1406,236 @@ displayHistory(historyItems = null) {
         return;
     }
 
-    // Historie-Items rendern
-    historyList.innerHTML = historyItems.map(item => {
-        // SVG Icons verwenden
-        const iconType = item.type === 'generated' ? 'qr_generated' : 'qr_scanned';
-        const iconColor = item.type === 'generated' ? '#4CAF50' : '#2196F3';
-        const iconHtml = this.renderIcon(iconType, 24, iconColor);
+    // NEU: Virtual Scrolling für große Listen
+    if (historyItems.length > 50) {
+        this.setupVirtualScrolling(historyItems);
+        return;
+    }
+    
+    // NEU: Nach Datum gruppieren
+    const groupedItems = this.groupItemsByDate(historyItems);
+    
+    // NEU: Infinite Loading Setup
+    this.setupInfiniteLoading();
+    
+    // HTML generieren mit Gruppierung
+    let html = '';
+    
+    Object.keys(groupedItems).forEach(dateGroup => {
+        const items = groupedItems[dateGroup];
+        const groupLabel = this.formatDateGroup(dateGroup);
         
-        const typeLabel = item.type === 'generated' ? 'Erstellt' : 'Gescannt';
-        const typeClass = item.type === 'generated' ? 'type-generated' : 'type-scanned';
-        const borderColor = item.type === 'generated' ? '#4CAF50' : '#2196F3';
-        const backgroundColor = item.type === 'generated' ? '#e8f5e8' : '#e8f0ff';
-        
-        // Content für Buttons HTML-escaped
-        const escapedContent = this.escapeHtml(item.content || '');
-        
-        return `
-            <div class="history-item" data-id="${item.id}" data-type="${item.type}" style="border-left: 4px solid ${borderColor}">
-                <div class="history-icon" style="background: ${backgroundColor}">
-                    ${iconHtml}
+        html += `
+            <div class="history-group">
+                <div class="group-header">
+                    <span class="group-label">${groupLabel}</span>
+                    <span class="group-count">${items.length} Einträge</span>
                 </div>
-                <div class="history-content">
-                    <div class="history-header">
-                        <span class="history-type ${typeClass}">${typeLabel}</span>
-                        <span class="history-date">${this.formatDate(item.timestamp)}</span>
-                    </div>
-                    <div class="history-text" title="${escapedContent}">
-                        ${this.truncateText(item.content || '', 60)}
-                    </div>
-                    ${item.qrType ? `<div class="history-qr-type">Typ: ${item.qrType}</div>` : ''}
-                    ${item.size ? `<div class="history-meta">Größe: ${item.size}px</div>` : ''}
-                    ${item.color && item.color !== '#000000' ? `<div class="history-meta">Farbe: ${item.color}</div>` : ''}
-                </div>
-                <div class="history-actions">
-                    <button class="btn-icon history-copy-btn" data-content="${escapedContent}" title="Kopieren">
-                        <span class="material-icons">content_copy</span>
-                    </button>
-                    <button class="btn-icon history-regenerate-btn" data-content="${escapedContent}" title="Neu generieren">
-                        <span class="material-icons">refresh</span>
-                    </button>
-                    <button class="btn-icon history-share-btn" data-content="${escapedContent}" title="Teilen">
-                        <span class="material-icons">share</span>
-                    </button>
-                    <button class="btn-icon history-delete-btn" data-id="${item.id}" title="Löschen">
-                        <span class="material-icons">delete</span>
-                    </button>
+                <div class="group-items">
+                    ${items.map(item => this.renderHistoryItem(item)).join('')}
                 </div>
             </div>
         `;
-    }).join('');
+    });
+
+    historyList.innerHTML = html;
     
-    console.log('✅ Historie-Anzeige mit SVG-Icons aktualisiert');
+    // NEU: Intersection Observer für Lazy Loading von Bildern
+    this.setupLazyImageLoading();
+    
+    console.log('✅ Historie-Anzeige mit Gruppierung aktualisiert');
+}
+
+// NEU: Virtual Scrolling Implementation
+setupVirtualScrolling(items) {
+    const containerHeight = 500;
+    const itemHeight = 80;
+    const visibleItems = Math.ceil(containerHeight / itemHeight) + 2;
+    const totalItems = items.length;
+    
+    let scrollTop = 0;
+    let startIndex = 0;
+    let endIndex = Math.min(startIndex + visibleItems, totalItems);
+    
+    const container = document.getElementById('history-list');
+    const virtualContainer = document.createElement('div');
+    virtualContainer.style.height = `${totalItems * itemHeight}px`;
+    virtualContainer.style.position = 'relative';
+    
+    const viewport = document.createElement('div');
+    viewport.style.height = `${containerHeight}px`;
+    viewport.style.overflow = 'auto';
+    viewport.appendChild(virtualContainer);
+    
+    const renderVisibleItems = () => {
+        const visibleItems = items.slice(startIndex, endIndex);
+        virtualContainer.innerHTML = visibleItems.map((item, index) => {
+            const actualIndex = startIndex + index;
+            return `
+                <div class="virtual-item" style="position: absolute; top: ${actualIndex * itemHeight}px; height: ${itemHeight}px; width: 100%;">
+                    ${this.renderHistoryItem(item)}
+                </div>
+            `;
+        }).join('');
+    };
+    
+    viewport.addEventListener('scroll', () => {
+        scrollTop = viewport.scrollTop;
+        startIndex = Math.floor(scrollTop / itemHeight);
+        endIndex = Math.min(startIndex + visibleItems, totalItems);
+        renderVisibleItems();
+    });
+    
+    container.innerHTML = '';
+    container.appendChild(viewport);
+    renderVisibleItems();
+}
+
+// NEU: Items nach Datum gruppieren
+groupItemsByDate(items) {
+    const groups = {};
+    const now = new Date();
+    
+    items.forEach(item => {
+        const itemDate = new Date(item.timestamp);
+        const diffDays = Math.floor((now - itemDate) / (1000 * 60 * 60 * 24));
+        
+        let groupKey;
+        if (diffDays === 0) {
+            groupKey = 'today';
+        } else if (diffDays === 1) {
+            groupKey = 'yesterday';
+        } else if (diffDays < 7) {
+            groupKey = 'thisWeek';
+        } else if (diffDays < 30) {
+            groupKey = 'thisMonth';
+        } else {
+            groupKey = itemDate.toLocaleDateString('de-DE', { year: 'numeric', month: 'long' });
+        }
+        
+        if (!groups[groupKey]) groups[groupKey] = [];
+        groups[groupKey].push(item);
+    });
+    
+    return groups;
+}
+
+// NEU: Einzelnes History-Item rendern
+renderHistoryItem(item) {
+    const iconType = item.type === 'generated' ? 'qr_generated' : 'qr_scanned';
+    const iconColor = item.type === 'generated' ? '#4CAF50' : '#2196F3';
+    const iconHtml = this.renderIcon(iconType, 24, iconColor);
+    
+    const typeLabel = item.type === 'generated' ? 'Erstellt' : 'Gescannt';
+    const typeClass = item.type === 'generated' ? 'type-generated' : 'type-scanned';
+    const borderColor = item.type === 'generated' ? '#4CAF50' : '#2196F3';
+    const backgroundColor = item.type === 'generated' ? '#e8f5e8' : '#e8f0ff';
+    
+    // Content für Buttons HTML-escaped
+    const escapedContent = this.escapeHtml(item.content || '');
+    
+    // NEU: Smart Preview basierend auf Content-Typ
+    const contentPreview = this.generateSmartPreview(item.content, item.detectedType || item.qrType);
+    
+    return `
+        <div class="history-item" data-id="${item.id}" data-type="${item.type}" style="border-left: 4px solid ${borderColor}">
+            <div class="history-icon" style="background: ${backgroundColor}">
+                ${iconHtml}
+            </div>
+            <div class="history-content">
+                <div class="history-header">
+                    <span class="history-type ${typeClass}">${typeLabel}</span>
+                    <span class="history-date">${this.formatDate(item.timestamp)}</span>
+                </div>
+                <div class="history-preview">
+                    ${contentPreview}
+                </div>
+                <div class="history-meta">
+                    ${item.qrType ? `<span class="meta-item">Typ: ${item.qrType}</span>` : ''}
+                    ${item.size ? `<span class="meta-item">Größe: ${item.size}px</span>` : ''}
+                    ${item.format ? `<span class="meta-item">Format: ${item.format}</span>` : ''}
+                </div>
+            </div>
+            <div class="history-actions">
+                <button class="btn-icon history-copy-btn" data-content="${escapedContent}" title="Kopieren">
+                    <span class="material-icons">content_copy</span>
+                </button>
+                <button class="btn-icon history-regenerate-btn" data-content="${escapedContent}" title="Neu generieren">
+                    <span class="material-icons">refresh</span>
+                </button>
+                <button class="btn-icon history-share-btn" data-content="${escapedContent}" title="Teilen">
+                    <span class="material-icons">share</span>
+                </button>
+                <button class="btn-icon history-delete-btn" data-id="${item.id}" title="Löschen">
+                    <span class="material-icons">delete</span>
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// NEU: Smart Preview Generator
+generateSmartPreview(content, contentType) {
+    const maxLength = 60;
+    
+    switch (contentType) {
+        case 'url':
+            try {
+                const url = new URL(content);
+                return `
+                    <div class="content-preview url-preview">
+                        <span class="preview-icon">🌐</span>
+                        <span class="preview-text">${url.hostname}</span>
+                        <span class="preview-path">${this.truncateText(url.pathname, 30)}</span>
+                    </div>
+                `;
+            } catch {
+                return this.truncateText(content, maxLength);
+            }
+            
+        case 'email':
+            const email = content.replace('mailto:', '');
+            return `
+                <div class="content-preview email-preview">
+                    <span class="preview-icon">📧</span>
+                    <span class="preview-text">${this.truncateText(email, maxLength - 10)}</span>
+                </div>
+            `;
+            
+        case 'phone':
+            const phone = content.replace('tel:', '');
+            return `
+                <div class="content-preview phone-preview">
+                    <span class="preview-icon">📞</span>
+                    <span class="preview-text">${phone}</span>
+                </div>
+            `;
+            
+        case 'wifi':
+            return `
+                <div class="content-preview wifi-preview">
+                    <span class="preview-icon">📶</span>
+                    <span class="preview-text">WLAN-Konfiguration</span>
+                </div>
+            `;
+            
+        default:
+            return `
+                <div class="content-preview text-preview">
+                    <span class="preview-text">${this.truncateText(content, maxLength)}</span>
+                </div>
+            `;
+    }
+}
+
+formatDateGroup(groupKey) {
+    switch (groupKey) {
+        case 'today': return 'Heute';
+        case 'yesterday': return 'Gestern';
+        case 'thisWeek': return 'Diese Woche';
+        case 'thisMonth': return 'Dieser Monat';
+        default: return groupKey;
+    }
 }
 
 // Hilfsmethode zum HTML-Escaping
@@ -1841,6 +2318,12 @@ saveSettings() {
         // Vorherigen QR Code löschen
         preview.innerHTML = '';
         
+        // NEU: Automatische Größenanpassung basierend auf Content
+        const optimalSize = this.calculateOptimalSize(content);
+        
+        // NEU: Error Correction Level automatisch bestimmen
+        const errorCorrectionLevel = this.getOptimalErrorCorrection(content.length);
+        
         // QR Code Daten sammeln
         const qrData = {
             id: 'generated-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
@@ -1848,10 +2331,26 @@ saveSettings() {
             qrType: document.getElementById('qr-type')?.value || 'text',
             color: document.getElementById('qr-color')?.value || '#000000',
             bgColor: document.getElementById('qr-bg-color')?.value || '#FFFFFF',
-            size: parseInt(document.getElementById('qr-size')?.value) || 300,
+            size: optimalSize,
             timestamp: Date.now(),
-            type: 'generated'
+            type: 'generated',
+            errorCorrection: errorCorrectionLevel
         };
+        
+        // NEU: Batch-Generierung prüfen
+        if (this.batchMode && this.batchData.length > 0) {
+            return this.generateBatchQRCodes();
+        }
+        
+        // Cache prüfen
+        const cachedQR = this.getCachedQRCode(content, qrData);
+        if (cachedQR) {
+            console.log('✅ Using cached QR Code');
+            preview.innerHTML = `<img src="${cachedQR}" class="qr-code-image" />`;
+            this.addToHistory(qrData);
+            this.showToast('QR Code aus Cache geladen', 'success');
+            return;
+        }
         
         // Neuen QR Code generieren (qrcodejs API)
         const qr = new QRCode(preview, {
@@ -1860,8 +2359,17 @@ saveSettings() {
             height: qrData.size,
             colorDark: qrData.color,
             colorLight: qrData.bgColor,
-            correctLevel: QRCode.CorrectLevel.H
+            correctLevel: errorCorrectionLevel
         });
+
+        // QR Code in Cache speichern
+        setTimeout(() => {
+            const canvas = preview.querySelector('canvas');
+            if (canvas) {
+                const dataUrl = canvas.toDataURL();
+                this.cacheQRCode(content, qrData, dataUrl);
+            }
+        }, 100);
 
         console.log('✅ QR Code generated successfully');
         this.showToast('QR Code erfolgreich generiert', 'success');
@@ -1877,10 +2385,60 @@ saveSettings() {
         // Dashboard aktualisieren
         this.updateDashboard();
         
+        // User Analytics tracken
+        this.trackUserBehavior('qr_generated', {
+            type: qrData.qrType,
+            size: qrData.size,
+            hasCustomColors: qrData.color !== '#000000' || qrData.bgColor !== '#FFFFFF'
+        });
+        
     } catch (error) {
         console.error('❌ QR Generation error:', error);
         this.showToast('QR Code Generierung fehlgeschlagen', 'error');
     }
+}
+
+// Neue Hilfsmethoden hinzufügen
+calculateOptimalSize(content) {
+    const baseSize = 300;
+    const contentLength = content.length;
+    if (contentLength > 500) return Math.min(baseSize + 100, 500);
+    if (contentLength > 200) return baseSize + 50;
+    return baseSize;
+}
+
+getOptimalErrorCorrection(contentLength) {
+    if (contentLength > 1000) return QRCode.CorrectLevel.L; // Low
+    if (contentLength > 500) return QRCode.CorrectLevel.M;  // Medium
+    return QRCode.CorrectLevel.H; // High (Standard)
+}
+
+// NEU: Batch-Generierung
+async generateBatchQRCodes() {
+    const results = [];
+    const totalItems = this.batchData.length;
+    
+    for (let i = 0; i < totalItems; i++) {
+        const item = this.batchData[i];
+        this.showToast(`Generiere QR Code ${i + 1} von ${totalItems}...`, 'info');
+        
+        const qrData = {
+            ...item,
+            id: 'batch-' + Date.now() + '-' + i,
+            timestamp: Date.now(),
+            type: 'generated'
+        };
+        
+        // QR Code generieren und zu results hinzufügen
+        results.push(qrData);
+        this.addToHistory(qrData);
+        
+        // Progress update
+        await new Promise(resolve => setTimeout(resolve, 200));
+    }
+    
+    this.showToast(`${totalItems} QR Codes erfolgreich generiert`, 'success');
+    return results;
 }
 
 addToHistory(entry) {
@@ -2230,84 +2788,253 @@ createTempCanvas(sourceCanvas) {
 
   // QR Code Scanner
   async startScanner() {
+    if (this.isScanning) {
+        console.warn('Scanner ist bereits aktiv');
+        return;
+    }
+
+    console.log('🎥 Starte QR Code Scanner...');
+    
     try {
-        console.log('📷 Starte QR Scanner...');
-        
-        // SOFORTIGE UI-Aktualisierung
-        this.isScanning = true;
-        this.updateScannerUI();
-        
-        // Prüfen ob bereits ein Scanner läuft
-        if (this.html5QrCode) {
-            try {
-                await this.html5QrCode.stop();
-                await this.html5QrCode.clear();
-            } catch (e) {
-                console.log('Alter Scanner cleanup:', e);
-            }
-        }
-        
-        // Prüfen ob Html5Qrcode verfügbar ist
-        if (!window.Html5Qrcode) {
-            throw new Error('Html5Qrcode Library nicht verfügbar');
-        }
-
-        // Scanner-Container prüfen
+        // Scanner-UI vorbereiten
         const scannerContainer = document.getElementById('scanner-container');
-        if (!scannerContainer) {
-            throw new Error('Scanner-Container nicht gefunden');
+        const startButton = document.getElementById('start-scanner');
+        const stopButton = document.getElementById('stop-scanner');
+        
+        if (startButton) startButton.style.display = 'none';
+        if (stopButton) stopButton.style.display = 'inline-flex';
+        
+        this.isScanning = true;
+        this.showToast('Scanner wird gestartet...', 'info');
+
+        // NEU: Html5Qrcode Library laden falls nicht verfügbar
+        if (typeof Html5Qrcode === 'undefined') {
+            await this.loadScannerLibrary();
         }
 
-        // Container leeren und Placeholder verstecken
-        const placeholder = scannerContainer.querySelector('.scanner-placeholder');
-        if (placeholder) {
-            placeholder.style.display = 'none';
+        // NEU: Automatische Kamera-Auswahl (Back Camera bevorzugt)
+        const cameras = await Html5Qrcode.getCameras();
+        const preferredCamera = this.selectBestCamera(cameras);
+        
+        if (!preferredCamera) {
+            throw new Error('Keine Kamera gefunden');
         }
 
-        // Neue Html5QrCode Instanz
+        // Html5Qrcode Scanner initialisieren
         this.html5QrCode = new Html5Qrcode("scanner-container");
-
-        // Scanner-Konfiguration
-        const config = {
+        
+        // NEU: Multi-Format Support und erweiterte Konfiguration
+        const scannerConfig = {
             fps: 10,
-            qrbox: { width: 250, height: 250 },
+            qrbox: { width: 280, height: 280 },
             aspectRatio: 1.0,
-            showTorchButtonIfSupported: true,
+            // NEU: Verschiedene Formate unterstützen
+            formatsToSupport: [
+                Html5QrcodeSupportedFormats.QR_CODE,
+                Html5QrcodeSupportedFormats.DATA_MATRIX,
+                Html5QrcodeSupportedFormats.CODE_128,
+                Html5QrcodeSupportedFormats.CODE_39
+            ],
+            // NEU: Erweiterte Scanner-Optionen
             experimentalFeatures: {
                 useBarCodeDetectorIfSupported: true
-            }
+            },
+            rememberLastUsedCamera: true,
+            showTorchButtonIfSupported: true
         };
 
         // Scanner starten
         await this.html5QrCode.start(
-            { facingMode: "environment" },
-            config,
-            // SUCCESS CALLBACK
+            preferredCamera,
+            scannerConfig,
             (decodedText, decodedResult) => {
-                console.log('✅ QR Code erkannt:', decodedText);
-                this.onScanSuccess(decodedText, decodedResult);
+                this.handleScanSuccess(decodedText, decodedResult);
             },
-            // ERROR CALLBACK - KORRIGIERT
             (errorMessage) => {
-                // Normale Scan-Fehler ignorieren
-                if (errorMessage && !errorMessage.includes('No MultiFormat Readers')) {
-                    console.log('Scanner Fehler:', errorMessage);
-                }
+                console.log('Scan error:', errorMessage);
+                // Stille Fehler - nur bei wiederholten Fehlern anzeigen
+                this.handleScanError(errorMessage);
             }
         );
 
         console.log('✅ Scanner erfolgreich gestartet');
-        this.showToast('Scanner aktiv - QR Code vor die Kamera halten', 'success');
+        this.showToast('Scanner aktiv - Halten Sie einen QR Code vor die Kamera', 'success', 3000);
+        
+        // NEU: Scanner-Statistiken
+        this.scanStartTime = Date.now();
+        this.scanAttempts = 0;
 
     } catch (error) {
-        console.error('❌ Scanner-Start fehlgeschlagen:', error);
-        
-        // UI zurücksetzen bei Fehler
+        console.error('❌ Scanner start failed:', error);
         this.isScanning = false;
-        this.updateScannerUI();
         
-        this.showToast(`Scanner-Fehler: ${error.message}`, 'error');
-        this.handleScannerError(error);
+        // Detaillierte Fehlerbehandlung
+        if (error.name === 'NotAllowedError') {
+            this.showPermissionHelp();
+        } else if (error.name === 'NotFoundError') {
+            this.showToast('Keine Kamera gefunden', 'error');
+        } else if (error.message.includes('Permission')) {
+            this.showPermissionHelp();
+        } else {
+            this.showToast('Scanner konnte nicht gestartet werden: ' + error.message, 'error');
+        }
+        
+        // UI zurücksetzen
+        const startButton = document.getElementById('start-scanner');
+        const stopButton = document.getElementById('stop-scanner');
+        if (startButton) startButton.style.display = 'inline-flex';
+        if (stopButton) stopButton.style.display = 'none';
+    }
+}
+
+// Neue Methode für Kamera-Auswahl
+selectBestCamera(cameras) {
+    if (!cameras || cameras.length === 0) return null;
+    
+    // Rückkamera bevorzugen für bessere QR-Erkennung
+    const backCamera = cameras.find(camera => 
+        camera.label.toLowerCase().includes('back') || 
+        camera.label.toLowerCase().includes('rear') ||
+        camera.label.toLowerCase().includes('environment')
+    );
+    
+    return backCamera?.id || cameras[0]?.id;
+}
+
+// NEU: Erweiterte Scan-Erfolg Behandlung
+handleScanSuccess(decodedText, decodedResult) {
+    if (!this.isScanning) return;
+    
+    console.log('✅ QR Code erfolgreich gescannt:', decodedText);
+    
+    // Scanner pausieren um mehrfache Scans zu verhindern
+    this.isScanning = false;
+    
+    // Scan-Daten verarbeiten
+    const scanData = {
+        id: 'scanned-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+        content: decodedText,
+        timestamp: Date.now(),
+        type: 'scanned',
+        format: decodedResult?.format || 'QR_CODE',
+        scanDuration: Date.now() - this.scanStartTime,
+        attempts: this.scanAttempts + 1
+    };
+    
+    // NEU: Content-Typ automatisch erkennen
+    scanData.detectedType = this.detectContentType(decodedText);
+    
+    // Zu Scan-Historie hinzufügen
+    this.addToScanHistory(scanData);
+    
+    // UI aktualisieren
+    this.displayScanResult(decodedText, scanData);
+    
+    // Scanner stoppen
+    this.stopScanner();
+    
+    // NEU: Smart Actions basierend auf Content-Typ anbieten
+    this.showSmartActions(decodedText, scanData.detectedType);
+    
+    // Analytics tracken
+    this.trackUserBehavior('qr_scanned', {
+        contentType: scanData.detectedType,
+        format: scanData.format,
+        scanDuration: scanData.scanDuration,
+        attempts: scanData.attempts
+    });
+    
+    this.showToast('QR Code erfolgreich gescannt!', 'success');
+}
+
+// NEU: Content-Typ Erkennung
+detectContentType(content) {
+    // URL erkennen
+    if (/^https?:\/\//i.test(content)) return 'url';
+    
+    // E-Mail erkennen
+    if (/^mailto:/i.test(content) || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(content)) return 'email';
+    
+    // Telefonnummer erkennen
+    if (/^tel:/i.test(content) || /^[\+]?[\d\s\-\(\)]{8,}$/.test(content)) return 'phone';
+    
+    // WiFi-Konfiguration erkennen
+    if (/^WIFI:/i.test(content)) return 'wifi';
+    
+    // SMS erkennen
+    if (/^sms:/i.test(content)) return 'sms';
+    
+    // vCard erkennen
+    if (/^BEGIN:VCARD/i.test(content)) return 'vcard';
+    
+    // Geo-Location erkennen
+    if (/^geo:/i.test(content)) return 'location';
+    
+    return 'text';
+}
+
+// NEU: Smart Actions anzeigen
+showSmartActions(content, contentType) {
+    const actionsContainer = document.querySelector('.scan-actions');
+    if (!actionsContainer) return;
+    
+    const actions = this.getSmartActionsForType(content, contentType);
+    
+    actionsContainer.innerHTML = `
+        <h4>✨ Empfohlene Aktionen</h4>
+        <div class="action-buttons">
+            ${actions.map(action => `
+                <button class="btn btn--secondary" onclick="${action.onclick}">
+                    ${action.icon} ${action.label}
+                </button>
+            `).join('')}
+        </div>
+    `;
+    
+    actionsContainer.style.display = 'block';
+}
+
+getSmartActionsForType(content, type) {
+    const baseActions = [
+        { icon: '📋', label: 'Kopieren', onclick: `app.copyToClipboard('${content.replace(/'/g, "\\'")}')` }
+    ];
+    
+    switch (type) {
+        case 'url':
+            return [
+                ...baseActions,
+                { icon: '🌐', label: 'Öffnen', onclick: `window.open('${content}', '_blank')` },
+                { icon: '🔗', label: 'QR erstellen', onclick: `app.createQRFromScan('${content}')` }
+            ];
+        
+        case 'email':
+            const emailAddr = content.replace('mailto:', '');
+            return [
+                ...baseActions,
+                { icon: '📧', label: 'E-Mail senden', onclick: `window.open('mailto:${emailAddr}')` },
+                { icon: '👤', label: 'Kontakt hinzufügen', onclick: `app.addToContacts('${emailAddr}')` }
+            ];
+        
+        case 'phone':
+            const phoneNum = content.replace('tel:', '');
+            return [
+                ...baseActions,
+                { icon: '📞', label: 'Anrufen', onclick: `window.open('tel:${phoneNum}')` },
+                { icon: '💬', label: 'SMS senden', onclick: `window.open('sms:${phoneNum}')` }
+            ];
+        
+        case 'wifi':
+            return [
+                ...baseActions,
+                { icon: '📶', label: 'WLAN-Info', onclick: `app.showWiFiInfo('${content}')` },
+                { icon: '📱', label: 'Verbinden', onclick: `app.connectToWiFi('${content}')` }
+            ];
+        
+        default:
+            return [
+                ...baseActions,
+                { icon: '🔍', label: 'Google Suche', onclick: `window.open('https://www.google.com/search?q=${encodeURIComponent(content)}', '_blank')` }
+            ];
     }
 }
 

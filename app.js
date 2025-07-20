@@ -1371,17 +1371,6 @@ saveSettings() {
             correctLevel: QRCode.CorrectLevel.H
         });
 
-        addToHistory({
-    id: 'qr-' + Date.now(),
-    type: 'generated',
-    content: content,
-    qrType: document.getElementById('qr-type')?.value || 'text',
-    timestamp: Date.now(),
-    size: this.qrSize || 300,
-    color: this.qrColor || '#000000',
-    bgColor: this.qrBgColor || '#FFFFFF'
-});
-
         console.log('✅ QR Code generated successfully');
         this.showToast('QR Code erfolgreich generiert', 'success');
         

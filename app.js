@@ -1119,36 +1119,34 @@ updatePreview() {
 
   async loadLibraries() {
     try {
-        // Verhindere mehrfaches Laden
-        if (window.QRCode && this.librariesLoaded) {
-            console.log('✅ Libraries already loaded');
-            return;
-        }
-
-        console.log('📚 Loading QRCode library...');
+        console.log('📚 Lade QR Code Libraries...');
         
-        // QRCode.js für Generierung laden - KORREKTE URL
+        // QRCode.js laden
         if (!window.QRCode) {
-            await this.loadScript('https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js');
+            await this.loadScript('https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js');
+            console.log('✅ QRCode.js geladen');
         }
         
-        // Html5Qrcode für Scanning (bereits verfügbar)
+        // Html5-qrcode laden
         if (!window.Html5Qrcode) {
-            await this.loadScript('https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js');
+            await this.loadScript('https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js');
+            console.log('✅ Html5Qrcode geladen');
         }
         
-        // Prüfen ob QRCode verfügbar ist
-        if (typeof window.QRCode !== 'undefined') {
-            console.log('✅ QRCode library loaded successfully');
-            console.log('QRCode methods:', Object.keys(window.QRCode));
+        // Warte kurz bis alles verfügbar ist
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Verfügbarkeit prüfen
+        if (window.QRCode && typeof window.QRCode.toCanvas === 'function') {
             this.librariesLoaded = true;
+            console.log('✅ Alle QR Libraries bereit');
         } else {
-            throw new Error('QRCode library not available after loading');
+            throw new Error('QRCode.toCanvas not available after loading');
         }
         
     } catch (error) {
-        console.error('❌ Failed to load libraries:', error);
-        this.showToast('QR-Bibliotheken konnten nicht geladen werden', 'error');
+        console.error('❌ Fehler beim Laden der Libraries:', error);
+        this.showToast('QR Libraries konnten nicht geladen werden', 'error');
     }
 }
 
@@ -2099,16 +2097,27 @@ class QRCustomization {
             return;
         }
         
-        if (!window.QRCode) {
+        // VERBESSERTE LIBRARY-PRÜFUNG
+        if (!window.QRCode || typeof window.QRCode.toCanvas !== 'function') {
+            console.warn('QRCode library not ready, retrying in 500ms...');
             qrPreview.innerHTML = `
-                <div class="preview-error">
-                    <p>⚠️ QR Library wird geladen...</p>
-                    <small>Bitte warten Sie einen Moment</small>
+                <div class="preview-loading">
+                    <div class="loading-spinner"></div>
+                    <p>QR Library wird geladen...</p>
                 </div>
             `;
+            // Retry nach 500ms
+            setTimeout(() => this.updatePreview(), 500);
             return;
         }
         
+        // VERHINDERT MEHRFACHE AUFRUFE
+        if (qrPreview.classList.contains('generating')) {
+            console.log('Preview generation already in progress...');
+            return;
+        }
+        
+        qrPreview.classList.add('generating');
         qrPreview.innerHTML = `
             <div class="preview-loading">
                 <div class="loading-spinner"></div>
@@ -2127,24 +2136,25 @@ class QRCustomization {
                 }
             };
             
-            await QRCode.toCanvas(canvas, content, options);
+            await window.QRCode.toCanvas(canvas, content, options);
             
-            // Wrapper für bessere Kontrolle
+            // ANTI-DUPLIKAT: Container komplett leeren
+            qrPreview.innerHTML = '';
+            
+            // Einziger Wrapper
             const wrapper = document.createElement('div');
             wrapper.className = 'qr-code-wrapper';
             wrapper.appendChild(canvas);
             
-            // Size indicator hinzufügen
             const sizeIndicator = document.createElement('div');
             sizeIndicator.className = 'size-indicator';
             sizeIndicator.textContent = `${options.width}×${options.width}px`;
             
-            qrPreview.innerHTML = '';
             qrPreview.appendChild(wrapper);
             qrPreview.appendChild(sizeIndicator);
-            
-            // Success styling
             qrPreview.className = 'qr-preview qr-preview--success size-300';
+            
+            console.log('✅ QR Preview erfolgreich generiert (Single)');
             
         } catch (error) {
             console.error('QR Preview Error:', error);
@@ -2154,6 +2164,8 @@ class QRCustomization {
                     <small>${error.message}</small>
                 </div>
             `;
+        } finally {
+            qrPreview.classList.remove('generating');
         }
     }, 500);
 }

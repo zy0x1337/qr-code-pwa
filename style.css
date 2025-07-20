@@ -3509,3 +3509,60 @@ select.form-control {
     margin: 0;
     font-weight: var(--font-weight-medium);
 }
+
+/* ==========================================
+ANTI-DUPLIKAT CSS FÜR QR PREVIEW - FINAL
+========================================== */
+
+.qr-preview {
+    position: relative;
+    overflow: hidden !important;
+}
+
+/* WICHTIG: Verhindert mehrfache Canvas-Elemente */
+.qr-preview canvas:not(:first-of-type),
+.qr-preview img:not(:first-of-type) {
+    display: none !important;
+    visibility: hidden !important;
+    position: absolute !important;
+    left: -9999px !important;
+}
+
+/* QR Wrapper - nur einer erlaubt */
+.qr-code-wrapper {
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    position: relative !important;
+}
+
+/* Versteckt zusätzliche Wrapper */
+.qr-code-wrapper:not(:first-of-type) {
+    display: none !important;
+}
+
+/* Sicherstellt nur ein Canvas pro Wrapper */
+.qr-code-wrapper canvas {
+    display: block !important;
+    margin: 0 auto !important;
+    max-width: calc(100% - 2rem) !important;
+    max-height: calc(100% - 2rem) !important;
+    border-radius: var(--radius-base, 6px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Verhindert Container-Konflikte */
+.qr-preview > div:not(.qr-code-wrapper):not(.size-indicator):not(.preview-placeholder):not(.preview-loading):not(.preview-error) {
+    display: none !important;
+}
+
+/* Generierungs-State */
+.qr-preview.generating {
+    pointer-events: none;
+}
+
+.qr-preview.generating .qr-code-wrapper {
+    opacity: 0.7;
+}

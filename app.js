@@ -1858,25 +1858,27 @@ restartScanner() {
   }
 
   updateContentPlaceholder() {
-    const qrContent = document.getElementById('qr-content');
     const qrType = document.getElementById('qr-type');
+    const qrContent = document.getElementById('qr-content');
     
-    if (!qrContent || !qrType) return;
+    if (!qrType || !qrContent) return;
     
     const placeholders = {
         'text': 'Geben Sie Ihren Text ein...',
         'url': 'https://www.beispiel.de',
-        'email': 'mailto:name@beispiel.de',
-        'phone': 'tel:+49123456789',
-        'sms': 'sms:+49123456789:Ihre Nachricht',
-        'wifi': 'WIFI:T:WPA;S:NetzwerkName;P:Passwort;;',
-        'vcard': 'BEGIN:VCARD\nVERSION:3.0\nFN:Max Mustermann\nEND:VCARD'
+        'email': 'ihre@email.de',
+        'phone': '+49 123 456789',
+        'sms': '+49 123 456789',
+        'wifi': 'SSID:MeinWifi;T:WPA;P:passwort;H:false;',
+        'vcard': 'BEGIN:VCARD\nFN:Max Mustermann\nTEL:+49123456789\nEMAIL:max@beispiel.de\nEND:VCARD'
     };
     
     qrContent.placeholder = placeholders[qrType.value] || placeholders.text;
     
-    // Automatische Vorschau-Aktualisierung
-    this.updatePreview();
+    // Auto-update preview when type changes
+    if (qrContent.value.trim()) {
+        this.updatePreview();
+    }
 }
 
   // Onboarding
@@ -2067,41 +2069,94 @@ class QRCustomization {
     }
 
     async updatePreview() {
-        const content = document.getElementById('qr-content')?.value.trim();
-        
-        // Verhindere Mehrfach-Ausführung
-        if (this.isGenerating) {
-            console.log('QR Generation bereits aktiv...');
-            return;
-        }
-
-        // Verhindere unnötige Updates bei gleichem Inhalt
-        if (content === this.lastContent) {
-            return;
-        }
-        this.lastContent = content;
-
-        const preview = document.querySelector('.qr-preview');
-        if (!preview) return;
-
-        // Leerer Inhalt - Placeholder anzeigen
-        if (!content) {
-            this.showPlaceholder(preview);
-            return;
-        }
-
-        // QRCode Library prüfen
-        if (!window.QRCode) {
-            this.showLoading(preview);
-            await this.ensureLibrariesLoaded();
-            if (!window.QRCode) {
-                this.showError(preview, 'QR Library konnte nicht geladen werden');
-                return;
-            }
-        }
-
-        this.generateQRCode(preview, content);
+    if (this.previewTimeout) {
+        clearTimeout(this.previewTimeout);
     }
+    
+    this.previewTimeout = setTimeout(async () => {
+        const qrContent = document.getElementById('qr-content');
+        const qrPreview = document.getElementById('qr-preview');
+        const qrColor = document.getElementById('qr-color');
+        const qrBgColor = document.getElementById('qr-bg-color');
+        
+        if (!qrContent || !qrPreview) return;
+        
+        const content = qrContent.value.trim();
+        
+        if (!content) {
+            qrPreview.innerHTML = `
+                <div class="preview-placeholder">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"/>
+                        <rect x="14" y="3" width="7" height="7"/>
+                        <rect x="3" y="14" width="7" height="7"/>
+                        <circle cx="17.5" cy="17.5" r="2.5"/>
+                    </svg>
+                    <p>QR Code Vorschau</p>
+                    <small>Geben Sie Inhalt ein um die Vorschau zu sehen</small>
+                </div>
+            `;
+            return;
+        }
+        
+        if (!window.QRCode) {
+            qrPreview.innerHTML = `
+                <div class="preview-error">
+                    <p>⚠️ QR Library wird geladen...</p>
+                    <small>Bitte warten Sie einen Moment</small>
+                </div>
+            `;
+            return;
+        }
+        
+        qrPreview.innerHTML = `
+            <div class="preview-loading">
+                <div class="loading-spinner"></div>
+                <p>Generiere Vorschau...</p>
+            </div>
+        `;
+        
+        try {
+            const canvas = document.createElement('canvas');
+            const options = {
+                width: 280,
+                margin: 2,
+                color: {
+                    dark: qrColor ? qrColor.value : '#000000',
+                    light: qrBgColor ? qrBgColor.value : '#FFFFFF'
+                }
+            };
+            
+            await QRCode.toCanvas(canvas, content, options);
+            
+            // Wrapper für bessere Kontrolle
+            const wrapper = document.createElement('div');
+            wrapper.className = 'qr-code-wrapper';
+            wrapper.appendChild(canvas);
+            
+            // Size indicator hinzufügen
+            const sizeIndicator = document.createElement('div');
+            sizeIndicator.className = 'size-indicator';
+            sizeIndicator.textContent = `${options.width}×${options.width}px`;
+            
+            qrPreview.innerHTML = '';
+            qrPreview.appendChild(wrapper);
+            qrPreview.appendChild(sizeIndicator);
+            
+            // Success styling
+            qrPreview.className = 'qr-preview qr-preview--success size-300';
+            
+        } catch (error) {
+            console.error('QR Preview Error:', error);
+            qrPreview.innerHTML = `
+                <div class="preview-error">
+                    <p>⚠️ Vorschau fehlgeschlagen</p>
+                    <small>${error.message}</small>
+                </div>
+            `;
+        }
+    }, 500);
+}
 
     // Sichere QR Code Generierung
     generateQRCode(preview, content) {

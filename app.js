@@ -688,21 +688,49 @@ setupHistoryEventListeners() {
         }
     });
 
-    // Action-Button Events
-    const clearHistory = document.getElementById('clear-history');
-    if (clearHistory) {
-        clearHistory.addEventListener('click', () => {
-            if (confirm('Möchten Sie den gesamten Verlauf löschen?')) {
-                this.clearAllHistory();
+    // Delegierte Event-Listener für History-Actions
+    const historyList = document.getElementById('history-list');
+    if (historyList) {
+        historyList.addEventListener('click', (e) => {
+            const button = e.target.closest('.btn-icon');
+            if (!button) return;
+            
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Copy Action
+            if (button.classList.contains('history-copy-btn')) {
+                const content = button.getAttribute('data-content');
+                this.copyToClipboard(content);
+            }
+            
+            // Regenerate Action
+            else if (button.classList.contains('history-regenerate-btn')) {
+                const content = button.getAttribute('data-content');
+                this.regenerateQRCode(content, button);
+            }
+            
+            // Share Action
+            else if (button.classList.contains('history-share-btn')) {
+                const content = button.getAttribute('data-content');
+                this.shareContent(content);
+            }
+            
+            // Delete Action
+            else if (button.classList.contains('history-delete-btn')) {
+                const itemId = button.getAttribute('data-id');
+                this.deleteHistoryItem(itemId, button);
             }
         });
     }
 
+    // Export Action
     const exportHistory = document.getElementById('export-history');
     if (exportHistory) {
         exportHistory.addEventListener('click', () => this.exportHistory());
     }
-
+   
+    // Import Action
     const importHistory = document.getElementById('import-history');
     if (importHistory) {
         importHistory.addEventListener('click', () => {
@@ -722,21 +750,171 @@ setupHistoryEventListeners() {
     }
 }
 
-clearAllHistory() {
-    // Beide Arrays leeren
-    this.qrHistory = [];
-    this.scanHistory = [];
+deleteHistoryItem(itemId, buttonElement) {
+    // Confirmation Modal
+    const modal = document.createElement('div');
+    modal.className = 'delete-modal-overlay';
+    modal.innerHTML = `
+        <div class="delete-modal">
+            <div class="delete-header">
+                <span class="delete-icon">🗑️</span>
+                <h3>Eintrag löschen</h3>
+            </div>
+            <div class="delete-content">
+                <p>Möchten Sie diesen Eintrag wirklich aus dem Verlauf löschen?</p>
+                <div class="delete-actions">
+                    <button class="btn btn--outline cancel-delete">Abbrechen</button>
+                    <button class="btn btn--danger confirm-delete">Löschen</button>
+                </div>
+            </div>
+        </div>
+    `;
     
-    // LocalStorage aktualisieren
-    localStorage.setItem('qr-pro-history', JSON.stringify(this.qrHistory));
-    localStorage.setItem('qr-pro-scan-history', JSON.stringify(this.scanHistory));
+    document.body.appendChild(modal);
     
-    // UI aktualisieren
-    this.displayHistory([]);
-    this.updateSearchResults(0, '');
-    this.updateDashboard();
+    // Event-Listener für Modal
+    modal.addEventListener('click', (e) => {
+        if (e.target.classList.contains('cancel-delete') || e.target.classList.contains('delete-modal-overlay')) {
+            document.body.removeChild(modal);
+        }
+        
+        if (e.target.classList.contains('confirm-delete')) {
+            this.performDelete(itemId, buttonElement);
+            document.body.removeChild(modal);
+        }
+    });
     
-    this.showToast('Gesamter Verlauf gelöscht', 'success');
+    // Escape zum Abbrechen
+    const handleEscape = (e) => {
+        if (e.key === 'Escape') {
+            document.body.removeChild(modal);
+            document.removeEventListener('keydown', handleEscape);
+        }
+    };
+    document.addEventListener('keydown', handleEscape);
+}
+
+performDelete(itemId, buttonElement) {
+    try {
+        // Aus qrHistory entfernen
+        const qrIndex = this.qrHistory.findIndex(item => 
+            (item.id || `generated-${item.timestamp}`) === itemId
+        );
+        
+        if (qrIndex !== -1) {
+            this.qrHistory.splice(qrIndex, 1);
+            localStorage.setItem('qr-pro-history', JSON.stringify(this.qrHistory));
+        }
+        
+        // Aus scanHistory entfernen
+        const scanIndex = this.scanHistory.findIndex(item => 
+            (item.id || `scanned-${item.timestamp}`) === itemId
+        );
+        
+        if (scanIndex !== -1) {
+            this.scanHistory.splice(scanIndex, 1);
+            localStorage.setItem('qr-pro-scan-history', JSON.stringify(this.scanHistory));
+        }
+        
+        // UI Element mit Animation entfernen
+        const historyItem = buttonElement.closest('.history-item');
+        if (historyItem) {
+            historyItem.style.transition = 'all 0.3s ease';
+            historyItem.style.transform = 'translateX(-100%)';
+            historyItem.style.opacity = '0';
+            
+            setTimeout(() => {
+                if (historyItem.parentNode) {
+                    historyItem.parentNode.removeChild(historyItem);
+                    // Nach dem Löschen die Liste aktualisieren
+                    this.loadInitialHistory();
+                }
+            }, 300);
+        }
+        
+        this.showToast('🗑️ Eintrag gelöscht', 'success');
+        this.updateDashboard();
+        
+    } catch (error) {
+        console.error('Delete failed:', error);
+        this.showToast('❌ Löschen fehlgeschlagen', 'error');
+    }
+}
+
+async copyToClipboard(content) {
+    try {
+        // Moderne Clipboard API verwenden
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(content);
+            this.showToast('📋 In Zwischenablage kopiert', 'success');
+        } 
+        // Fallback für ältere Browser
+        else {
+            const textArea = document.createElement('textarea');
+            textArea.value = content;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                this.showToast('📋 In Zwischenablage kopiert', 'success');
+            } catch (err) {
+                console.error('Fallback copy failed:', err);
+                this.showToast('❌ Kopieren fehlgeschlagen', 'error');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+    } catch (error) {
+        console.error('Copy failed:', error);
+        this.showToast('❌ Kopieren fehlgeschlagen', 'error');
+    }
+}
+
+async regenerateQRCode(content, buttonElement) {
+    try {
+        // Button-Feedback
+        const originalIcon = buttonElement.querySelector('.material-icons').textContent;
+        const iconElement = buttonElement.querySelector('.material-icons');
+        
+        iconElement.textContent = 'hourglass_empty';
+        buttonElement.style.opacity = '0.7';
+        buttonElement.disabled = true;
+        
+        // Zur Generator-Seite wechseln
+        this.navigateToPage('generator');
+        
+        // Warten bis Seite geladen ist
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Content in Generator einfügen
+        const contentInput = document.getElementById('qr-content');
+        if (contentInput) {
+            contentInput.value = content;
+            contentInput.focus();
+        }
+        
+        // Neuen QR Code generieren
+        await this.generateQRCode();
+        
+        this.showToast('🔄 QR Code neu generiert', 'success');
+        
+    } catch (error) {
+        console.error('Regenerate failed:', error);
+        this.showToast('❌ Neu generieren fehlgeschlagen', 'error');
+    } finally {
+        // Button zurücksetzen
+        if (buttonElement && !buttonElement.closest('.history-item').remove) {
+            const iconElement = buttonElement.querySelector('.material-icons');
+            if (iconElement) iconElement.textContent = originalIcon;
+            buttonElement.style.opacity = '';
+            buttonElement.disabled = false;
+        }
+    }
 }
 
 removeOldHistoryListeners() {
@@ -1397,15 +1575,114 @@ async copyToClipboard(text) {
   }
 }
 
-shareContent(content) {
-  if (navigator.share) {
-    navigator.share({
-      title: 'QR Pro - Geteilter Inhalt',
-      text: content
-    }).catch(console.error);
-  } else {
-    this.copyToClipboard(content);
-  }
+async shareContent(content) {
+    try {
+        // Native Share API verwenden falls verfügbar
+        if (navigator.share) {
+            await navigator.share({
+                title: 'QR Code Inhalt',
+                text: content,
+                url: window.location.href
+            });
+            this.showToast('📤 Erfolgreich geteilt', 'success');
+        } 
+        // Fallback: Copy + Modal
+        else {
+            await this.copyToClipboard(content);
+            this.showShareModal(content);
+        }
+    } catch (error) {
+        if (error.name !== 'AbortError') {
+            console.error('Share failed:', error);
+            // Fallback zu Copy
+            await this.copyToClipboard(content);
+            this.showToast('📋 In Zwischenablage kopiert (Teilen nicht verfügbar)', 'info');
+        }
+    }
+}
+
+showShareModal(content) {
+    const modal = document.createElement('div');
+    modal.className = 'share-modal-overlay';
+    modal.innerHTML = `
+        <div class="share-modal">
+            <div class="share-header">
+                <h3>QR Code Inhalt teilen</h3>
+                <button class="close-modal">✕</button>
+            </div>
+            <div class="share-content">
+                <div class="share-text">${this.truncateText(content, 100)}</div>
+                <div class="share-actions">
+                    <button class="share-btn" data-platform="whatsapp">
+                        <span class="share-icon">📱</span>
+                        WhatsApp
+                    </button>
+                    <button class="share-btn" data-platform="telegram">
+                        <span class="share-icon">✈️</span>
+                        Telegram
+                    </button>
+                    <button class="share-btn" data-platform="email">
+                        <span class="share-icon">📧</span>
+                        E-Mail
+                    </button>
+                    <button class="share-btn" data-platform="sms">
+                        <span class="share-icon">💬</span>
+                        SMS
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Event-Listener für Modal
+    modal.addEventListener('click', (e) => {
+        if (e.target.classList.contains('close-modal') || e.target.classList.contains('share-modal-overlay')) {
+            document.body.removeChild(modal);
+        }
+        
+        const shareBtn = e.target.closest('.share-btn');
+        if (shareBtn) {
+            const platform = shareBtn.getAttribute('data-platform');
+            this.shareViaPlatform(platform, content);
+            document.body.removeChild(modal);
+        }
+    });
+    
+    // Escape-Taste zum Schließen
+    const handleEscape = (e) => {
+        if (e.key === 'Escape') {
+            document.body.removeChild(modal);
+            document.removeEventListener('keydown', handleEscape);
+        }
+    };
+    document.addEventListener('keydown', handleEscape);
+}
+
+shareViaPlatform(platform, content) {
+    const encodedContent = encodeURIComponent(content);
+    let url;
+    
+    switch(platform) {
+        case 'whatsapp':
+            url = `https://wa.me/?text=${encodedContent}`;
+            break;
+        case 'telegram':
+            url = `https://t.me/share/url?text=${encodedContent}`;
+            break;
+        case 'email':
+            url = `mailto:?subject=QR Code Inhalt&body=${encodedContent}`;
+            break;
+        case 'sms':
+            url = `sms:?body=${encodedContent}`;
+            break;
+        default:
+            return;
+    }
+    
+    window.open(url, '_blank');
+    this.showToast(`📤 ${platform} geöffnet`, 'success');
 }
 
 showInstallPrompt() {

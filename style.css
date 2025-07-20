@@ -3590,3 +3590,135 @@ select.form-control {
     opacity: 0.6;
     pointer-events: none;
 }
+
+/* Custom Tile Pattern für "Eigene Farbe" */
+.custom-tile-pattern {
+    background-image: 
+        linear-gradient(45deg, #ccc 25%, transparent 25%), 
+        linear-gradient(-45deg, #ccc 25%, transparent 25%), 
+        linear-gradient(45deg, transparent 75%, #ccc 75%), 
+        linear-gradient(-45deg, transparent 75%, #ccc 75%);
+    background-size: 8px 8px;
+    background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
+}
+
+/* Color Value Display */
+.color-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.color-value-display {
+    font-family: monospace;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    min-width: 70px;
+}
+
+.color-input {
+    width: 60px;
+    height: 40px;
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-base);
+    cursor: pointer;
+}
+
+/* Preview Loading States */
+.preview-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: var(--color-text-secondary);
+}
+
+.loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--color-border);
+    border-top: 3px solid var(--color-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 12px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Input Footer */
+.input-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.character-count {
+    color: var(--color-text-secondary);
+    font-size: 12px;
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: var(--color-primary);
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-link:hover {
+    text-decoration: underline;
+}
+
+/* Size Control */
+.size-control {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.size-display {
+    font-weight: 500;
+    min-width: 60px;
+    color: var(--color-text-primary);
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+}
+
+.form-actions .btn {
+    flex: 1;
+    min-width: 140px;
+}
+
+/* Preview Info */
+.preview-info {
+    margin-top: 12px;
+    padding: 12px;
+    background: var(--color-background-secondary);
+    border-radius: var(--radius-base);
+    border-top: 3px solid var(--color-primary);
+}
+
+.info-item {
+    display: inline-block;
+    margin-right: 16px;
+}
+
+.info-item:last-child {
+    margin-right: 0;
+}
+

@@ -341,23 +341,70 @@
                                         </div>
                                     </div>
                                     
-                                    <div class="form-group">
-    <label for="qr-bg-preset" class="form-label">Hintergrund-Preset</label>
-    <select id="qr-bg-preset" class="form-control preset-selector">
-        <option value="custom">Eigene Farbe</option>
-        <option value="white" data-color="#ffffff">⚪ Reines Weiß</option>
-        <option value="cream" data-color="#fefef7">🌟 Cremeweiß</option>
-        <option value="pearl" data-color="#f8f8ff">💎 Perlweiß</option>
-        <option value="light-gray" data-color="#f5f5f5">🔘 Hellgrau</option>
-        <option value="warm-gray" data-color="#f7f5f3">🔸 Warmes Grau</option>
-        <option value="cool-gray" data-color="#f1f3f4">🔹 Kühles Grau</option>
-        <option value="beige" data-color="#f5f5dc">🏜️ Beige</option>
-        <option value="sand" data-color="#f4e8d0">🏖️ Sandton</option>
-        <option value="ivory" data-color="#fffff0">🦴 Elfenbein</option>
-        <option value="linen" data-color="#faf0e6">🧵 Leinen</option>
-        <option value="mint" data-color="#f0fff4">🌿 Mint</option>
-        <option value="lavender" data-color="#f8f4ff">💜 Lavendel</option>
-    </select>
+                                    <!-- Hintergrund-Einstellungen Section -->
+<div class="customization-section">
+    <h3 class="section-title">
+        <i class="icon-palette"></i>
+        Hintergrund-Einstellungen
+    </h3>
+    
+    <!-- Preset-Auswahl -->
+    <div class="form-group">
+        <label for="qr-bg-preset" class="form-label">
+            <i class="icon-color-fill"></i>
+            Hintergrund-Preset
+        </label>
+        <select id="qr-bg-preset" class="form-control preset-selector">
+            <option value="custom">🎨 Eigene Farbe</option>
+            <option value="white" data-color="#ffffff">⚪ Reines Weiß</option>
+            <option value="cream" data-color="#fefef7">🌟 Cremeweiß</option>
+            <option value="pearl" data-color="#f8f8ff">💎 Perlweiß</option>
+            <option value="light-gray" data-color="#f5f5f5">🔘 Hellgrau</option>
+            <option value="warm-gray" data-color="#f7f5f3">🔸 Warmes Grau</option>
+            <option value="cool-gray" data-color="#f1f3f4">🔹 Kühles Grau</option>
+            <option value="beige" data-color="#f5f5dc">🏜️ Beige</option>
+            <option value="sand" data-color="#f4e8d0">🏖️ Sandton</option>
+            <option value="ivory" data-color="#fffff0">🦴 Elfenbein</option>
+            <option value="linen" data-color="#faf0e6">🧵 Leinen</option>
+            <option value="mint" data-color="#f0fff4">🌿 Mint</option>
+            <option value="lavender" data-color="#f8f4ff">💜 Lavendel</option>
+        </select>
+    </div>
+    
+    <!-- Toggle Button zwischen Select und Kachel-Ansicht -->
+    <div class="form-group">
+        <button type="button" id="toggle-preset-view" class="btn btn-sm btn-outline-secondary">
+            📋 Kachel-Ansicht
+        </button>
+    </div>
+    
+    <!-- Kachel-Ansicht Container (initial versteckt) -->
+    <div id="bg-preset-tiles" class="preset-tiles" style="display: none;" role="radiogroup" aria-label="Hintergrund-Preset Auswahl">
+        <!-- Custom Tile -->
+        <div class="preset-tile active" data-preset="custom" tabindex="0" role="button" aria-label="Eigene Farbe auswählen" aria-pressed="true">
+            <div class="tile-color custom-tile-pattern">
+                <!-- Schachbrett-Muster für Custom -->
+            </div>
+            <span class="tile-label">Eigene</span>
+        </div>
+        <!-- Preset Tiles werden dynamisch durch JavaScript hinzugefügt -->
+    </div>
+    
+    <!-- Farb-Input -->
+    <div class="form-group">
+        <label for="qr-bg-color" class="form-label">
+            <i class="icon-dropper"></i>
+            Hintergrund-Farbe
+        </label>
+        <div class="color-input-wrapper">
+            <input type="color" id="qr-bg-color" class="form-control color-input" value="#ffffff">
+            <span class="color-value-display">#ffffff</span>
+        </div>
+        <small class="form-text text-muted">
+            Klicken Sie auf ein Preset oder wählen Sie eine eigene Farbe
+        </small>
+    </div>
+</div>
     
     <!-- Alternative: Farbkacheln für bessere Visualisierung -->
     <div id="bg-preset-tiles" class="preset-tiles" style="display: none;">
@@ -754,6 +801,42 @@
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script>
+// Sicherstellen dass die App-Instanz global verfügbar ist
+window.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 DOM geladen - initialisiere QR Pro App');
+    
+    if (typeof QRProApp !== 'undefined') {
+        window.app = new QRProApp();
+        window.app.init();
+    } else {
+        console.error('❌ QRProApp Klasse nicht gefunden!');
+    }
+});
+
+// Farb-Input Live-Update für Display
+document.addEventListener('DOMContentLoaded', () => {
+    const updateColorDisplays = () => {
+        const colorInputs = document.querySelectorAll('.color-input');
+        colorInputs.forEach(input => {
+            const wrapper = input.closest('.color-input-wrapper');
+            const display = wrapper?.querySelector('.color-value-display');
+            
+            if (display) {
+                const updateDisplay = () => {
+                    display.textContent = input.value.toUpperCase();
+                };
+                
+                input.addEventListener('input', updateDisplay);
+                input.addEventListener('change', updateDisplay);
+                updateDisplay(); // Initial
+            }
+        });
+    };
+    
+    updateColorDisplays();
+});
+</script>
     <script src="app.js"></script>
 </body>
 </html>

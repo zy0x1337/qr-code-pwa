@@ -1769,12 +1769,56 @@ restartScanner() {
 
   // UI Updates
   updateDashboard() {
-    document.getElementById('total-created').textContent = this.qrHistory.length;
-    document.getElementById('total-scanned').textContent = this.scanHistory.length;
-    document.getElementById('daily-limit').textContent = `${this.dailyQRCount}/${this.dailyLimit}`;
-    
-    this.updateRecentActivity();
+  console.log('📊 Aktualisiere Dashboard...');
+  
+  // SICHERE STATISTIK-UPDATES
+  this.updateSafeStat('qr-generated', this.getQRGeneratedCount());
+  this.updateSafeStat('qr-scanned', this.getQRScannedCount());
+  this.updateSafeStat('today-active', this.getTodayActiveCount());
+  this.updateSafeStat('templates-count', this.getTemplatesCount());
+  
+  this.updateRecentActivity();
+}
+
+// HILFSMETHODE FÜR SICHERE UPDATES
+updateSafeStat(statName, value) {
+  const element = document.querySelector(`[data-stat="${statName}"] .stat-number`);
+  if (element) {
+    element.textContent = value;
+  } else {
+    console.warn(`Statistik-Element '${statName}' nicht gefunden`);
   }
+}
+
+getQRGeneratedCount() {
+  try {
+    return parseInt(localStorage.getItem('qr-generated-count') || '0');
+  } catch (e) {
+    return 0;
+  }
+}
+
+getQRScannedCount() {
+  try {
+    return parseInt(localStorage.getItem('qr-scanned-count') || '0');
+  } catch (e) {
+    return 0;
+  }
+}
+
+getTodayActiveCount() {
+  try {
+    const today = new Date().toDateString();
+    const todayActivity = localStorage.getItem(`activity-${today}`);
+    return todayActivity ? JSON.parse(todayActivity).length : 0;
+  } catch (e) {
+    return 0;
+  }
+}
+
+getTemplatesCount() {
+  return this.templates ? this.templates.length : 0;
+}
 
   updateRecentActivity() {
     const recentItems = document.getElementById('recent-items');
@@ -4141,59 +4185,52 @@ previewDownload() {
 
 // Download-Info aktualisieren
 updateDownloadInfo() {
-    const sizeElement = document.getElementById('download-size');
-    if (!sizeElement) return;
-    
-    const baseSize = parseInt(this.qrSize || 300);
-    let estimatedSize;
-    
-    // Größenschätzung je nach Format
-    switch (this.selectedFormat) {
-        case 'png':
-            // PNG: ~4 bytes per pixel + Header
-            estimatedSize = Math.round((baseSize * baseSize * 4) / 1024) + 2;
-            break;
-            
-        case 'jpg':
-            // JPG: Abhängig von Qualität
-            const quality = this.downloadQuality || 95;
-            estimatedSize = Math.round((baseSize * baseSize * (quality / 100)) / 8);
-            break;
-            
-        case 'svg':
-            // SVG: Sehr klein, nur Text-basiert
-            estimatedSize = Math.round((baseSize / 50) + 3);
-            break;
-            
-        case 'pdf':
-            // PDF: Overhead + eingebettetes Bild
-            estimatedSize = Math.round((baseSize * baseSize * 2) / 1024) + 10;
-            break;
-            
-        case 'eps':
-            // EPS: Ähnlich PDF aber größer
-            estimatedSize = Math.round((baseSize * baseSize * 3) / 1024) + 5;
-            break;
-            
-        default:
-            estimatedSize = Math.round((baseSize * baseSize * 4) / 1024);
+  const sizeElement = document.getElementById('download-size');
+  
+  // FRÜHE RÜCKKEHR BEI FEHLENDEM ELEMENT
+  if (!sizeElement) {
+    console.log('Download-Size Element nicht gefunden');
+    return;
+  }
+  
+  const baseSize = parseInt(this.qrSize || 300);
+  let estimatedSize;
+  
+  switch (this.selectedFormat) {
+    case 'png':
+      estimatedSize = Math.round((baseSize * baseSize * 4) / 1024) + 2;
+      break;
+    case 'jpg':
+      const quality = this.downloadQuality || 95;
+      estimatedSize = Math.round((baseSize * baseSize * (quality / 100)) / 8);
+      break;
+    case 'svg':
+      estimatedSize = Math.round((baseSize / 50) + 3);
+      break;
+    case 'pdf':
+      estimatedSize = Math.round((baseSize * baseSize * 2) / 1024) + 10;
+      break;
+    case 'eps':
+      estimatedSize = Math.round((baseSize * baseSize * 3) / 1024) + 5;
+      break;
+    default:
+      estimatedSize = Math.round((baseSize * baseSize * 4) / 1024);
+  }
+  
+  const sizeText = estimatedSize > 1024 ? 
+    `~${(estimatedSize / 1024).toFixed(1)}MB` : 
+    `~${estimatedSize}KB`;
+  
+  sizeElement.textContent = sizeText;
+  
+  // Warnung bei großen Dateien
+  if (estimatedSize > 5120) {
+    sizeElement.style.color = 'var(--color-warning)';
+    sizeElement.title = 'Große Datei - Download kann länger dauern';
+  } else {
+    sizeElement.style.color = '';
+    sizeElement.title = '';
     }
-    
-    // Größe formatieren
-    const sizeText = estimatedSize > 1024 ? 
-        `~${(estimatedSize / 1024).toFixed(1)}MB` : 
-        `~${estimatedSize}KB`;
-    
-    sizeElement.textContent = sizeText;
-    
-    // Warnung bei sehr großen Dateien
-    if (estimatedSize > 5120) { // > 5MB
-        sizeElement.style.color = 'var(--color-warning)';
-        sizeElement.title = 'Große Datei - Download kann länger dauern';
-    } else {
-        sizeElement.style.color = '';
-        sizeElement.title = '';
-        }
     
     document.getElementById('download-size').textContent = sizeText;
     document.getElementById('info-dimensions').textContent = `${this.qrSize}x${this.qrSize}px`;

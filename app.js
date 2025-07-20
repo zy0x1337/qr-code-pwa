@@ -2046,45 +2046,275 @@ class QRCustomization {
         this.qrColor = '#000000';
         this.qrBgColor = '#ffffff';
         this.qrSize = '300';
+        
+        // 2025 Moderne Farbpaletten
+        this.colorPresets = {
+            classic: [
+                { color: '#000000', name: 'Schwarz' },
+                { color: '#6366f1', name: 'Indigo' },
+                { color: '#ef4444', name: 'Rot' },
+                { color: '#10b981', name: 'Grün' }
+            ],
+            modern: [
+                { color: '#1e293b', name: 'Slate Dark' },
+                { color: '#7c3aed', name: 'Violet' },
+                { color: '#0ea5e9', name: 'Sky Blue' },
+                { color: '#f59e0b', name: 'Amber' }
+            ],
+            premium: [
+                { color: '#0f172a', name: 'Dark Navy' },
+                { color: '#be123c', name: 'Rose' },
+                { color: '#059669', name: 'Emerald' },
+                { color: '#dc2626', name: 'Red' }
+            ]
+        };
+
+        this.bgColorPresets = {
+            neutral: [
+                { color: '#ffffff', name: 'Weiß' },
+                { color: '#f8fafc', name: 'Slate 50' },
+                { color: '#f1f5f9', name: 'Slate 100' },
+                { color: '#e2e8f0', name: 'Slate 200' }
+            ],
+            warm: [
+                { color: '#fefce8', name: 'Yellow 50' },
+                { color: '#fef3c7', name: 'Amber 100' },
+                { color: '#fed7aa', name: 'Orange 200' },
+                { color: '#fecaca', name: 'Red 200' }
+            ],
+            cool: [
+                { color: '#eff6ff', name: 'Blue 50' },
+                { color: '#dbeafe', name: 'Blue 100' },
+                { color: '#e0f2fe', name: 'Sky 100' },
+                { color: '#ecfdf5', name: 'Green 50' }
+            ],
+            premium: [
+                { color: '#fafafa', name: 'Neutral 50' },
+                { color: '#f4f4f5', name: 'Zinc 100' },
+                { color: '#e4e4e7', name: 'Zinc 200' },
+                { color: '#a1a1aa', name: 'Zinc 400' }
+            ]
+        };
+
+        this.currentColorCategory = 'classic';
+        this.currentBgCategory = 'neutral';
+        
         this.init();
     }
 
     init() {
         this.setupColorPresets();
+        this.setupBgColorPresets();
         this.setupSizeSelector();
         this.setupColorPickers();
+        this.setupCategorySelectors();
     }
 
-    // Farbenvorauswahl Setup
+    // Erweiterte Farbenvorauswahl Setup
     setupColorPresets() {
-        const colorPresets = document.querySelectorAll('.color-preset');
-        const qrColorInput = document.getElementById('qr-color');
+        const colorPresetsContainer = document.querySelector('.color-presets');
+        if (!colorPresetsContainer) return;
+
+        this.renderColorPresets();
         
-        colorPresets.forEach(preset => {
-            preset.addEventListener('click', () => {
-                const color = preset.dataset.color;
-                
-                // Aktiven Zustand setzen
-                colorPresets.forEach(p => p.classList.remove('active'));
-                preset.classList.add('active');
-                
-                // Farbe übernehmen
-                if (qrColorInput) {
-                    qrColorInput.value = color;
-                    this.qrColor = color;
-                    this.updatePreview();
-                }
-            });
+        // Event Listeners für Farbpresets
+        colorPresetsContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('color-preset')) {
+                const color = e.target.dataset.color;
+                this.selectColorPreset(e.target, color);
+            }
         });
 
-        // Standard-Preset (schwarz) als aktiv markieren
-        const defaultPreset = document.querySelector('.color-preset[data-color="#000000"]');
+        const qrColorInput = document.getElementById('qr-color');
+        if (qrColorInput) {
+            qrColorInput.addEventListener('input', () => {
+                this.updateColorFromInput();
+            });
+        }
+    }
+
+    // NEUE FUNKTION: Hintergrundfarben-Presets Setup
+    setupBgColorPresets() {
+        // Container für Hintergrundfarbe-Presets erstellen falls nicht vorhanden
+        const bgColorGroup = document.querySelector('.form-group:has(#qr-bg-color)') ||
+                           document.querySelector('label[for="qr-bg-color"]')?.parentElement;
+        
+        if (!bgColorGroup) return;
+
+        // Hintergrundfarbe-Presets Container hinzufügen
+        const bgPresetsContainer = document.createElement('div');
+        bgPresetsContainer.className = 'bg-color-presets-wrapper';
+        bgPresetsContainer.innerHTML = `
+            <div class="bg-category-selector">
+                <label class="category-label">Hintergrund-Stil:</label>
+                <select class="bg-category-select form-control">
+                    <option value="neutral">Neutral</option>
+                    <option value="warm">Warm</option>
+                    <option value="cool">Cool</option>
+                    <option value="premium">Premium</option>
+                </select>
+            </div>
+            <div class="bg-color-presets"></div>
+        `;
+
+        bgColorGroup.appendChild(bgPresetsContainer);
+        
+        this.renderBgColorPresets();
+        
+        // Event Listeners für Hintergrund-Presets
+        const bgPresetsElement = bgPresetsContainer.querySelector('.bg-color-presets');
+        bgPresetsElement.addEventListener('click', (e) => {
+            if (e.target.classList.contains('bg-color-preset')) {
+                const color = e.target.dataset.color;
+                this.selectBgColorPreset(e.target, color);
+            }
+        });
+
+        // Category Selector für Hintergrundfarben
+        const bgCategorySelect = bgPresetsContainer.querySelector('.bg-category-select');
+        bgCategorySelect.addEventListener('change', (e) => {
+            this.currentBgCategory = e.target.value;
+            this.renderBgColorPresets();
+        });
+
+        const qrBgColorInput = document.getElementById('qr-bg-color');
+        if (qrBgColorInput) {
+            qrBgColorInput.addEventListener('input', () => {
+                this.updateBgColorFromInput();
+            });
+        }
+    }
+
+    // Kategorie-Selektoren Setup
+    setupCategorySelectors() {
+        // Kategorie-Selektor für Hauptfarben hinzufügen
+        const colorGroup = document.querySelector('.form-group:has(#qr-color)') ||
+                          document.querySelector('label[for="qr-color"]')?.parentElement;
+        
+        if (colorGroup && !colorGroup.querySelector('.color-category-select')) {
+            const categorySelector = document.createElement('div');
+            categorySelector.className = 'color-category-selector';
+            categorySelector.innerHTML = `
+                <label class="category-label">Farb-Stil:</label>
+                <select class="color-category-select form-control">
+                    <option value="classic">Klassisch</option>
+                    <option value="modern">Modern</option>
+                    <option value="premium">Premium</option>
+                </select>
+            `;
+            
+            const colorPicker = colorGroup.querySelector('.color-picker');
+            if (colorPicker) {
+                colorPicker.insertBefore(categorySelector, colorPicker.firstChild);
+            }
+
+            // Event Listener für Kategorie-Wechsel
+            const colorCategorySelect = categorySelector.querySelector('.color-category-select');
+            colorCategorySelect.addEventListener('change', (e) => {
+                this.currentColorCategory = e.target.value;
+                this.renderColorPresets();
+            });
+        }
+    }
+
+    // Farb-Presets rendern
+    renderColorPresets() {
+        const colorPresetsContainer = document.querySelector('.color-presets');
+        if (!colorPresetsContainer) return;
+
+        const presets = this.colorPresets[this.currentColorCategory] || this.colorPresets.classic;
+        
+        colorPresetsContainer.innerHTML = presets.map(preset => `
+            <button class="color-preset advanced-preset" 
+                    data-color="${preset.color}" 
+                    style="background: ${preset.color}" 
+                    title="${preset.name}"
+                    type="button">
+            </button>
+        `).join('');
+
+        // Standard-Preset aktivieren
+        const defaultPreset = colorPresetsContainer.querySelector(`[data-color="${this.qrColor}"]`);
         if (defaultPreset) {
             defaultPreset.classList.add('active');
         }
     }
 
-    // Color Picker Event Listeners
+    // NEUE FUNKTION: Hintergrundfarb-Presets rendern
+    renderBgColorPresets() {
+        const bgPresetsContainer = document.querySelector('.bg-color-presets');
+        if (!bgPresetsContainer) return;
+
+        const presets = this.bgColorPresets[this.currentBgCategory] || this.bgColorPresets.neutral;
+        
+        bgPresetsContainer.innerHTML = presets.map(preset => `
+            <button class="bg-color-preset advanced-preset" 
+                    data-color="${preset.color}" 
+                    style="background: ${preset.color}; border: 2px solid #e2e8f0;" 
+                    title="${preset.name}"
+                    type="button">
+            </button>
+        `).join('');
+
+        // Standard-Preset aktivieren
+        const defaultBgPreset = bgPresetsContainer.querySelector(`[data-color="${this.qrBgColor}"]`);
+        if (defaultBgPreset) {
+            defaultBgPreset.classList.add('active');
+        }
+    }
+
+    // Farbpreset auswählen
+    selectColorPreset(element, color) {
+        // Alle anderen Presets deaktivieren
+        document.querySelectorAll('.color-preset').forEach(preset => {
+            preset.classList.remove('active');
+        });
+        
+        // Aktuellen Preset aktivieren
+        element.classList.add('active', 'selected-animation');
+        
+        // Farbe setzen
+        this.qrColor = color;
+        const qrColorInput = document.getElementById('qr-color');
+        if (qrColorInput) {
+            qrColorInput.value = color;
+        }
+        
+        this.updatePreview();
+        
+        // Animation nach kurzer Zeit entfernen
+        setTimeout(() => {
+            element.classList.remove('selected-animation');
+        }, 300);
+    }
+
+    // NEUE FUNKTION: Hintergrundfarb-Preset auswählen
+    selectBgColorPreset(element, color) {
+        // Alle anderen Hintergrund-Presets deaktivieren
+        document.querySelectorAll('.bg-color-preset').forEach(preset => {
+            preset.classList.remove('active');
+        });
+        
+        // Aktuellen Preset aktivieren
+        element.classList.add('active', 'selected-animation');
+        
+        // Hintergrundfarbe setzen
+        this.qrBgColor = color;
+        const qrBgColorInput = document.getElementById('qr-bg-color');
+        if (qrBgColorInput) {
+            qrBgColorInput.value = color;
+        }
+        
+        this.updatePreview();
+        this.showBgColorToast(color);
+        
+        // Animation nach kurzer Zeit entfernen
+        setTimeout(() => {
+            element.classList.remove('selected-animation');
+        }, 300);
+    }
+
+    // Color Picker Event Listeners (bestehend, erweitert)
     setupColorPickers() {
         const qrColorInput = document.getElementById('qr-color');
         const qrBgColorInput = document.getElementById('qr-bg-color');
@@ -2092,16 +2322,7 @@ class QRCustomization {
         if (qrColorInput) {
             qrColorInput.addEventListener('change', (e) => {
                 this.qrColor = e.target.value;
-                
-                // Preset-Auswahl zurücksetzen wenn Custom-Color verwendet
-                document.querySelectorAll('.color-preset').forEach(preset => {
-                    if (preset.dataset.color === e.target.value) {
-                        preset.classList.add('active');
-                    } else {
-                        preset.classList.remove('active');
-                    }
-                });
-                
+                this.syncPresetSelection('color');
                 this.updatePreview();
             });
         }
@@ -2109,12 +2330,26 @@ class QRCustomization {
         if (qrBgColorInput) {
             qrBgColorInput.addEventListener('change', (e) => {
                 this.qrBgColor = e.target.value;
+                this.syncPresetSelection('bgColor');
                 this.updatePreview();
             });
         }
     }
 
-    // Größenauswahl Setup
+    // Preset-Auswahl synchronisieren
+    syncPresetSelection(type) {
+        if (type === 'color') {
+            document.querySelectorAll('.color-preset').forEach(preset => {
+                preset.classList.toggle('active', preset.dataset.color === this.qrColor);
+            });
+        } else if (type === 'bgColor') {
+            document.querySelectorAll('.bg-color-preset').forEach(preset => {
+                preset.classList.toggle('active', preset.dataset.color === this.qrBgColor);
+            });
+        }
+    }
+
+    // Größenauswahl Setup (bestehend)
     setupSizeSelector() {
         const sizeSelector = document.getElementById('qr-size');
         
@@ -2122,10 +2357,9 @@ class QRCustomization {
             sizeSelector.addEventListener('change', (e) => {
                 const selectedSize = e.target.value;
                 
-                // Premium-Check für große Größen
                 if (selectedSize === '800' && !this.hasPremium()) {
                     this.showPremiumModal();
-                    sizeSelector.value = this.qrSize; // Zurücksetzen
+                    sizeSelector.value = this.qrSize;
                     return;
                 }
                 
@@ -2136,7 +2370,7 @@ class QRCustomization {
         }
     }
 
-    // Preview aktualisieren
+    // Erweiterte Preview-Aktualisierung
     updatePreview() {
         const content = document.getElementById('qr-content')?.value.trim();
         if (!content || !window.QRCode) return;
@@ -2145,10 +2379,8 @@ class QRCustomization {
         if (!preview) return;
 
         try {
-            // Vorherigen QR Code löschen
             preview.innerHTML = '';
 
-            // QR Code mit aktuellen Einstellungen generieren
             const qr = new QRCode(preview, {
                 text: content,
                 width: parseInt(this.qrSize),
@@ -2158,14 +2390,66 @@ class QRCustomization {
                 correctLevel: QRCode.CorrectLevel.H
             });
 
-            console.log(`QR Code aktualisiert: ${this.qrSize}px, Farbe: ${this.qrColor}`);
+            // Kontrast-Warnung anzeigen
+            this.checkColorContrast();
 
         } catch (error) {
             console.error('Fehler beim QR Preview Update:', error);
         }
     }
 
-    // Toast für Größenänderung
+    // NEUE FUNKTION: Kontrast-Prüfung
+    checkColorContrast() {
+        const contrast = this.calculateContrast(this.qrColor, this.qrBgColor);
+        const warningElement = document.querySelector('.contrast-warning');
+        
+        if (contrast < 4.5) {
+            if (!warningElement) {
+                const warning = document.createElement('div');
+                warning.className = 'contrast-warning';
+                warning.innerHTML = `
+                    <span class="warning-icon">⚠️</span>
+                    <span>Geringer Kontrast - QR Code könnte schwer lesbar sein</span>
+                `;
+                document.querySelector('.preview-container').appendChild(warning);
+            }
+        } else if (warningElement) {
+            warningElement.remove();
+        }
+    }
+
+    // Kontrast berechnen
+    calculateContrast(color1, color2) {
+        const getLuminance = (color) => {
+            const rgb = parseInt(color.slice(1), 16);
+            const r = (rgb >> 16) & 0xff;
+            const g = (rgb >> 8) & 0xff;
+            const b = (rgb >> 0) & 0xff;
+            
+            const [rs, gs, bs] = [r, g, b].map(c => {
+                c = c / 255;
+                return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+            });
+            
+            return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+        };
+
+        const lum1 = getLuminance(color1);
+        const lum2 = getLuminance(color2);
+        const brightest = Math.max(lum1, lum2);
+        const darkest = Math.min(lum1, lum2);
+        
+        return (brightest + 0.05) / (darkest + 0.05);
+    }
+
+    // Toast-Nachrichten
+    showBgColorToast(color) {
+        const colorName = this.getColorName(color, 'bg');
+        if (window.qrApp && typeof window.qrApp.showToast === 'function') {
+            window.qrApp.showToast(`Hintergrundfarbe: ${colorName}`, 'info', 2000);
+        }
+    }
+
     showSizeToast(size) {
         const sizeNames = {
             '200': 'Klein',
@@ -2174,34 +2458,53 @@ class QRCustomization {
             '800': 'Sehr groß'
         };
 
-        if (typeof this.showToast === 'function') {
-            this.showToast(`QR Code Größe: ${sizeNames[size]} (${size}px)`, 'info');
+        if (window.qrApp && typeof window.qrApp.showToast === 'function') {
+            window.qrApp.showToast(`QR Code Größe: ${sizeNames[size]} (${size}px)`, 'info', 2000);
         }
     }
 
-    // Premium Check (vereinfacht)
+    // Farbnamen ermitteln
+    getColorName(color, type = 'color') {
+        const presets = type === 'bg' ? this.bgColorPresets : this.colorPresets;
+        
+        for (const category of Object.values(presets)) {
+            const found = category.find(preset => preset.color === color);
+            if (found) return found.name;
+        }
+        
+        return color;
+    }
+
+    // Premium-Funktionen (bestehend)
     hasPremium() {
-        // Hier würde normalerweise der Premium-Status geprüft
         return localStorage.getItem('premium-status') === 'active';
     }
 
-    // Premium Modal anzeigen
     showPremiumModal() {
         const modal = document.getElementById('premium-modal');
         if (modal) {
             modal.style.display = 'flex';
         }
         
-        if (typeof this.showToast === 'function') {
-            this.showToast('Premium-Feature: Große QR Codes (800px) benötigen Premium', 'warning');
+        if (window.qrApp && typeof window.qrApp.showToast === 'function') {
+            window.qrApp.showToast('Premium-Feature: Große QR Codes benötigen Premium', 'warning');
         }
     }
 
-    // Öffentliche Methoden für externe Verwendung
+    // Öffentliche API (bestehend + erweitert)
     setColor(color) {
         this.qrColor = color;
         const qrColorInput = document.getElementById('qr-color');
         if (qrColorInput) qrColorInput.value = color;
+        this.syncPresetSelection('color');
+        this.updatePreview();
+    }
+
+    setBgColor(color) {
+        this.qrBgColor = color;
+        const qrBgColorInput = document.getElementById('qr-bg-color');
+        if (qrBgColorInput) qrBgColorInput.value = color;
+        this.syncPresetSelection('bgColor');
         this.updatePreview();
     }
 
@@ -2216,18 +2519,50 @@ class QRCustomization {
         return {
             color: this.qrColor,
             bgColor: this.qrBgColor,
-            size: this.qrSize
+            size: this.qrSize,
+            colorCategory: this.currentColorCategory,
+            bgColorCategory: this.currentBgCategory
         };
+    }
+
+    // NEUE FUNKTION: Erweiterte Preset-Verwaltung
+    addCustomPreset(type, color, name, category = 'custom') {
+        if (type === 'color') {
+            if (!this.colorPresets[category]) {
+                this.colorPresets[category] = [];
+            }
+            this.colorPresets[category].push({ color, name });
+        } else if (type === 'bg') {
+            if (!this.bgColorPresets[category]) {
+                this.bgColorPresets[category] = [];
+            }
+            this.bgColorPresets[category].push({ color, name });
+        }
+    }
+
+    // Integration mit der Hauptklasse sicherstellen
+    integrateWithMainApp(qrApp) {
+        this.mainApp = qrApp;
+        
+        // QR Preview Update Funktion der Hauptklasse überschreiben
+        if (qrApp.updatePreview) {
+            const originalUpdatePreview = qrApp.updatePreview.bind(qrApp);
+            qrApp.updatePreview = () => {
+                this.updatePreview();
+            };
+        }
     }
 }
 
-// QR Customization in die Hauptapp integrieren
-if (typeof app !== 'undefined') {
-    // In bestehende App integrieren
-    app.qrCustomization = new QRCustomization();
-} else {
-    // Standalone initialisieren
-    document.addEventListener('DOMContentLoaded', () => {
+// Integration mit der Hauptapp
+document.addEventListener('DOMContentLoaded', () => {
+    // QR Customization erst nach der Hauptapp initialisieren
+    setTimeout(() => {
         window.qrCustomization = new QRCustomization();
-    });
-}
+        
+        // Mit Hauptapp verknüpfen falls vorhanden
+        if (window.qrApp) {
+            window.qrCustomization.integrateWithMainApp(window.qrApp);
+        }
+    }, 500);
+});

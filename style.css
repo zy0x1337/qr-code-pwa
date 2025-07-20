@@ -1249,39 +1249,6 @@ select.form-control {
   gap: var(--space-16);
 }
 
-.color-picker {
-  display: flex;
-  align-items: center;
-  gap: var(--space-12);
-}
-
-.color-picker input[type="color"] {
-  width: 40px;
-  height: 40px;
-  border: none;
-  border-radius: var(--radius-base);
-  cursor: pointer;
-  background: none;
-}
-
-.color-presets {
-  display: flex;
-  gap: var(--space-8);
-}
-
-.color-preset {
-  width: var(--space-24);
-  height: var(--space-24);
-  border-radius: 50%;
-  border: 2px solid var(--color-border);
-  cursor: pointer;
-  transition: transform var(--duration-fast) var(--ease-standard);
-}
-
-.color-preset:hover {
-  transform: scale(1.1);
-}
-
 .premium-features {
   margin-top: var(--space-24);
   padding-top: var(--space-24);
@@ -3284,4 +3251,81 @@ select.form-control {
   .navbar-install:hover {
     transform: none;
   }
+}
+
+/* Farbenvorauswahl - Color Presets Styling */
+.color-picker {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+}
+
+.color-picker input[type="color"] {
+    width: 60px;
+    height: 40px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-base);
+    cursor: pointer;
+    background: none;
+    padding: 0;
+}
+
+.color-picker input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+    border-radius: var(--radius-base);
+}
+
+.color-picker input[type="color"]::-webkit-color-swatch {
+    border: none;
+    border-radius: var(--radius-base);
+}
+
+.color-presets {
+    display: flex;
+    gap: var(--space-8);
+    margin-top: var(--space-8);
+}
+
+.color-preset {
+    width: 32px;
+    height: 32px;
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-base);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-standard);
+    position: relative;
+}
+
+.color-preset:hover {
+    transform: scale(1.1);
+    border-color: var(--color-primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.color-preset.active {
+    border-color: var(--color-primary);
+    border-width: 3px;
+}
+
+.color-preset.active::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Dark Mode Anpassungen */
+@media (prefers-color-scheme: dark) {
+    .color-preset {
+        border-color: var(--color-card-border);
+    }
+    
+    .color-preset:hover {
+        border-color: var(--color-primary);
+    }
 }

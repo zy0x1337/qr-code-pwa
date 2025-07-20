@@ -4898,226 +4898,226 @@ input:checked + .toggle-slider:before {
     }
 }
 
-/* Root Variables for 2025 Minimalist Theme */
-:root {
-  --modal-bg: #ffffff; /* Light mode */
-  --modal-text: #1a1a1a;
-  --modal-accent: #007aff; /* Modern blue for CTAs */
-  --modal-shadow: rgba(0, 0, 0, 0.1);
-  --modal-radius: 16px; /* Soft, rounded corners */
-  --font-family: 'System UI', sans-serif; /* Modern system fonts */
-  --transition: 0.3s ease-out; /* Subtle, fast transitions */
-}
+/* ==========================================
+   TEMPLATE MODAL - 2025-ESQUE STYLES
+   ========================================== */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --modal-bg: #1c1c1e;
-    --modal-text: #f5f5f7;
-    --modal-shadow: rgba(255, 255, 255, 0.1);
-  }
-}
-
-/* Modal Overlay */
+/* Wrapper für das Modal und den Overlay-Effekt */
 .template-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  opacity: 0;
-  visibility: hidden;
-  transition: var(--transition);
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-modal, 1000);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5); /* Semitransparenter Hintergrund */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--duration-normal) var(--ease-standard), visibility 0s var(--duration-normal);
 }
 
 .template-modal.active {
-  opacity: 1;
-  visibility: visible;
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s;
 }
 
-.modal-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.4); /* Soft overlay for focus */
-  backdrop-filter: blur(4px); /* Modern blur effect */
-}
-
-/* Modal Content */
+/* Hauptinhalt des Modals */
 .modal-content {
-  position: relative;
-  background: var(--modal-bg);
-  border-radius: var(--modal-radius);
-  box-shadow: 0 8px 32px var(--modal-shadow); /* Soft morphism shadow */
-  max-width: 800px;
-  width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
-  padding: 32px;
-  transform: scale(0.95);
-  transition: transform var(--transition);
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-card-border);
+    box-shadow: var(--shadow-lg);
+    max-width: 800px;
+    width: 90%;
+    max-height: 85vh;
+    padding: var(--space-32);
+    display: flex;
+    flex-direction: column;
+    transform: scale(0.95);
+    transition: transform var(--duration-normal) var(--ease-standard);
 }
 
 .template-modal.active .modal-content {
-  transform: scale(1);
+    transform: scale(1);
 }
 
-/* Close Button */
+/* Header-Bereich */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-24);
+    padding-bottom: var(--space-16);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.modal-title {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text);
+    letter-spacing: var(--letter-spacing-tight);
+}
+
 .modal-close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--modal-text);
-  opacity: 0.7;
-  transition: opacity var(--transition);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    padding: var(--space-8);
+    border-radius: var(--radius-full);
+    transition: all var(--duration-fast) var(--ease-standard);
 }
 
 .modal-close:hover {
-  opacity: 1;
+    color: var(--color-text);
+    background: var(--color-secondary);
+    transform: rotate(90deg);
 }
 
-/* Title */
-.modal-title {
-  font-size: 28px; /* Bold typography trend */
-  font-weight: 600;
-  margin: 0 0 24px;
-  color: var(--modal-text);
-  letter-spacing: -0.5px; /* Tight spacing for modernity */
-}
-
-/* Categories */
+/* Kategoriefilter */
 .template-categories {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
-  overflow-x: auto;
-  padding-bottom: 8px;
+    display: flex;
+    gap: var(--space-12);
+    margin-bottom: var(--space-24);
+    overflow-x: auto; /* Für mobile Ansichten */
+    padding-bottom: var(--space-8);
 }
 
 .category-btn {
-  padding: 8px 16px;
-  background: transparent;
-  border: 1px solid var(--modal-shadow);
-  border-radius: 999px; /* Pill shape for 2025 minimalism */
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--modal-text);
-  transition: var(--transition);
+    padding: var(--space-8) var(--space-16);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: all var(--duration-normal) var(--ease-standard);
+    background: var(--color-secondary);
+    color: var(--color-text);
+    border: 1px solid transparent;
 }
 
-.category-btn.active,
 .category-btn:hover {
-  background: var(--modal-accent);
-  border-color: var(--modal-accent);
-  color: #ffffff;
+    background: var(--color-secondary-hover);
+    color: var(--color-primary);
+    border-color: var(--color-primary);
 }
 
-/* Template Grid */
+.category-btn.active {
+    background: var(--color-primary);
+    color: var(--color-btn-primary-text);
+    border-color: var(--color-primary);
+}
+
+/* Grid für die Template-Auswahl */
 .template-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-16);
+    overflow-y: auto;
+    flex-grow: 1; /* Nimmt verfügbaren Platz ein */
+    padding: var(--space-4); /* Etwas Platz für Hover-Effekte */
+    margin: 0 -var(--space-4);
 }
 
 .template-item {
-  background: rgba(255, 255, 255, 0.05); /* Subtle morphism in dark mode */
-  border-radius: 12px;
-  padding: 16px;
-  text-align: center;
-  transition: var(--transition);
-  cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+    padding: var(--space-20);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-card-border);
+    background: var(--color-surface);
+    transition: all var(--duration-normal) var(--ease-standard);
+    cursor: pointer;
 }
 
 .template-item:hover {
-  transform: translateY(-4px); /* Subtle lift for interactivity */
-  box-shadow: 0 4px 16px var(--modal-shadow);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-primary);
 }
 
 .template-icon {
-  font-size: 32px;
-  margin-bottom: 8px;
+    font-size: 36px;
+    line-height: 1;
 }
 
 .template-item h3 {
-  font-size: 18px;
-  margin: 0 0 8px;
-  color: var(--modal-text);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text);
+    margin: 0;
 }
 
 .template-item p {
-  font-size: 14px;
-  color: rgba(var(--modal-text), 0.7);
-  margin: 0;
+    font-size: var(--font-size-base);
+    color: var(--color-text-secondary);
+    margin: 0;
+    flex-grow: 1; /* Stellt sicher, dass der Button unten bleibt */
 }
 
-.use-btn {
-  margin-top: 12px;
-  padding: 8px 16px;
-  background: var(--modal-accent);
-  border: none;
-  border-radius: 8px;
-  color: #ffffff;
-  cursor: pointer;
-}
-
-/* Footer */
+/* Footer-Bereich mit Aktionen */
 .modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px solid var(--modal-shadow);
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-12);
+    margin-top: var(--space-24);
+    padding-top: var(--space-24);
+    border-top: 1px solid var(--color-border);
 }
 
-.secondary-btn,
+/* Button-Styling basierend auf dem Designsystem */
 .primary-btn {
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: var(--transition);
+    background: var(--color-primary);
+    color: var(--color-btn-primary-text);
+}
+.primary-btn:hover {
+    background: var(--color-primary-hover);
 }
 
 .secondary-btn {
-  background: transparent;
-  border: 1px solid var(--modal-shadow);
-  color: var(--modal-text);
+    background: var(--color-secondary);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
 }
-
 .secondary-btn:hover {
-  background: rgba(0, 0, 0, 0.05);
+    background: var(--color-secondary-hover);
 }
 
-.primary-btn {
-  background: var(--modal-accent);
-  border: none;
-  color: #ffffff;
+/* Gemeinsame Button-Klasse für einheitliches Aussehen */
+.modal-footer .btn {
+    padding: var(--space-12) var(--space-24);
+    border-radius: var(--radius-base);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-standard);
+    border: none;
+}
+.modal-footer .btn:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
 }
 
-.primary-btn:hover {
-  opacity: 0.9;
-}
 
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
-  .modal-content {
-    padding: 24px;
-    width: 95%;
-  }
-  .template-grid {
-    grid-template-columns: 1fr;
-  }
-  .modal-footer {
-    flex-direction: column-reverse;
-  }
+    .modal-content {
+        padding: var(--space-24);
+        width: 95%;
+        max-height: 90vh;
+    }
+    
+    .template-grid {
+        grid-template-columns: 1fr; /* Einspaltiges Layout */
+    }
+
+    .modal-footer {
+        flex-direction: column-reverse; /* Buttons untereinander */
+    }
+
+    .modal-footer .btn {
+        width: 100%; /* Volle Breite für Buttons */
+    }
 }

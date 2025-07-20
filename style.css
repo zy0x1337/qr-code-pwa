@@ -3441,28 +3441,16 @@ select.form-control {
 }
 
 /* Dynamische Größenanpassung */
-.qr-preview.size-200 {
-    min-height: 280px;
-    max-width: 280px;
-    margin: 0 auto;
+.qr-preview.size-small {
+  min-height: 280px;
+  max-width: 280px;
+  margin: 0 auto;
 }
 
-.qr-preview.size-300 {
-    min-height: 380px;
-    max-width: 380px;
-    margin: 0 auto;
-}
-
-.qr-preview.size-500 {
-    min-height: 580px;
-    max-width: 580px;
-    margin: 0 auto;
-}
-
-.qr-preview.size-800 {
-    min-height: 880px;
-    max-width: 880px;
-    margin: 0 auto;
+.qr-preview.size-medium {
+  min-height: 380px;
+  max-width: 380px;
+  margin: 0 auto;
 }
 
 /* Größen-Indikator */
@@ -3487,21 +3475,10 @@ select.form-control {
 }
 
 /* Responsive Anpassungen für große QR Codes */
-@media (max-width: 768px) {
-    .qr-preview.size-500,
-    .qr-preview.size-800 {
-        max-width: calc(100vw - 4rem);
-        min-height: auto;
-        aspect-ratio: 1;
-    }
-}
-
 @media (max-width: 480px) {
-    .qr-preview.size-300,
-    .qr-preview.size-500,
-    .qr-preview.size-800 {
-        max-width: calc(100vw - 2rem);
-        min-height: auto;
-        aspect-ratio: 1;
-    }
+  .qr-preview.size-medium {
+    max-width: calc(100vw - 2rem);
+    min-height: auto;
+    aspect-ratio: 1;
+  }
 }

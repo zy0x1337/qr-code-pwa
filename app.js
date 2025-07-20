@@ -190,6 +190,21 @@ class QRProApp {
   }
 
   setupEventListeners() {
+    // QR Code Größenauswahl Setup
+    const qrSize = document.getElementById('qr-size');
+    if (qrSize) {
+        qrSize.innerHTML = `
+            <option value="size-small">Klein (200px)</option>
+            <option value="size-medium">Mittel (300px)</option>
+        `;
+        qrSize.value = 'size-small';
+        
+        qrSize.addEventListener('change', (e) => {
+            this.updatePreviewSize(e.target.value);
+            this.updatePreview();
+        });
+    }
+    
   // Onboarding Event Listeners
   const nextBtn = document.getElementById('next-onboarding');
   const skipBtn = document.getElementById('skip-onboarding');
@@ -871,15 +886,23 @@ handleSwipeGesture() {
 
 // Resize Handler
 handleResize() {
-  // Scanner Größe anpassen
-  if (this.isScanning && this.html5QrCode) {
-    this.html5QrCode.getRunningTrackSettings().then(settings => {
-      // Scanner neu dimensionieren
-    }).catch(console.error);
-  }
-  
-  // QR Code Preview Größe anpassen
-  this.updatePreview();
+    const preview = document.getElementById('qr-preview');
+    if (!preview) return;
+    
+    const isMobile = window.innerWidth <= 480;
+    const isTablet = window.innerWidth <= 768;
+    
+    if (isMobile) {
+        const sizeSelect = document.getElementById('qr-size');
+        if (sizeSelect && sizeSelect.value === 'size-medium') {
+            this.showToast('QR Code Größe für Mobile optimiert', 'info', 2000);
+        }
+    }
+    
+    const scannerContainer = document.getElementById('scanner-container');
+    if (scannerContainer && this.isScanning) {
+        this.adjustScannerSize();
+    }
 }
 
 // Settings speichern
@@ -889,62 +912,88 @@ saveSettings() {
 
   // QR Code Generation
   async generateQRCode() {
-    const content = document.getElementById('qr-content')?.value.trim();
+    const content = document.getElementById('qr-content')?.value?.trim();
+    const type = document.getElementById('qr-type')?.value || 'text';
+    const color = document.getElementById('qr-color')?.value || '#000000';
+    const bgColor = document.getElementById('qr-bg-color')?.value || '#ffffff';
+    const sizeSelect = document.getElementById('qr-size');
     
     if (!content) {
-        this.showToast('Bitte geben Sie Inhalt ein', 'warning');
+        this.showToast('Bitte geben Sie Inhalt für den QR Code ein', 'warning');
         return;
     }
-
-    if (!window.QRCode) {
-        try {
-            await this.loadLibraries();
-        } catch (error) {
-            this.showToast('QR-Library konnte nicht geladen werden', 'error');
-            return;
+    
+    let pixelSize = 200;
+    let sizeClass = 'size-small';
+    
+    if (sizeSelect) {
+        switch(sizeSelect.value) {
+            case 'size-small':
+                pixelSize = 200;
+                sizeClass = 'size-small';
+                break;
+            case 'size-medium':
+                pixelSize = 300;
+                sizeClass = 'size-medium';
+                break;
         }
     }
-
+    
     try {
-        // Aktuelle Einstellungen abrufen
-        const qrColor = document.getElementById('qr-color')?.value || '#000000';
-        const qrBgColor = document.getElementById('qr-bg-color')?.value || '#ffffff';
-        const qrSize = parseInt(document.getElementById('qr-size')?.value) || 300;
-
-        // Premium-Check für große Größen
-        if (qrSize >= 800 && !this.hasPremium?.()) {
-            this.showToast('Premium-Feature: Große QR Codes benötigen Premium', 'warning');
-            return;
+        if (typeof QRCodeStyling === 'undefined') {
+            this.showToast('QR Code Bibliothek wird geladen...', 'info');
+            await this.loadLibraries();
         }
-
-        const preview = document.querySelector('.qr-preview');
-        preview.innerHTML = '';
-
-        // QR Code mit allen Einstellungen generieren
-        const qr = new QRCode(preview, {
-            text: content,
-            width: qrSize,
-            height: qrSize,
-            colorDark: qrColor,
-            colorLight: qrBgColor,
-            correctLevel: QRCode.CorrectLevel.H
+        
+        const qr = new QRCodeStyling({
+            width: pixelSize,
+            height: pixelSize,
+            data: this.formatContent(content, type),
+            dotsOptions: {
+                color: color,
+                type: "rounded"
+            },
+            backgroundOptions: {
+                color: bgColor,
+            },
+            cornersSquareOptions: {
+                type: "extra-rounded"
+            },
+            cornersDotOptions: {
+                type: "dot"
+            },
+            imageOptions: {
+                crossOrigin: "anonymous",
+                margin: 10
+            }
         });
-
-        console.log(`✅ QR Code generiert: ${qrSize}px, ${qrColor} auf ${qrBgColor}`);
-        this.showToast(`QR Code erfolgreich erstellt (${qrSize}px)`, 'success');
-
-        // Download-Section anzeigen
-        const downloadSection = document.getElementById('download-section');
-        if (downloadSection) {
-            downloadSection.classList.remove('hidden');
+        
+        const preview = document.getElementById('qr-preview');
+        if (preview) {
+            preview.innerHTML = '';
+            preview.classList.add('qr-generating');
+            
+            await qr.append(preview);
+            
+            preview.classList.remove('qr-generating');
+            this.updatePreviewSize(sizeClass);
+            
+            const downloadBtn = document.getElementById('download-btn');
+            if (downloadBtn) {
+                downloadBtn.disabled = false;
+                downloadBtn.onclick = () => {
+                    this.downloadQRCode('png', qr, pixelSize);
+                };
+            }
+            
+            this.saveToHistory(content, type);
         }
-
-        // In Historie speichern
-        this.saveToHistory(content, 'qr-generated', { size: qrSize, color: qrColor });
-
+        
+        this.showToast('QR Code erfolgreich generiert!', 'success');
+        
     } catch (error) {
-        console.error('❌ QR Generierung fehlgeschlagen:', error);
-        this.showToast('QR Code Generierung fehlgeschlagen', 'error');
+        console.error('QR Code Generierung fehlgeschlagen:', error);
+        this.showToast('Fehler beim Generieren des QR Codes', 'error');
     }
 }
 
@@ -1183,25 +1232,63 @@ loadScript(src) {
     });
 }
 
-// Download-Funktion hinzufügen
-downloadQRCode() {
-    const canvas = document.querySelector('#qr-preview canvas');
-    if (!canvas) {
-      this.showToast('Kein QR Code zum Herunterladen verfügbar', 'error');
-      return;
+// Download-Funktion
+async downloadQRCode(format = 'png', existingQR = null, existingSize = null) {
+    const content = document.getElementById('qr-content')?.value?.trim();
+    const type = document.getElementById('qr-type')?.value || 'text';
+    const color = document.getElementById('qr-color')?.value || '#000000';
+    const bgColor = document.getElementById('qr-bg-color')?.value || '#ffffff';
+    const sizeSelect = document.getElementById('qr-size');
+    
+    if (!content) {
+        this.showToast('Bitte generieren Sie zuerst einen QR Code', 'warning');
+        return;
     }
-
+    
+    let pixelSize = existingSize || 200;
+    
+    if (!existingSize && sizeSelect) {
+        switch(sizeSelect.value) {
+            case 'size-small':
+                pixelSize = 200;
+                break;
+            case 'size-medium':
+                pixelSize = 300;
+                break;
+        }
+    }
+    
     try {
-      const link = document.createElement('a');
-      link.download = `qr-code-${Date.now()}.png`;
-      link.href = canvas.toDataURL('image/png', 1.0);
-      link.click();
-      this.showToast('QR Code heruntergeladen!', 'success');
+        let qr = existingQR;
+        
+        if (!qr) {
+            qr = new QRCodeStyling({
+                width: pixelSize,
+                height: pixelSize,
+                data: this.formatContent(content, type),
+                dotsOptions: {
+                    color: color,
+                    type: "rounded"
+                },
+                backgroundOptions: {
+                    color: bgColor,
+                }
+            });
+        }
+        
+        await qr.download({ 
+            name: `qr-code-${pixelSize}px`, 
+            extension: format 
+        });
+        
+        this.saveToHistory(content, type);
+        this.showToast(`QR Code als ${format.toUpperCase()} heruntergeladen`, 'success');
+        
     } catch (error) {
-      console.error('Download Error:', error);
-      this.showToast('Fehler beim Download', 'error');
+        console.error('Download fehlgeschlagen:', error);
+        this.showToast('Fehler beim Herunterladen', 'error');
     }
-  }
+}
 
   // QR Code Scanner
   async startScanner() {
@@ -2143,33 +2230,168 @@ class QRCustomization {
     }
 
     // Preview aktualisieren
-    updatePreview() {
-        const content = document.getElementById('qr-content')?.value.trim();
-        if (!content || !window.QRCode) return;
-
-        const preview = document.querySelector('.qr-preview');
+    async updatePreview() {
+    if (this.previewTimeout) {
+        clearTimeout(this.previewTimeout);
+    }
+    
+    this.previewTimeout = setTimeout(async () => {
+        const content = document.getElementById('qr-content')?.value?.trim();
+        const preview = document.getElementById('qr-preview');
+        
         if (!preview) return;
-
+        
+        if (!content) {
+            preview.innerHTML = `
+                <div class="preview-placeholder">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                        <polyline points="21,15 16,10 5,21"/>
+                    </svg>
+                    <p>Geben Sie Inhalt ein um die Vorschau zu sehen</p>
+                </div>
+            `;
+            return;
+        }
+        
+        if (!this.librariesLoaded) {
+            preview.innerHTML = `
+                <div class="preview-loading">
+                    <div class="loading-spinner"></div>
+                    <p>⚠️ QR Library wird geladen...</p>
+                </div>
+            `;
+            try {
+                await this.loadLibraries();
+            } catch (error) {
+                preview.innerHTML = `
+                    <div class="preview-error">
+                        <p>⚠️ Bibliothek konnte nicht geladen werden</p>
+                    </div>
+                `;
+                return;
+            }
+        }
+        
+        preview.innerHTML = `
+            <div class="preview-loading">
+                <div class="loading-spinner"></div>
+                <p>Generiere Vorschau...</p>
+            </div>
+        `;
+        
         try {
-            // Vorherigen QR Code löschen
-            preview.innerHTML = '';
-
-            // QR Code mit aktuellen Einstellungen generieren
-            const qr = new QRCode(preview, {
-                text: content,
-                width: parseInt(this.qrSize),
-                height: parseInt(this.qrSize),
-                colorDark: this.qrColor,
-                colorLight: this.qrBgColor,
-                correctLevel: QRCode.CorrectLevel.H
+            const type = document.getElementById('qr-type')?.value || 'text';
+            const color = document.getElementById('qr-color')?.value || '#000000';
+            const bgColor = document.getElementById('qr-bg-color')?.value || '#ffffff';
+            const sizeSelect = document.getElementById('qr-size');
+            
+            let pixelSize = 200;
+            let sizeClass = 'size-small';
+            
+            if (sizeSelect) {
+                switch(sizeSelect.value) {
+                    case 'size-small':
+                        pixelSize = 200;
+                        sizeClass = 'size-small';
+                        break;
+                    case 'size-medium':
+                        pixelSize = 300;
+                        sizeClass = 'size-medium';
+                        break;
+                }
+            }
+            
+            const qr = new QRCodeStyling({
+                width: pixelSize,
+                height: pixelSize,
+                data: this.formatContent(content, type),
+                dotsOptions: {
+                    color: color,
+                    type: "rounded"
+                },
+                backgroundOptions: {
+                    color: bgColor,
+                },
+                cornersSquareOptions: {
+                    type: "extra-rounded"
+                },
+                cornersDotOptions: {
+                    type: "dot"
+                },
+                imageOptions: {
+                    crossOrigin: "anonymous",
+                    margin: 10
+                }
             });
-
-            console.log(`QR Code aktualisiert: ${this.qrSize}px, Farbe: ${this.qrColor}`);
-
+            
+            preview.innerHTML = '';
+            await qr.append(preview);
+            
+            this.updatePreviewSize(sizeClass);
+            
         } catch (error) {
-            console.error('Fehler beim QR Preview Update:', error);
+            console.error('Preview generation failed:', error);
+            preview.innerHTML = `
+                <div class="preview-error">
+                    <p>⚠️ Vorschau fehlgeschlagen</p>
+                    <small>${error.message}</small>
+                </div>
+            `;
+        }
+    }, 500);
+}
+
+updatePreviewSize(sizeClass) {
+    const preview = document.getElementById('qr-preview');
+    if (!preview) return;
+    
+    preview.classList.remove('size-200', 'size-300', 'size-500', 'size-800', 'size-small', 'size-medium');
+    
+    switch(sizeClass) {
+        case 'size-small':
+            preview.classList.add('size-small');
+            break;
+        case 'size-medium':
+            preview.classList.add('size-medium');
+            break;
+        default:
+            preview.classList.add('size-small');
+    }
+    
+    this.updateSizeIndicator(sizeClass);
+}
+
+updateSizeIndicator(sizeClass) {
+    let indicatorText = '';
+    let pixelSize = 200;
+    
+    switch(sizeClass) {
+        case 'size-small':
+            indicatorText = 'Klein (200px)';
+            pixelSize = 200;
+            break;
+        case 'size-medium':
+            indicatorText = 'Mittel (300px)';
+            pixelSize = 300;
+            break;
+    }
+    
+    let indicator = document.querySelector('.size-indicator');
+    if (!indicator) {
+        indicator = document.createElement('div');
+        indicator.className = 'size-indicator';
+        const preview = document.getElementById('qr-preview');
+        if (preview) {
+            preview.style.position = 'relative';
+            preview.appendChild(indicator);
         }
     }
+    
+    indicator.textContent = indicatorText;
+    indicator.setAttribute('data-size', pixelSize);
+}
 
     // Toast für Größenänderung
     showSizeToast(size) {

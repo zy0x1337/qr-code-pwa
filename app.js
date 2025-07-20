@@ -2076,6 +2076,7 @@ class QRCustomization {
         this.setupColorPickers();
         this.setupCategorySelectors();
         this.setupLogoFunctionality();
+        this.setupDownloadFunctionality();
     }
 
     // Erweiterte Farbenvorauswahl Setup
@@ -2403,28 +2404,23 @@ showCustomColorFeedback(color) {
         }
     }
 
-    // Größenauswahl Setup (bestehend)
+    // Größenauswahl Setup
     setupSizeSelector() {
-        const sizeSelector = document.getElementById('qr-size');
-        
-        if (sizeSelector) {
-            sizeSelector.addEventListener('change', (e) => {
-                const selectedSize = e.target.value;
-                
-                if (selectedSize === '800' && !this.hasPremium()) {
-                    this.showPremiumModal();
-                    sizeSelector.value = this.qrSize;
-                    return;
-                }
-                
-                this.qrSize = selectedSize;
-                this.updatePreview();
-                this.showSizeToast(selectedSize);
-            });
-        }
+    const sizeSelector = document.getElementById('qr-size');
+    
+    if (sizeSelector) {
+        sizeSelector.addEventListener('change', (e) => {
+            const selectedSize = e.target.value;
+            
+            // PREMIUM-PRÜFUNG ENTFERNT - alle Größen sind jetzt frei verfügbar
+            this.qrSize = selectedSize;
+            this.updatePreview();
+            this.showSizeToast(selectedSize);
+        });
     }
+}
 
-    // Preview-Aktualisierung mit Logo-Support
+// Preview-Aktualisierung mit Logo-Support
 updatePreview() {
     const content = document.getElementById('qr-content')?.value.trim();
     if (!content || !window.QRCode) return;
@@ -2435,7 +2431,6 @@ updatePreview() {
     try {
         preview.innerHTML = '';
 
-        // Standard QR Code generieren
         const qr = new QRCode(preview, {
             text: content,
             width: parseInt(this.qrSize),
@@ -2453,6 +2448,11 @@ updatePreview() {
         }
 
         this.checkColorContrast();
+        
+        // NEUE ZEILE: Download-Info aktualisieren
+        if (document.querySelector('.download-section')) {
+            this.updateDownloadInfo();
+        }
 
     } catch (error) {
         console.error('Fehler beim QR Preview Update:', error);
@@ -2599,22 +2599,6 @@ roundRect(ctx, x, y, width, height, radius) {
         }
         
         return color;
-    }
-
-    // Premium-Funktionen
-    hasPremium() {
-        return localStorage.getItem('premium-status') === 'active';
-    }
-
-    showPremiumModal() {
-        const modal = document.getElementById('premium-modal');
-        if (modal) {
-            modal.style.display = 'flex';
-        }
-        
-        if (window.qrApp && typeof window.qrApp.showToast === 'function') {
-            window.qrApp.showToast('Premium-Feature: Große QR Codes benötigen Premium', 'warning');
-        }
     }
 
     // Öffentliche API
@@ -2987,6 +2971,351 @@ applyLogoPreset(preset) {
             window.qrApp.showToast(`Preset "${preset}" angewendet`, 'success', 1500);
         }
     }
+}
+
+// Download-Sektion einrichten
+setupDownloadFunctionality() {
+    const downloadSection = this.createDownloadSection();
+    const qrPreviewContainer = document.querySelector('.preview-container') || 
+                              document.querySelector('.qr-preview')?.parentElement;
+    
+    if (qrPreviewContainer) {
+        qrPreviewContainer.appendChild(downloadSection);
+        this.attachDownloadEventListeners();
+    }
+}
+
+// Download-Sektion HTML erstellen
+createDownloadSection() {
+    const downloadSection = document.createElement('div');
+    downloadSection.className = 'download-section';
+    downloadSection.innerHTML = `
+        <div class="download-header">
+            <h3 class="download-title">
+                <span class="download-icon">💾</span>
+                QR Code herunterladen
+            </h3>
+        </div>
+        
+        <div class="download-options">
+            <div class="format-selection">
+                <label class="format-label">Format:</label>
+                <div class="format-buttons">
+                    <button type="button" class="format-btn active" data-format="png">
+                        <span class="format-icon">🖼️</span>
+                        PNG
+                        <span class="format-desc">Beste Qualität</span>
+                    </button>
+                    <button type="button" class="format-btn" data-format="jpg">
+                        <span class="format-icon">📷</span>
+                        JPG
+                        <span class="format-desc">Kleinere Datei</span>
+                    </button>
+                    <button type="button" class="format-btn" data-format="svg">
+                        <span class="format-icon">⚡</span>
+                        SVG
+                        <span class="format-desc">Skalierbar</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="download-settings">
+                <div class="quality-setting">
+                    <label for="download-quality">
+                        <span>Qualität</span>
+                        <span class="quality-value" id="quality-value">95%</span>
+                    </label>
+                    <input type="range" id="download-quality" min="70" max="100" value="95" class="quality-slider">
+                </div>
+                
+                <div class="filename-setting">
+                    <label for="download-filename">Dateiname:</label>
+                    <input type="text" id="download-filename" value="qr-code" class="filename-input" placeholder="qr-code">
+                </div>
+            </div>
+            
+            <div class="download-actions">
+                <button type="button" id="download-btn" class="download-btn primary">
+                    <span class="btn-icon">⬇️</span>
+                    <span class="btn-text">Herunterladen</span>
+                    <span class="btn-size" id="download-size">~50KB</span>
+                </button>
+                
+                <button type="button" id="preview-download" class="download-btn secondary">
+                    <span class="btn-icon">👁️</span>
+                    Vorschau
+                </button>
+            </div>
+        </div>
+        
+        <div class="download-info">
+            <div class="info-item">
+                <span class="info-icon">📏</span>
+                <span>Größe: <span id="info-dimensions">${this.qrSize}x${this.qrSize}px</span></span>
+            </div>
+            <div class="info-item">
+                <span class="info-icon">🎨</span>
+                <span>Farben: <span id="info-colors">Vordergrund & Hintergrund</span></span>
+            </div>
+            <div class="info-item" id="logo-info" style="display: none;">
+                <span class="info-icon">📷</span>
+                <span>Mit Logo</span>
+            </div>
+        </div>
+    `;
+    
+    return downloadSection;
+}
+
+// Download Event Listeners
+attachDownloadEventListeners() {
+    // Format-Auswahl
+    document.querySelectorAll('.format-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            this.selectedFormat = btn.dataset.format;
+            this.updateDownloadInfo();
+        });
+    });
+    
+    // Qualitäts-Slider
+    const qualitySlider = document.getElementById('download-quality');
+    qualitySlider.addEventListener('input', (e) => {
+        this.downloadQuality = parseInt(e.target.value);
+        document.getElementById('quality-value').textContent = `${this.downloadQuality}%`;
+        this.updateDownloadInfo();
+    });
+    
+    // Dateiname-Input
+    const filenameInput = document.getElementById('download-filename');
+    filenameInput.addEventListener('input', (e) => {
+        this.downloadFilename = e.target.value || 'qr-code';
+        this.updateDownloadInfo();
+    });
+    
+    // Download-Button
+    document.getElementById('download-btn').addEventListener('click', () => {
+        this.downloadQRCode();
+    });
+    
+    // Preview-Button
+    document.getElementById('preview-download').addEventListener('click', () => {
+        this.previewDownload();
+    });
+    
+    // Initialisierung
+    this.selectedFormat = 'png';
+    this.downloadQuality = 95;
+    this.downloadFilename = 'qr-code';
+}
+
+// QR Code herunterladen
+downloadQRCode() {
+    const qrCanvas = document.querySelector('.qr-preview canvas');
+    if (!qrCanvas) {
+        this.showDownloadError('Kein QR Code zum Herunterladen verfügbar');
+        return;
+    }
+    
+    try {
+        let dataUrl, filename;
+        const timestamp = new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-');
+        
+        switch (this.selectedFormat) {
+            case 'png':
+                dataUrl = qrCanvas.toDataURL('image/png');
+                filename = `${this.downloadFilename}-${timestamp}.png`;
+                break;
+                
+            case 'jpg':
+                // Weißer Hintergrund für JPG
+                const tempCanvas = document.createElement('canvas');
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCanvas.width = qrCanvas.width;
+                tempCanvas.height = qrCanvas.height;
+                
+                // Weißer Hintergrund
+                tempCtx.fillStyle = '#FFFFFF';
+                tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                
+                // QR Code drauf zeichnen
+                tempCtx.drawImage(qrCanvas, 0, 0);
+                
+                dataUrl = tempCanvas.toDataURL('image/jpeg', this.downloadQuality / 100);
+                filename = `${this.downloadFilename}-${timestamp}.jpg`;
+                break;
+                
+            case 'svg':
+                dataUrl = this.generateSVG();
+                filename = `${this.downloadFilename}-${timestamp}.svg`;
+                break;
+                
+            default:
+                dataUrl = qrCanvas.toDataURL('image/png');
+                filename = `${this.downloadFilename}-${timestamp}.png`;
+        }
+        
+        // Download auslösen
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = dataUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Erfolgs-Feedback
+        if (window.qrApp && typeof window.qrApp.showToast === 'function') {
+            window.qrApp.showToast(`QR Code als ${this.selectedFormat.toUpperCase()} heruntergeladen!`, 'success', 3000);
+        }
+        
+        // Download-Statistiken
+        this.trackDownload(this.selectedFormat, filename);
+        
+    } catch (error) {
+        console.error('Download-Fehler:', error);
+        this.showDownloadError('Fehler beim Herunterladen des QR Codes');
+    }
+}
+
+// SVG generieren
+generateSVG() {
+    const size = parseInt(this.qrSize);
+    const content = document.getElementById('qr-content')?.value.trim() || '';
+    
+    // Einfache SVG-Generierung (vereinfacht)
+    const svg = `
+        <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" 
+             xmlns="http://www.w3.org/2000/svg">
+            <rect width="100%" height="100%" fill="${this.qrBgColor}"/>
+            <!-- QR Code Daten würden hier eingefügt -->
+            <text x="50%" y="50%" text-anchor="middle" fill="${this.qrColor}" 
+                  font-size="12" font-family="Arial">
+                QR: ${content.substring(0, 20)}${content.length > 20 ? '...' : ''}
+            </text>
+        </svg>
+    `;
+    
+    return 'data:image/svg+xml;base64,' + btoa(svg);
+}
+
+// Download-Vorschau
+previewDownload() {
+    const qrCanvas = document.querySelector('.qr-preview canvas');
+    if (!qrCanvas) return;
+    
+    // Neues Fenster mit Vorschau öffnen
+    const dataUrl = qrCanvas.toDataURL('image/png');
+    const previewWindow = window.open('', '_blank');
+    
+    previewWindow.document.write(`
+        <html>
+            <head>
+                <title>QR Code Vorschau</title>
+                <style>
+                    body {
+                        margin: 0;
+                        padding: 20px;
+                        background: #f5f5f5;
+                        font-family: Arial, sans-serif;
+                        text-align: center;
+                    }
+                    .preview-container {
+                        background: white;
+                        padding: 20px;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                        display: inline-block;
+                        margin: 20px;
+                    }
+                    img {
+                        max-width: 100%;
+                        height: auto;
+                    }
+                    .info {
+                        margin-top: 15px;
+                        font-size: 14px;
+                        color: #666;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="preview-container">
+                    <h2>QR Code Vorschau</h2>
+                    <img src="${dataUrl}" alt="QR Code Preview">
+                    <div class="info">
+                        Größe: ${this.qrSize}x${this.qrSize}px<br>
+                        Format: ${this.selectedFormat.toUpperCase()}<br>
+                        Qualität: ${this.downloadQuality}%
+                    </div>
+                </div>
+            </body>
+        </html>
+    `);
+    
+    previewWindow.document.close();
+}
+
+// Download-Info aktualisieren
+updateDownloadInfo() {
+    // Dateigröße schätzen
+    const baseSize = parseInt(this.qrSize);
+    let estimatedSize;
+    
+    switch (this.selectedFormat) {
+        case 'png':
+            estimatedSize = Math.round((baseSize * baseSize * 4) / 1024); // ~4 bytes per pixel
+            break;
+        case 'jpg':
+            estimatedSize = Math.round((baseSize * baseSize * (this.downloadQuality / 100)) / 10);
+            break;
+        case 'svg':
+            estimatedSize = Math.round((baseSize / 10) + 2); // Sehr klein
+            break;
+        default:
+            estimatedSize = Math.round((baseSize * baseSize * 4) / 1024);
+    }
+    
+    const sizeText = estimatedSize > 1024 ? 
+        `~${(estimatedSize / 1024).toFixed(1)}MB` : 
+        `~${estimatedSize}KB`;
+    
+    document.getElementById('download-size').textContent = sizeText;
+    document.getElementById('info-dimensions').textContent = `${this.qrSize}x${this.qrSize}px`;
+    
+    // Logo-Info anzeigen
+    const logoInfo = document.getElementById('logo-info');
+    if (this.logoEnabled && this.logoFile) {
+        logoInfo.style.display = 'flex';
+    } else {
+        logoInfo.style.display = 'none';
+    }
+}
+
+// Download-Fehler anzeigen
+showDownloadError(message) {
+    if (window.qrApp && typeof window.qrApp.showToast === 'function') {
+        window.qrApp.showToast(message, 'error', 4000);
+    } else {
+        alert(message);
+    }
+}
+
+// Download-Tracking
+trackDownload(format, filename) {
+    // Optional: Download-Statistiken sammeln
+    const downloadData = {
+        format,
+        filename,
+        size: this.qrSize,
+        timestamp: new Date().toISOString(),
+        hasLogo: this.logoEnabled && this.logoFile ? true : false
+    };
+    
+    // In localStorage speichern oder an Analytics senden
+    const downloads = JSON.parse(localStorage.getItem('qr-downloads') || '[]');
+    downloads.push(downloadData);
+    localStorage.setItem('qr-downloads', JSON.stringify(downloads.slice(-50))); // Nur die letzten 50 speichern
 }
 }
 

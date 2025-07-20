@@ -4912,4 +4912,84 @@ document.addEventListener('DOMContentLoaded', () => {
             console.warn('❌ QR App nicht gefunden - Template-Manager nicht initialisiert');
         }
     }, 1000);
+
+    initTemplateModule();
 });
+
+/* ==== Templates – Setup  ============================================ */
+function initTemplateModule() {
+    // Buttons
+    const quickBtn      = document.getElementById('quick-templates-btn');
+    const generatorBtn  = document.getElementById('generator-templates-btn');
+    const modal         = document.getElementById('template-modal');
+    const grid          = document.getElementById('template-grid');
+    const closeBtns     = modal.querySelectorAll('[data-close-template], .modal-close');
+
+    if (!modal || !grid) return;                                // Sicherheits-Guard
+
+    // ► Modal öffnen
+    const openModal = () => {
+        populateTemplateGrid();                                 // Einmal pro Öffnen
+        modal.style.display = 'flex';                           // z. B. flex oder block
+        document.body.style.overflow = 'hidden';                // Scroll sperren
+    };
+
+    // ► Modal schließen
+    const closeModal = () => {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';                      // Scroll frei
+    };
+
+    quickBtn?.addEventListener('click', openModal);
+    generatorBtn?.addEventListener('click', openModal);
+    closeBtns.forEach(btn => btn.addEventListener('click', closeModal));
+
+    // Klick ausserhalb des Inhalts schließt das Modal
+    modal.addEventListener('click', e => {
+        if (e.target === modal) closeModal();
+    });
+}
+
+/* ==== Templates – Grid befüllen  ==================================== */
+function populateTemplateGrid() {
+    const grid = document.getElementById('template-grid');
+    if (!grid || grid.childElementCount) return;                // schon gefüllt?
+
+    // Beispiel-Templates – hier können beliebige Vorlagen ergänzt werden
+    const templates = [
+        { id: 'url-blue',    label: 'URL · Blau'     , color: '#3b82f6', demo: 'https://example.com' },
+        { id: 'wifi-green',  label: 'WLAN · Grün'    , color: '#10b981', demo: 'WIFI:T:WPA;S:MyWiFi;P:12345678;;' },
+        { id: 'vcard-gray',  label: 'vCard · Grau'   , color: '#6b7280', demo: 'BEGIN:VCARD\nFN:Max Mustermann\nTEL:+49123456789\nEND:VCARD' }
+    ];
+
+    grid.innerHTML = templates.map(t => `
+        <button class="template-card" data-template='${JSON.stringify(t)}'
+                style="--tpl-color:${t.color}">
+            <div class="tpl-preview"></div>
+            <span class="tpl-label">${t.label}</span>
+        </button>
+    `).join('');
+
+    /* Klick auf Template → Werte übernehmen */
+    grid.querySelectorAll('.template-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const tpl   = JSON.parse(card.dataset.template);
+            document.getElementById('qr-type').value     = detectType(tpl.demo);
+            document.getElementById('qr-content').value  = tpl.demo;
+            window.qrCustomization.setColor(tpl.color);  // vorhandene API
+            window.qrCustomization.updatePreview();
+            document.getElementById('template-modal').style.display = 'none';
+        });
+    });
+}
+
+/* ==== Helfer – Typ aus Demo ableiten  =============================== */
+function detectType(text) {
+    if (text.startsWith('WIFI:')) return 'wifi';
+    if (text.startsWith('BEGIN:VCARD')) return 'vcard';
+    if (text.startsWith('mailto:')) return 'email';
+    if (text.startsWith('tel:')) return 'phone';
+    if (text.startsWith('sms:')) return 'sms';
+    if (/^https?:\/\//i.test(text)) return 'url';
+    return 'text';
+}

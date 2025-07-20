@@ -4296,155 +4296,620 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 500);
 });
 
-/* Nach QRCustomization-Klasse oder in app.js ergänzen */
 class TemplateManager {
-  constructor(qrCustomizer) {
-    this.qrCustomizer = qrCustomizer;               // Referenz auf QRCustomization
-    this.templates = this.buildTemplates();         // Array mit Template-Objekten
-    this.modal = document.getElementById('template-modal');
-    this.grid  = document.getElementById('template-grid');
-    this.renderCards();
-    this.bindEvents();
-  }
+    constructor(qrApp) {
+        this.qrApp = qrApp;                    // Referenz auf die Haupt-App
+        this.templates = this.buildTemplates();
+        this.selectedTemplate = null;
+        
+        // DOM-Elemente mit Fehlerbehandlung
+        this.modal = null;
+        this.grid = null;
+        
+        this.init();
+    }
 
-  /* Beispiel-Templates */
-  buildTemplates() {
-    return [
-      {
-        id: 'wifi',
-        name: 'Besucher-WiFi',
-        payload: 'WIFI:T:WPA;S:Guest_WLAN;P:mysecretpw;H:false;;',
-        settings: { color:'#ffffff', bgColor:'#2563eb', size:'300' }
-      },
-      {
-        id: 'vcard',
-        name: 'Visitenkarte',
-        payload:
-`BEGIN:VCARD
+    init() {
+        // Prüfen ob HTML-Elemente existieren
+        this.modal = document.getElementById('template-modal');
+        
+        if (!this.modal) {
+            console.warn('Template-Modal nicht gefunden - erstelle dynamisches Modal');
+            this.createModal();
+        }
+        
+        this.grid = document.getElementById('template-grid');
+        
+        if (!this.grid) {
+            console.warn('Template-Grid nicht gefunden');
+            return;
+        }
+        
+        this.setupEventListeners();
+        this.renderTemplates();
+    }
+
+    // Template-Datenstruktur mit erweiterten 2025-Vorlagen
+    buildTemplates() {
+        return {
+            business: [
+                {
+                    id: 'business-vcard',
+                    name: 'Visitenkarte Digital',
+                    description: 'Komplette Kontaktdaten im vCard Format',
+                    icon: '👤',
+                    type: 'vcard',
+                    settings: { color: '#1e293b', bgColor: '#f8fafc', size: '300' },
+                    content: `BEGIN:VCARD
 VERSION:3.0
 FN:Max Mustermann
 ORG:Muster GmbH
-TEL:+49 123 456789
-EMAIL:max@muster.de
-URL:https://muster.de
-END:VCARD`,
-        settings: { color:'#000000', bgColor:'#facc15', size:'300' }
-      },
-      {
-        id: 'link',
-        name: 'Website Link',
-        payload: 'https://www.example.com',
-        settings: { color:'#ffffff', bgColor:'#0d9488', size:'300' }
-      }
-    ];
-  }
+TITLE:Geschäftsführer
+TEL;WORK:+49 30 12345678
+TEL;CELL:+49 170 1234567
+EMAIL;WORK:max.mustermann@muster-gmbh.de
+URL:https://www.muster-gmbh.de
+ADR;WORK:;;Musterstraße 123;Berlin;;10115;Deutschland
+END:VCARD`
+                },
+                {
+                    id: 'business-website',
+                    name: 'Unternehmens-Website',
+                    description: 'Direkte Weiterleitung zur Firmen-Homepage',
+                    icon: '🌐',
+                    type: 'url',
+                    settings: { color: '#0ea5e9', bgColor: '#ffffff', size: '300' },
+                    content: 'https://www.ihr-unternehmen.de'
+                },
+                {
+                    id: 'business-email',
+                    name: 'E-Mail Kontakt',
+                    description: 'Vorausgefüllte E-Mail mit Betreff',
+                    icon: '📧',
+                    type: 'email',
+                    settings: { color: '#dc2626', bgColor: '#fef2f2', size: '300' },
+                    content: 'mailto:kontakt@firma.de?subject=Geschäftsanfrage&body=Hallo,%0A%0Aich interessiere mich für...'
+                },
+                {
+                    id: 'business-wifi',
+                    name: 'Gäste-WLAN',
+                    description: 'Automatische WLAN-Verbindung für Besucher',
+                    icon: '📶',
+                    type: 'wifi',
+                    settings: { color: '#059669', bgColor: '#f0fdf4', size: '300' },
+                    content: 'WIFI:T:WPA2;S:Gaeste-WLAN;P:willkommen2025;H:false;;'
+                },
+                {
+                    id: 'business-location',
+                    name: 'Standort & Navigation',
+                    description: 'GPS-Koordinaten für Navigation',
+                    icon: '📍',
+                    type: 'text',
+                    settings: { color: '#7c3aed', bgColor: '#faf5ff', size: '300' },
+                    content: 'Muster GmbH\nMusterstraße 123\n10115 Berlin\n\nGPS: 52.5200,13.4050'
+                }
+            ],
+            social: [
+                {
+                    id: 'social-instagram',
+                    name: 'Instagram Profil',
+                    description: 'Direkter Link zum Instagram Account',
+                    icon: '📷',
+                    type: 'url',
+                    settings: { color: '#e91e63', bgColor: '#fce4ec', size: '300' },
+                    content: 'https://instagram.com/ihr_account'
+                },
+                {
+                    id: 'social-linkedin',
+                    name: 'LinkedIn Profil',
+                    description: 'Berufliches Netzwerk-Profil',
+                    icon: '💼',
+                    type: 'url',
+                    settings: { color: '#0077b5', bgColor: '#e3f2fd', size: '300' },
+                    content: 'https://linkedin.com/in/ihr-profil'
+                },
+                {
+                    id: 'social-whatsapp',
+                    name: 'WhatsApp Chat',
+                    description: 'Direkter WhatsApp Chat mit vordefinierter Nachricht',
+                    icon: '💬',
+                    type: 'url',
+                    settings: { color: '#25d366', bgColor: '#f1f8e9', size: '300' },
+                    content: 'https://wa.me/4915012345678?text=Hallo! Ich interessiere mich für...'
+                },
+                {
+                    id: 'social-youtube',
+                    name: 'YouTube Kanal',
+                    description: 'Video-Content und Abonnements',
+                    icon: '📺',
+                    type: 'url',
+                    settings: { color: '#ff0000', bgColor: '#ffebee', size: '300' },
+                    content: 'https://youtube.com/c/ihr-kanal'
+                },
+                {
+                    id: 'social-tiktok',
+                    name: 'TikTok Profil',
+                    description: 'Moderner Content und Follower',
+                    icon: '🎵',
+                    type: 'url',
+                    settings: { color: '#000000', bgColor: '#ffffff', size: '300' },
+                    content: 'https://tiktok.com/@ihr_account'
+                }
+            ],
+            event: [
+                {
+                    id: 'event-invitation',
+                    name: 'Event-Einladung',
+                    description: 'Veranstaltungsdetails und Anmeldung',
+                    icon: '🎉',
+                    type: 'text',
+                    settings: { color: '#f59e0b', bgColor: '#fffbeb', size: '300' },
+                    content: `🎉 EINLADUNG 🎉
 
-  /* Karten ins Modal rendern */
-  renderCards() {
-    this.grid.innerHTML = this.templates.map(t => `
-      <div class="template-card" data-id="${t.id}">
-        <div class="template-preview">
-          <span>QR</span>
-        </div>
-        <div class="template-name">${t.name}</div>
-      </div>
-    `).join('');
-  }
+NEUJAHRS-GALA 2025
+📅 Datum: 31. Dezember 2025
+🕖 Zeit: 19:00 - 02:00 Uhr
+📍 Ort: Grand Hotel Berlin
+🎫 Tickets: www.event-tickets.de
 
-  bindEvents() {
-    /* Öffnen durch Button „Templates verwenden“ */
-    document.querySelectorAll('[data-feature="templates"]').forEach(btn => {
-      btn.addEventListener('click', () => this.open());
-    });
+Dresscode: Elegant
+Anmeldung bis 20.12.2025`
+                },
+                {
+                    id: 'event-calendar',
+                    name: 'Kalender-Termin',
+                    description: 'Automatischer Kalendereintrag',
+                    icon: '📅',
+                    type: 'text',
+                    settings: { color: '#3b82f6', bgColor: '#eff6ff', size: '300' },
+                    content: `BEGIN:VEVENT
+DTSTART:20250315T140000Z
+DTEND:20250315T160000Z
+SUMMARY:Workshop: Digitales Marketing 2025
+LOCATION:Konferenzraum A, Tech Center Berlin
+DESCRIPTION:Lernen Sie die neuesten Trends im digitalen Marketing
+END:VEVENT`
+                },
+                {
+                    id: 'event-conference',
+                    name: 'Konferenz-QR',
+                    description: 'Teilnehmer-Registrierung und Info',
+                    icon: '🎤',
+                    type: 'url',
+                    settings: { color: '#6366f1', bgColor: '#f0f9ff', size: '300' },
+                    content: 'https://konferenz2025.de/anmeldung?ref=qr'
+                }
+            ],
+            personal: [
+                {
+                    id: 'personal-contact',
+                    name: 'Persönlicher Kontakt',
+                    description: 'Private Kontaktdaten teilen',
+                    icon: '👨‍👩‍👧‍👦',
+                    type: 'vcard',
+                    settings: { color: '#4f46e5', bgColor: '#f8fafc', size: '300' },
+                    content: `BEGIN:VCARD
+VERSION:3.0
+FN:Max Mustermann
+TEL;CELL:+49 170 1234567
+EMAIL:max@private-email.de
+URL:https://max-mustermann.info
+NOTE:Freunde und Familie
+END:VCARD`
+                },
+                {
+                    id: 'personal-sms',
+                    name: 'SMS Nachricht',
+                    description: 'Vordefinierte SMS senden',
+                    icon: '💌',
+                    type: 'sms',
+                    settings: { color: '#059669', bgColor: '#ecfdf5', size: '300' },
+                    content: 'sms:+4917012345678?body=Hallo! Hier ist meine Nachricht über den QR Code. Wie geht es dir?'
+                },
+                {
+                    id: 'personal-review',
+                    name: 'Google Bewertung',
+                    description: 'Direktlink zur Bewertungsabgabe',
+                    icon: '⭐',
+                    type: 'url',
+                    settings: { color: '#ea4335', bgColor: '#fef7f0', size: '300' },
+                    content: 'https://g.page/r/IHRE_GOOGLE_BEWERTUNGS_URL'
+                }
+            ]
+        };
+    }
 
-    /* Schließen */
-    this.modal.querySelector('[data-close-template]')
-        .addEventListener('click', () => this.close());
-    this.modal.addEventListener('click', e => {
-      if (e.target === this.modal) this.close();
-    });
+    // Event Listeners einrichten
+    setupEventListeners() {
+        // Template-Button Klicks abfangen
+        document.addEventListener('click', (e) => {
+            // Templates verwenden Button (Generator)
+            if (e.target.matches('[data-feature="templates"]') || 
+                e.target.closest('[data-feature="templates"]')) {
+                e.preventDefault();
+                this.openModal();
+            }
+            
+            // Templates Schnellaktion (Dashboard)
+            if (e.target.matches('[data-action="show-templates"]') || 
+                e.target.closest('[data-action="show-templates"]')) {
+                e.preventDefault();
+                this.openModal();
+            }
+        });
 
-    /* Klick auf Template-Karte */
-    this.grid.addEventListener('click', e => {
-      const card = e.target.closest('.template-card');
-      if (!card) return;
-      const tpl = this.templates.find(t => t.id === card.dataset.id);
-      if (tpl) this.applyTemplate(tpl);
-    });
-  }
+        // Modal Event Listeners
+        if (this.modal) {
+            // Schließen Button
+            const closeBtn = this.modal.querySelector('[data-close-template]');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => this.closeModal());
+            }
 
-  open()  { this.modal.style.display = 'flex'; }
-  close() { this.modal.style.display = 'none'; }
+            // Außerhalb klicken zum Schließen
+            this.modal.addEventListener('click', (e) => {
+                if (e.target === this.modal) {
+                    this.closeModal();
+                }
+            });
 
-  /* Template anwenden */
-  applyTemplate(tpl) {
-    const { payload, settings } = tpl;
+            // ESC zum Schließen
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && this.modal.style.display === 'flex') {
+                    this.closeModal();
+                }
+            });
+        }
 
-    /* Inhalt setzen */
-    const textarea = document.getElementById('qr-content');
-    textarea.value = payload;
+        // Template-Karten Klicks
+        if (this.grid) {
+            this.grid.addEventListener('click', (e) => {
+                const templateCard = e.target.closest('.template-card');
+                if (templateCard) {
+                    const templateId = templateCard.dataset.id;
+                    this.selectTemplate(templateId);
+                }
+            });
+        }
+    }
 
-    /* Farben & Größe übernehmen */
-    this.qrCustomizer.setColor(settings.color);
-    this.qrCustomizer.setBgColor(settings.bgColor);
-    this.qrCustomizer.setSize(settings.size);
+    // Modal dynamisch erstellen falls nicht vorhanden
+    createModal() {
+        const modalHTML = `
+            <div id="template-modal" class="modal" style="display: none;">
+                <div class="modal-content template-modal-content">
+                    <div class="modal-header">
+                        <h2>
+                            <span class="modal-icon">📋</span>
+                            QR-Code Templates
+                        </h2>
+                        <button class="modal-close" data-close-template aria-label="Schließen">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="template-categories">
+                            <button class="template-category active" data-category="business">
+                                <span class="category-icon">💼</span>
+                                Business
+                            </button>
+                            <button class="template-category" data-category="social">
+                                <span class="category-icon">📱</span>
+                                Social Media
+                            </button>
+                            <button class="template-category" data-category="event">
+                                <span class="category-icon">🎉</span>
+                                Events
+                            </button>
+                            <button class="template-category" data-category="personal">
+                                <span class="category-icon">👤</span>
+                                Persönlich
+                            </button>
+                        </div>
+                        <div class="template-grid" id="template-grid">
+                            <!-- Templates werden hier gerendert -->
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn--secondary" data-close-template>Abbrechen</button>
+                        <button class="btn btn--primary" id="apply-template" disabled>Template anwenden</button>
+                    </div>
+                </div>
+            </div>
+        `;
 
-    /* Vorschau aktualisieren */
-    this.qrCustomizer.updatePreview();
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        this.modal = document.getElementById('template-modal');
+        this.grid = document.getElementById('template-grid');
 
-    /* Feedback */
-    window.qrApp?.showToast?.(`Template „${tpl.name}“ angewendet`, 'success', 2500);
+        // Kategorie-Navigation einrichten
+        this.setupCategoryNavigation();
+    }
 
-    this.close();
-  }
+    // Kategorie-Navigation
+    setupCategoryNavigation() {
+        const categoryButtons = this.modal.querySelectorAll('.template-category');
+        
+        categoryButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                // Aktive Kategorie wechseln
+                categoryButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Templates für Kategorie rendern
+                const category = button.dataset.category;
+                this.renderTemplates(category);
+            });
+        });
+    }
+
+    // Templates rendern
+    renderTemplates(category = 'business') {
+        if (!this.grid) {
+            console.warn('Template-Grid nicht verfügbar');
+            return;
+        }
+
+        const templates = this.templates[category] || [];
+        
+        this.grid.innerHTML = templates.map(template => `
+            <div class="template-card" data-id="${template.id}">
+                <div class="template-preview" style="background: ${template.settings.bgColor}">
+                    <div class="template-icon" style="color: ${template.settings.color}">
+                        ${template.icon}
+                    </div>
+                    <div class="template-sample-qr">
+                        <div class="qr-dots" style="background: ${template.settings.color}"></div>
+                    </div>
+                </div>
+                <div class="template-info">
+                    <h4 class="template-name">${template.name}</h4>
+                    <p class="template-description">${template.description}</p>
+                    <div class="template-meta">
+                        <span class="template-type">${this.getTypeLabel(template.type)}</span>
+                        <span class="template-size">${template.settings.size}px</span>
+                    </div>
+                </div>
+                <div class="template-actions">
+                    <button class="btn btn--sm btn--primary template-select-btn">
+                        Auswählen
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Template auswählen
+    selectTemplate(templateId) {
+        // Alle Karten deselektieren
+        this.grid.querySelectorAll('.template-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+
+        // Ausgewählte Karte markieren
+        const selectedCard = this.grid.querySelector(`[data-id="${templateId}"]`);
+        if (selectedCard) {
+            selectedCard.classList.add('selected');
+        }
+
+        // Template in Instanzvariable speichern
+        this.selectedTemplate = this.findTemplateById(templateId);
+        
+        // Apply-Button aktivieren
+        const applyBtn = this.modal.querySelector('#apply-template');
+        if (applyBtn) {
+            applyBtn.disabled = false;
+            applyBtn.textContent = `"${this.selectedTemplate.name}" anwenden`;
+            
+            // Event Listener für Apply-Button
+            applyBtn.onclick = () => this.applySelectedTemplate();
+        }
+
+        // Feedback
+        if (window.qrApp && typeof window.qrApp.showToast === 'function') {
+            window.qrApp.showToast(`Template "${this.selectedTemplate.name}" ausgewählt`, 'info', 1500);
+        }
+    }
+
+    // Template nach ID finden
+    findTemplateById(templateId) {
+        for (const category of Object.values(this.templates)) {
+            const template = category.find(t => t.id === templateId);
+            if (template) return template;
+        }
+        return null;
+    }
+
+    // Ausgewähltes Template anwenden
+    applySelectedTemplate() {
+        if (!this.selectedTemplate) return;
+
+        // Modal schließen
+        this.closeModal();
+
+        // Zur Generator-Seite navigieren
+        if (this.qrApp.showPage) {
+            this.qrApp.showPage('generator');
+        } else if (this.qrApp.navigateToPage) {
+            this.qrApp.navigateToPage('generator');
+        }
+
+        // Template-Daten anwenden
+        setTimeout(() => {
+            this.applyTemplateToGenerator(this.selectedTemplate);
+        }, 300);
+    }
+
+    // Template-Daten im Generator anwenden
+    applyTemplateToGenerator(template) {
+        try {
+            // QR-Type setzen
+            const qrTypeSelect = document.getElementById('qr-type');
+            if (qrTypeSelect) {
+                qrTypeSelect.value = template.type;
+                qrTypeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+
+            // Content setzen
+            const qrContentTextarea = document.getElementById('qr-content');
+            if (qrContentTextarea) {
+                qrContentTextarea.value = template.content;
+                qrContentTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+
+            // Farben und Größe anwenden (falls QRCustomization verfügbar)
+            if (window.qrCustomization) {
+                window.qrCustomization.setColor(template.settings.color);
+                window.qrCustomization.setBgColor(template.settings.bgColor);
+                window.qrCustomization.setSize(template.settings.size);
+            } else {
+                // Fallback: Direkt auf Form-Elemente zugreifen
+                const colorInput = document.getElementById('qr-color');
+                const bgColorInput = document.getElementById('qr-bg-color');
+                const sizeSelect = document.getElementById('qr-size');
+
+                if (colorInput) colorInput.value = template.settings.color;
+                if (bgColorInput) bgColorInput.value = template.settings.bgColor;
+                if (sizeSelect) sizeSelect.value = template.settings.size;
+            }
+
+            // QR Code generieren
+            const generateBtn = document.getElementById('generate-btn');
+            if (generateBtn) {
+                generateBtn.click();
+            }
+
+            // Erfolgs-Toast
+            if (window.qrApp && typeof window.qrApp.showToast === 'function') {
+                window.qrApp.showToast(
+                    `✨ Template "${template.name}" erfolgreich angewendet!`, 
+                    'success', 
+                    3000
+                );
+            }
+
+        } catch (error) {
+            console.error('Fehler beim Anwenden des Templates:', error);
+            if (window.qrApp && typeof window.qrApp.showToast === 'function') {
+                window.qrApp.showToast('Fehler beim Anwenden des Templates', 'error', 3000);
+            }
+        }
+    }
+
+    // Modal öffnen
+    openModal() {
+        if (!this.modal) {
+            this.createModal();
+        }
+
+        this.modal.style.display = 'flex';
+        this.modal.setAttribute('aria-hidden', 'false');
+
+        // Standard-Kategorie rendern
+        this.renderTemplates('business');
+
+        // Focus für Accessibility
+        const firstCategory = this.modal.querySelector('.template-category');
+        if (firstCategory) {
+            firstCategory.focus();
+        }
+
+        // Body-Scroll verhindern
+        document.body.style.overflow = 'hidden';
+    }
+
+    // Modal schließen
+    closeModal() {
+        if (this.modal) {
+            this.modal.style.display = 'none';
+            this.modal.setAttribute('aria-hidden', 'true');
+        }
+
+        // Selection zurücksetzen
+        this.selectedTemplate = null;
+
+        // Body-Scroll wiederherstellen
+        document.body.style.overflow = '';
+    }
+
+    // Type-Label für bessere UX
+    getTypeLabel(type) {
+        const labels = {
+            'url': 'Website',
+            'text': 'Text',
+            'email': 'E-Mail',
+            'phone': 'Telefon',
+            'sms': 'SMS',
+            'wifi': 'WLAN',
+            'vcard': 'Kontakt'
+        };
+        return labels[type] || type;
+    }
+
+    // Template-Statistiken
+    getStats() {
+        const totalTemplates = Object.values(this.templates).reduce((sum, category) => sum + category.length, 0);
+        return {
+            total: totalTemplates,
+            categories: Object.keys(this.templates).length,
+            mostUsedCategory: 'business' // Könnte aus localStorage kommen
+        };
+    }
+
+    // Eigene Templates hinzufügen
+    addCustomTemplate(category, template) {
+        if (!this.templates[category]) {
+            this.templates[category] = [];
+        }
+        
+        template.id = `custom-${Date.now()}`;
+        this.templates[category].push(template);
+
+        // In localStorage speichern für Persistenz
+        try {
+            localStorage.setItem('custom-templates', JSON.stringify(this.getCustomTemplates()));
+        } catch (e) {
+            console.warn('Konnte Custom Templates nicht speichern');
+        }
+    }
+
+    // Custom Templates laden
+    loadCustomTemplates() {
+        try {
+            const customTemplates = JSON.parse(localStorage.getItem('custom-templates') || '{}');
+            
+            for (const [category, templates] of Object.entries(customTemplates)) {
+                if (!this.templates[category]) {
+                    this.templates[category] = [];
+                }
+                this.templates[category].push(...templates);
+            }
+        } catch (e) {
+            console.warn('Fehler beim Laden der Custom Templates');
+        }
+    }
+
+    // Custom Templates extrahieren
+    getCustomTemplates() {
+        const customTemplates = {};
+        
+        for (const [category, templates] of Object.entries(this.templates)) {
+            const customItems = templates.filter(t => t.id.startsWith('custom-'));
+            if (customItems.length > 0) {
+                customTemplates[category] = customItems;
+            }
+        }
+        
+        return customTemplates;
+    }
 }
 
-/* ---------- Template-Modal Handling ---------- */
-(function initTemplateModal() {
-  const modal        = document.getElementById('template-modal');
-  const closeBtn     = modal?.querySelector('[data-close-template]');
-
-  if (!modal) return; // Modal existiert nicht
-
-  // Öffnen – Quick-Action + Generator-Button
-  document.querySelectorAll('[data-action="show-templates"], [data-feature="templates"]')
-    .forEach(btn => btn.addEventListener('click', () => openTemplateModal()));
-
-  // Schließen über „×“
-  closeBtn?.addEventListener('click', closeTemplateModal);
-
-  // Schließen bei Klick außerhalb des Inhalts
-  modal.addEventListener('click', e => {
-    if (e.target === modal) closeTemplateModal();
-  });
-
-  // Schließen per ESC
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && modal.classList.contains('open')) {
-      closeTemplateModal();
-    }
-  });
-
-  /* ---------- Helper ---------- */
-  function openTemplateModal() {
-    modal.classList.add('open');
-    modal.setAttribute('aria-hidden', 'false');
-    // Fokus auf Modal für Accessibility
-    modal.querySelector('.modal-content')?.focus();
-  }
-
-  function closeTemplateModal() {
-    modal.classList.remove('open');
-    modal.setAttribute('aria-hidden', 'true');
-  }
-})();
-
-/* Initialisierung nach QRCustomization-Setup */
+// Template-Manager initialisieren
 document.addEventListener('DOMContentLoaded', () => {
-  /* warten bis qrCustomization existiert */
-  setTimeout(() => {
-    if (window.qrCustomization) {
-      window.templateManager = new TemplateManager(window.qrCustomization);
-    }
-  }, 600);
+    setTimeout(() => {
+        if (window.qrApp) {
+            window.templateManager = new TemplateManager(window.qrApp);
+            console.log('✅ Template-Manager erfolgreich initialisiert');
+        } else {
+            console.warn('❌ QR App nicht gefunden - Template-Manager nicht initialisiert');
+        }
+    }, 1000);
 });

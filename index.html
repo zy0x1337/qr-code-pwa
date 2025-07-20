@@ -407,17 +407,17 @@
                 </div>
                 
                 <div class="download-section" id="download-section">
-                    <h3>QR Code herunterladen</h3>
-                    
-                    <button id="main-download-btn" class="btn btn--primary btn--full-width main-download">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                            <polyline points="7,10 12,15 17,10"/>
-                            <line x1="12" y1="15" x2="12" y2="3"/>
-                        </svg>
-                        <span class="download-text">Als PNG herunterladen</span>
-                        <span class="download-size" id="download-size">~50KB</span>
-                    </button>
+  <h3>QR Code herunterladen</h3>
+  
+  <button id="main-download-btn" class="btn btn--primary btn--full-width main-download">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7,10 12,15 17,10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+    <span class="download-text">Als PNG herunterladen</span>
+    <span class="download-size" id="download-size">~50KB</span>
+  </button>
                     
                     <div class="format-selection">
                         <h4>Alle verfügbaren Formate:</h4>
@@ -666,31 +666,19 @@
     </div>
 
 <!-- Modal Wrapper -->
-<div id="template-modal">
-  <div class="tm-dialog">
-    <!-- Header -->
-    <div class="tm-header">
-      <h2 class="tm-title">
-        <svg><!-- icon --></svg>
-        Templates
-      </h2>
-      <button class="tm-close" aria-label="Schließen">✕</button>
+<div id="template-modal" class="modal" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>QR-Code-Templates</h2>
+      <button class="modal-close" data-close-template>&times;</button>
     </div>
-
-    <!-- Body -->
-    <div class="tm-body">
-      <div class="tm-grid">
-        <!-- Template Cards werden per JS generiert -->
-        <div class="tm-card">
-          <img src="template1.jpg" alt="Template 1">
-          <div class="tm-card-footer">
-            <span>E-Commerce</span>
-            <span class="tm-chip">Neu</span>
-          </div>
-        </div>
-        <!-- … -->
+    <div class="modal-body">
+      <div class="template-grid" id="template-grid">
+        <!-- Wird per JavaScript gefüllt -->
       </div>
     </div>
+  </div>
+</div>
 
     <!-- Footer -->
     <div class="tm-footer">

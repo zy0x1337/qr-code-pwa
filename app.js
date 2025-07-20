@@ -2166,7 +2166,6 @@ restartScanner() {
 updateDashboard() {
     this.updateStatsCards();
     this.updateRecentActivities();
-    this.updateQuickStats();
 }
 
 // Neue Funktion für "Letzte Aktivitäten"
@@ -2240,6 +2239,30 @@ formatTime(timestamp) {
     if (diffInMinutes < 60) return `vor ${diffInMinutes}min`;
     if (diffInMinutes < 1440) return `vor ${Math.floor(diffInMinutes / 60)}h`;
     return `vor ${Math.floor(diffInMinutes / 1440)} Tag(en)`;
+}
+
+// Statistik-Methoden für Dashboard
+getGeneratedCount() {
+    return this.qrHistory ? this.qrHistory.length : 0;
+}
+
+getScannedCount() {
+    return this.scanHistory ? this.scanHistory.length : 0;
+}
+
+getTodayActivity() {
+    const today = new Date().toDateString();
+    const generated = this.qrHistory.filter(item => 
+        new Date(item.timestamp).toDateString() === today
+    ).length;
+    const scanned = this.scanHistory.filter(item => 
+        new Date(item.timestamp).toDateString() === today
+    ).length;
+    return generated + scanned;
+}
+
+getTemplatesCount() {
+    return 19;
 }
 
 // HILFSMETHODE FÜR SICHERE UPDATES

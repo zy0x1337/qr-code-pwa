@@ -263,7 +263,7 @@
             <p>Nutzen Sie vorgefertigte QR Code Vorlagen für häufige Anwendungsfälle</p>
         </button>
 
-        <!-- History Card (Optional) -->
+        <!-- History Card -->
         <button class="action-card action-card--history" data-action="show-history">
             <div class="action-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -277,16 +277,27 @@
     </div>
 </section>
 
-                <div class="recent-activity">
-                    <h2>Letzte Aktivitäten</h2>
-                    <div id="recent-items" class="activity-list">
-                        <div class="empty-state">
-                            <div class="empty-icon">📋</div>
-                            <p>Noch keine QR Codes erstellt</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                <!-- Letzte Aktivitäten -->
+  <div class="recent-section">
+    <div class="section-header">
+      <h2 class="section-title">
+        <span class="section-icon">🕒</span>
+        Letzte Aktivitäten
+      </h2>
+    </div>
+    
+    <div id="recent-activities" class="recent-activities">
+      <!-- Wird dynamisch vom JavaScript gefüllt -->
+      <div class="empty-state">
+        <div class="empty-icon">📱</div>
+        <p>Noch keine QR Codes erstellt oder gescannt</p>
+        <button class="btn btn--primary" onclick="app.navigateToPage('generator')">
+          Ersten QR Code erstellen
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
             <!-- Generator Page -->
 <div id="generator-page" class="page">

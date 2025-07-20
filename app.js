@@ -4783,6 +4783,8 @@ class TemplateManager {
         if (firstFocusable) {
             firstFocusable.focus();
         }
+
+        this.updateThemeVariables();
     }
 
     /**
@@ -4802,6 +4804,15 @@ class TemplateManager {
         this.selectedTemplate = null;
         this.updateSelectedTemplateInfo();
     }
+
+    updateThemeVariables() {
+    const isDark = document.documentElement.getAttribute('data-color-scheme') === 'dark' ||
+                   (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    
+    if (this.modal) {
+        this.modal.classList.toggle('dark-theme', isDark);
+    }
+}
 
     /**
      * Kategorie wechseln

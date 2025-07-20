@@ -2272,28 +2272,6 @@ async startScanner() {
     }
 }
 
-// Templates anzeigen
-showTemplates() {
-    // Template-Modal oder Generator mit Template-Auswahl öffnen
-    this.showPage('generator');
-    
-    // Template-Button in erweiterten Features aktivieren
-    setTimeout(() => {
-        const templateBtn = document.querySelector('[data-feature="templates"]');
-        if (templateBtn) {
-            templateBtn.click();
-        }
-    }, 300);
-    
-    // Template-Modal erstellen
-    this.createTemplateModal();
-    
-    // Toast-Feedback
-    if (typeof this.showToast === 'function') {
-        this.showToast('Templates werden geladen...', 'info', 2000);
-    }
-}
-
 // Verlauf anzeigen
 showHistory() {
     // Zur History-Seite wechseln
@@ -2306,276 +2284,6 @@ showHistory() {
     if (typeof this.showToast === 'function') {
         this.showToast('Verlauf geöffnet', 'info', 2000);
     }
-}
-
-// Template-Modal erstellen
-createTemplateModal() {
-    // Prüfen ob Modal bereits existiert
-    if (document.getElementById('template-modal')) return;
-    
-    const templateModal = document.createElement('div');
-    templateModal.id = 'template-modal';
-    templateModal.className = 'modal';
-    templateModal.innerHTML = `
-        <div class="modal-content template-modal-content">
-            <div class="modal-header">
-                <h2>QR Code Templates</h2>
-                <button class="modal-close" id="close-template-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="template-categories">
-                    <button class="template-category active" data-category="business">
-                        <span class="category-icon">💼</span>
-                        Business
-                    </button>
-                    <button class="template-category" data-category="social">
-                        <span class="category-icon">📱</span>
-                        Social Media
-                    </button>
-                    <button class="template-category" data-category="personal">
-                        <span class="category-icon">👤</span>
-                        Persönlich
-                    </button>
-                    <button class="template-category" data-category="event">
-                        <span class="category-icon">🎉</span>
-                        Events
-                    </button>
-                </div>
-                
-                <div class="template-grid" id="template-grid">
-                    ${this.generateTemplateItems('business')}
-                </div>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(templateModal);
-    
-    // Event Listeners für Template-Modal
-    this.setupTemplateModalEvents();
-    
-    // Modal anzeigen
-    templateModal.style.display = 'flex';
-}
-
-// Template-Items generieren
-generateTemplateItems(category) {
-    const templates = {
-        business: [
-            {
-                name: 'Visitenkarte',
-                description: 'Komplette Kontaktdaten',
-                icon: '👤',
-                type: 'vcard',
-                content: `BEGIN:VCARD
-VERSION:3.0
-FN:Max Mustermann
-ORG:Muster GmbH
-TEL:+49123456789
-EMAIL:max@beispiel.de
-URL:https://www.beispiel.de
-END:VCARD`
-            },
-            {
-                name: 'Website',
-                description: 'Firmen-Homepage',
-                icon: '🌐',
-                type: 'url',
-                content: 'https://www.ihr-unternehmen.de'
-            },
-            {
-                name: 'E-Mail Kontakt',
-                description: 'Direkte E-Mail',
-                icon: '📧',
-                type: 'email',
-                content: 'mailto:kontakt@firma.de?subject=Anfrage'
-            },
-            {
-                name: 'WiFi Zugang',
-                description: 'WLAN-Zugangsdaten',
-                icon: '📶',
-                type: 'wifi',
-                content: 'WIFI:T:WPA;S:Firma-WLAN;P:passwort123;H:false;;'
-            }
-        ],
-        social: [
-            {
-                name: 'Instagram Profil',
-                description: 'Instagram Account',
-                icon: '📷',
-                type: 'url',
-                content: 'https://instagram.com/ihr_account'
-            },
-            {
-                name: 'LinkedIn Profil',
-                description: 'Berufliches Netzwerk',
-                icon: '💼',
-                type: 'url',
-                content: 'https://linkedin.com/in/ihr-profil'
-            },
-            {
-                name: 'WhatsApp Chat',
-                description: 'Direkte Nachricht',
-                icon: '💬',
-                type: 'url',
-                content: 'https://wa.me/49123456789?text=Hallo'
-            },
-            {
-                name: 'YouTube Kanal',
-                description: 'Video-Content',
-                icon: '📺',
-                type: 'url',
-                content: 'https://youtube.com/c/ihr-kanal'
-            }
-        ],
-        personal: [
-            {
-                name: 'Persönliche Kontakte',
-                description: 'Private Visitenkarte',
-                icon: '👨‍👩‍👧‍👦',
-                type: 'vcard',
-                content: `BEGIN:VCARD
-VERSION:3.0
-FN:Max Mustermann
-TEL:+49123456789
-EMAIL:max@private.de
-END:VCARD`
-            },
-            {
-                name: 'SMS Nachricht',
-                description: 'Vordefinierte SMS',
-                icon: '💌',
-                type: 'sms',
-                content: 'sms:+49123456789?body=Hallo, hier ist meine Nachricht!'
-            }
-        ],
-        event: [
-            {
-                name: 'Event-Einladung',
-                description: 'Veranstaltungslink',
-                icon: '🎉',
-                type: 'url',
-                content: 'https://eventbrite.com/e/ihr-event'
-            },
-            {
-                name: 'Kalender-Termin',
-                description: 'Termin hinzufügen',
-                icon: '📅',
-                type: 'text',
-                content: 'Termin: Workshop am 15.12.2024 um 14:00 Uhr'
-            }
-        ]
-    };
-    
-    const categoryTemplates = templates[category] || templates.business;
-    
-    return categoryTemplates.map(template => `
-        <div class="template-item" data-template='${JSON.stringify(template)}'>
-            <div class="template-icon">${template.icon}</div>
-            <div class="template-info">
-                <h4>${template.name}</h4>
-                <p>${template.description}</p>
-            </div>
-            <button class="btn btn--sm btn--primary use-template-btn">
-                Verwenden
-            </button>
-        </div>
-    `).join('');
-}
-
-// Template-Modal Events Setup
-setupTemplateModalEvents() {
-    const templateModal = document.getElementById('template-modal');
-    
-    // Modal schließen
-    const closeBtn = document.getElementById('close-template-modal');
-    closeBtn.addEventListener('click', () => {
-        templateModal.style.display = 'none';
-    });
-    
-    // Outside-Click zum Schließen
-    templateModal.addEventListener('click', (e) => {
-        if (e.target === templateModal) {
-            templateModal.style.display = 'none';
-        }
-    });
-    
-    // Kategorie-Wechsel
-    const categoryBtns = document.querySelectorAll('.template-category');
-    categoryBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            // Aktive Kategorie wechseln
-            categoryBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            
-            // Template-Grid aktualisieren
-            const category = btn.dataset.category;
-            const templateGrid = document.getElementById('template-grid');
-            templateGrid.innerHTML = this.generateTemplateItems(category);
-            
-            // Event Listeners für neue Template-Items
-            this.setupTemplateItemEvents();
-        });
-    });
-    
-    // Template-Item Events
-    this.setupTemplateItemEvents();
-}
-
-// Template-Item Events Setup
-setupTemplateItemEvents() {
-    const templateItems = document.querySelectorAll('.template-item');
-    
-    templateItems.forEach(item => {
-        const useBtn = item.querySelector('.use-template-btn');
-        useBtn.addEventListener('click', () => {
-            const templateData = JSON.parse(item.dataset.template);
-            this.useTemplate(templateData);
-        });
-    });
-}
-
-// Template verwenden
-useTemplate(templateData) {
-    // Modal schließen
-    const templateModal = document.getElementById('template-modal');
-    templateModal.style.display = 'none';
-    
-    // Zur Generator-Seite wechseln falls nicht bereits dort
-    this.showPage('generator');
-    
-    // Template-Daten in Generator einfügen
-    setTimeout(() => {
-        const qrTypeSelect = document.getElementById('qr-type');
-        const qrContentTextarea = document.getElementById('qr-content');
-        
-        if (qrTypeSelect) {
-            qrTypeSelect.value = templateData.type;
-            
-            // QR-Type Change Event triggern
-            const changeEvent = new Event('change', { bubbles: true });
-            qrTypeSelect.dispatchEvent(changeEvent);
-        }
-        
-        if (qrContentTextarea) {
-            qrContentTextarea.value = templateData.content;
-            
-            // Content Change Event triggern für Live-Preview
-            const inputEvent = new Event('input', { bubbles: true });
-            qrContentTextarea.dispatchEvent(inputEvent);
-        }
-        
-        // QR Code generieren
-        const generateBtn = document.getElementById('generate-btn');
-        if (generateBtn) {
-            generateBtn.click();
-        }
-        
-        // Erfolg-Toast
-        if (typeof this.showToast === 'function') {
-            this.showToast(`Template "${templateData.name}" wurde angewendet!`, 'success', 3000);
-        }
-    }, 300);
 }
 
 // History aktualisieren
@@ -2645,6 +2353,75 @@ regenerateFromHistory(itemId) {
     };
     
     this.useTemplate(templateData);
+}
+
+// Template Modal Integration
+showTemplateModal() {
+    if (window.templateManager) {
+        window.templateManager.showModal();
+    } else {
+        console.warn('TemplateManager nicht verfügbar');
+        this.showToast('Template-Manager wird geladen...', 'info');
+    }
+}
+
+// Template anwenden (wird vom TemplateManager aufgerufen)
+applyTemplate(template) {
+    try {
+        // Content setzen
+        const contentInput = document.getElementById('qr-content');
+        if (contentInput && template.content) {
+            contentInput.value = template.content;
+            contentInput.dispatchEvent(new Event('input'));
+        }
+
+        // Typ setzen
+        const typeSelect = document.getElementById('qr-type');
+        if (typeSelect && template.type) {
+            typeSelect.value = template.type;
+            typeSelect.dispatchEvent(new Event('change'));
+        }
+
+        // Erweiterte Einstellungen
+        this.applyTemplateSettings(template.settings);
+
+        // Zum Generator navigieren
+        this.navigateToPage('generator');
+
+        // Vorschau aktualisieren
+        setTimeout(() => this.updatePreview(), 100);
+
+        // Erfolgs-Toast
+        this.showToast(`Template "${template.name}" wurde angewendet`, 'success');
+
+    } catch (error) {
+        console.error('Fehler beim Anwenden des Templates:', error);
+        this.showToast('Fehler beim Anwenden des Templates', 'error');
+    }
+}
+
+// Template-Einstellungen anwenden
+applyTemplateSettings(settings) {
+    if (!settings) return;
+
+    const elements = {
+        color: document.getElementById('qr-color'),
+        bgColor: document.getElementById('qr-bg-color'),
+        size: document.getElementById('qr-size')
+    };
+
+    Object.entries(elements).forEach(([key, element]) => {
+        if (element && settings[key]) {
+            element.value = settings[key];
+            element.dispatchEvent(new Event('change'));
+        }
+    });
+}
+
+// Template-Vorschau (Optional)
+previewTemplate(template) {
+    // Temporäre Vorschau ohne Anwendung
+    this.showToast(`Vorschau: ${template.name}`, 'info');
 }
 }
 
@@ -4296,369 +4073,537 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 500);
 });
 
+/**
+ * TemplateManager - Vollständige Template-Verwaltung für QR-Code PWA
+ * Verwaltet Templates, Modal-Interaktion und Template-Anwendung
+ */
 class TemplateManager {
-    constructor(qrApp) {
-        this.qrApp = qrApp;                    // Referenz auf die Haupt-App
-        this.templates = this.buildTemplates();
-        this.selectedTemplate = null;
-        
-        // DOM-Elemente mit Fehlerbehandlung
+    constructor() {
         this.modal = null;
-        this.grid = null;
+        this.templates = {};
+        this.currentCategory = 'business';
+        this.selectedTemplate = null;
+        this.isModalOpen = false;
+        
+        // Event-Handler-Referenzen für Cleanup
+        this.eventHandlers = new Map();
         
         this.init();
     }
 
-    init() {
-        // Prüfen ob HTML-Elemente existieren
-        this.modal = document.getElementById('template-modal');
-        
-        if (!this.modal) {
-            console.warn('Template-Modal nicht gefunden - erstelle dynamisches Modal');
+    /**
+     * Initialisierung des TemplateManagers
+     */
+    async init() {
+        try {
+            await this.loadTemplateData();
             this.createModal();
+            this.setupEventListeners();
+            console.log('TemplateManager erfolgreich initialisiert');
+        } catch (error) {
+            console.error('Fehler bei TemplateManager-Initialisierung:', error);
         }
-        
-        this.grid = document.getElementById('template-grid');
-        
-        if (!this.grid) {
-            console.warn('Template-Grid nicht gefunden');
-            return;
-        }
-        
-        this.setupEventListeners();
-        this.renderTemplates();
     }
 
-    // Template-Datenstruktur mit erweiterten 2025-Vorlagen
-    buildTemplates() {
-        return {
+    /**
+     * Template-Daten laden
+     */
+    async loadTemplateData() {
+        this.templates = {
             business: [
                 {
-                    id: 'business-vcard',
-                    name: 'Visitenkarte Digital',
-                    description: 'Komplette Kontaktdaten im vCard Format',
-                    icon: '👤',
+                    id: 'vcard-business',
+                    name: 'Business Visitenkarte',
+                    description: 'Professionelle Kontaktdaten für Geschäftskunden',
                     type: 'vcard',
-                    settings: { color: '#1e293b', bgColor: '#f8fafc', size: '300' },
-                    content: `BEGIN:VCARD
-VERSION:3.0
-FN:Max Mustermann
-ORG:Muster GmbH
-TITLE:Geschäftsführer
-TEL;WORK:+49 30 12345678
-TEL;CELL:+49 170 1234567
-EMAIL;WORK:max.mustermann@muster-gmbh.de
-URL:https://www.muster-gmbh.de
-ADR;WORK:;;Musterstraße 123;Berlin;;10115;Deutschland
-END:VCARD`
+                    icon: '👤',
+                    content: 'BEGIN:VCARD\nVERSION:3.0\nFN:Max Mustermann\nORG:Musterfirma GmbH\nTITLE:Geschäftsführer\nTEL:+49-30-12345678\nEMAIL:max.mustermann@musterfirma.de\nURL:https://www.musterfirma.de\nADR:;;Musterstraße 123;Berlin;;12345;Deutschland\nEND:VCARD',
+                    settings: {
+                        color: '#1a365d',
+                        bgColor: '#ffffff',
+                        size: 256,
+                        errorLevel: 'M',
+                        margin: 4
+                    },
+                    tags: ['business', 'kontakt', 'vcard'],
+                    premium: false
                 },
                 {
-                    id: 'business-website',
-                    name: 'Unternehmens-Website',
-                    description: 'Direkte Weiterleitung zur Firmen-Homepage',
-                    icon: '🌐',
+                    id: 'company-website',
+                    name: 'Firmenwebsite',
+                    description: 'Direkter Link zur Unternehmenswebsite',
                     type: 'url',
-                    settings: { color: '#0ea5e9', bgColor: '#ffffff', size: '300' },
-                    content: 'https://www.ihr-unternehmen.de'
+                    icon: '🏢',
+                    content: 'https://www.ihr-unternehmen.de',
+                    settings: {
+                        color: '#2b6cb0',
+                        bgColor: '#f7fafc',
+                        size: 256,
+                        errorLevel: 'M',
+                        margin: 4
+                    },
+                    tags: ['business', 'website', 'url'],
+                    premium: false
+                },
+                {
+                    id: 'office-location',
+                    name: 'Büro-Standort',
+                    description: 'GPS-Koordinaten des Bürostandorts',
+                    type: 'geo',
+                    icon: '📍',
+                    content: 'geo:52.520008,13.404954?q=Büro Musterfirma',
+                    settings: {
+                        color: '#38a169',
+                        bgColor: '#f0fff4',
+                        size: 256,
+                        errorLevel: 'M',
+                        margin: 4
+                    },
+                    tags: ['business', 'location', 'geo'],
+                    premium: false
                 },
                 {
                     id: 'business-email',
-                    name: 'E-Mail Kontakt',
-                    description: 'Vorausgefüllte E-Mail mit Betreff',
-                    icon: '📧',
+                    name: 'Business E-Mail',
+                    description: 'Geschäftliche E-Mail-Adresse',
                     type: 'email',
-                    settings: { color: '#dc2626', bgColor: '#fef2f2', size: '300' },
-                    content: 'mailto:kontakt@firma.de?subject=Geschäftsanfrage&body=Hallo,%0A%0Aich interessiere mich für...'
-                },
-                {
-                    id: 'business-wifi',
-                    name: 'Gäste-WLAN',
-                    description: 'Automatische WLAN-Verbindung für Besucher',
-                    icon: '📶',
-                    type: 'wifi',
-                    settings: { color: '#059669', bgColor: '#f0fdf4', size: '300' },
-                    content: 'WIFI:T:WPA2;S:Gaeste-WLAN;P:willkommen2025;H:false;;'
-                },
-                {
-                    id: 'business-location',
-                    name: 'Standort & Navigation',
-                    description: 'GPS-Koordinaten für Navigation',
-                    icon: '📍',
-                    type: 'text',
-                    settings: { color: '#7c3aed', bgColor: '#faf5ff', size: '300' },
-                    content: 'Muster GmbH\nMusterstraße 123\n10115 Berlin\n\nGPS: 52.5200,13.4050'
+                    icon: '📧',
+                    content: 'mailto:kontakt@ihr-unternehmen.de?subject=Anfrage&body=Hallo,%0D%0A%0D%0AIch interessiere mich für Ihre Dienstleistungen.',
+                    settings: {
+                        color: '#d69e2e',
+                        bgColor: '#fffbeb',
+                        size: 256,
+                        errorLevel: 'M',
+                        margin: 4
+                    },
+                    tags: ['business', 'email', 'kontakt'],
+                    premium: false
                 }
             ],
             social: [
                 {
-                    id: 'social-instagram',
+                    id: 'instagram-profile',
                     name: 'Instagram Profil',
-                    description: 'Direkter Link zum Instagram Account',
-                    icon: '📷',
+                    description: 'Link zum Instagram-Profil',
                     type: 'url',
-                    settings: { color: '#e91e63', bgColor: '#fce4ec', size: '300' },
-                    content: 'https://instagram.com/ihr_account'
+                    icon: '📸',
+                    content: 'https://instagram.com/ihr-profil',
+                    settings: {
+                        color: '#e1306c',
+                        bgColor: '#fdf2f8',
+                        size: 256,
+                        errorLevel: 'M',
+                        margin: 4
+                    },
+                    tags: ['social', 'instagram', 'profile'],
+                    premium: false
                 },
                 {
-                    id: 'social-linkedin',
+                    id: 'linkedin-profile',
                     name: 'LinkedIn Profil',
-                    description: 'Berufliches Netzwerk-Profil',
+                    description: 'Professionelles LinkedIn-Profil',
+                    type: 'url',
                     icon: '💼',
-                    type: 'url',
-                    settings: { color: '#0077b5', bgColor: '#e3f2fd', size: '300' },
-                    content: 'https://linkedin.com/in/ihr-profil'
+                    content: 'https://linkedin.com/in/ihr-profil',
+                    settings: {
+                        color: '#0077b5',
+                        bgColor: '#f0f9ff',
+                        size: 256,
+                        errorLevel: 'M',
+                        margin: 4
+                    },
+                    tags: ['social', 'linkedin', 'professional'],
+                    premium: false
                 },
                 {
-                    id: 'social-whatsapp',
-                    name: 'WhatsApp Chat',
-                    description: 'Direkter WhatsApp Chat mit vordefinierter Nachricht',
-                    icon: '💬',
+                    id: 'twitter-profile',
+                    name: 'Twitter/X Profil',
+                    description: 'Twitter/X Profil-Link',
                     type: 'url',
-                    settings: { color: '#25d366', bgColor: '#f1f8e9', size: '300' },
-                    content: 'https://wa.me/4915012345678?text=Hallo! Ich interessiere mich für...'
+                    icon: '🐦',
+                    content: 'https://twitter.com/ihr-handle',
+                    settings: {
+                        color: '#000000',
+                        bgColor: '#f8fafc',
+                        size: 256,
+                        errorLevel: 'M',
+                        margin: 4
+                    },
+                    tags: ['social', 'twitter', 'x'],
+                    premium: false
                 },
                 {
-                    id: 'social-youtube',
+                    id: 'youtube-channel',
                     name: 'YouTube Kanal',
-                    description: 'Video-Content und Abonnements',
-                    icon: '📺',
+                    description: 'Link zum YouTube-Kanal',
                     type: 'url',
-                    settings: { color: '#ff0000', bgColor: '#ffebee', size: '300' },
-                    content: 'https://youtube.com/c/ihr-kanal'
-                },
-                {
-                    id: 'social-tiktok',
-                    name: 'TikTok Profil',
-                    description: 'Moderner Content und Follower',
-                    icon: '🎵',
-                    type: 'url',
-                    settings: { color: '#000000', bgColor: '#ffffff', size: '300' },
-                    content: 'https://tiktok.com/@ihr_account'
-                }
-            ],
-            event: [
-                {
-                    id: 'event-invitation',
-                    name: 'Event-Einladung',
-                    description: 'Veranstaltungsdetails und Anmeldung',
-                    icon: '🎉',
-                    type: 'text',
-                    settings: { color: '#f59e0b', bgColor: '#fffbeb', size: '300' },
-                    content: `🎉 EINLADUNG 🎉
-
-NEUJAHRS-GALA 2025
-📅 Datum: 31. Dezember 2025
-🕖 Zeit: 19:00 - 02:00 Uhr
-📍 Ort: Grand Hotel Berlin
-🎫 Tickets: www.event-tickets.de
-
-Dresscode: Elegant
-Anmeldung bis 20.12.2025`
-                },
-                {
-                    id: 'event-calendar',
-                    name: 'Kalender-Termin',
-                    description: 'Automatischer Kalendereintrag',
-                    icon: '📅',
-                    type: 'text',
-                    settings: { color: '#3b82f6', bgColor: '#eff6ff', size: '300' },
-                    content: `BEGIN:VEVENT
-DTSTART:20250315T140000Z
-DTEND:20250315T160000Z
-SUMMARY:Workshop: Digitales Marketing 2025
-LOCATION:Konferenzraum A, Tech Center Berlin
-DESCRIPTION:Lernen Sie die neuesten Trends im digitalen Marketing
-END:VEVENT`
-                },
-                {
-                    id: 'event-conference',
-                    name: 'Konferenz-QR',
-                    description: 'Teilnehmer-Registrierung und Info',
-                    icon: '🎤',
-                    type: 'url',
-                    settings: { color: '#6366f1', bgColor: '#f0f9ff', size: '300' },
-                    content: 'https://konferenz2025.de/anmeldung?ref=qr'
+                    icon: '🎥',
+                    content: 'https://youtube.com/@ihr-kanal',
+                    settings: {
+                        color: '#ff0000',
+                        bgColor: '#fef2f2',
+                        size: 256,
+                        errorLevel: 'M',
+                        margin: 4
+                    },
+                    tags: ['social', 'youtube', 'video'],
+                    premium: false
                 }
             ],
             personal: [
                 {
                     id: 'personal-contact',
                     name: 'Persönlicher Kontakt',
-                    description: 'Private Kontaktdaten teilen',
-                    icon: '👨‍👩‍👧‍👦',
+                    description: 'Private Kontaktdaten',
                     type: 'vcard',
-                    settings: { color: '#4f46e5', bgColor: '#f8fafc', size: '300' },
-                    content: `BEGIN:VCARD
-VERSION:3.0
-FN:Max Mustermann
-TEL;CELL:+49 170 1234567
-EMAIL:max@private-email.de
-URL:https://max-mustermann.info
-NOTE:Freunde und Familie
-END:VCARD`
+                    icon: '📞',
+                    content: 'BEGIN:VCARD\nVERSION:3.0\nFN:Ihr Name\nTEL:+49-123-4567890\nEMAIL:ihre-email@beispiel.de\nURL:https://ihre-website.de\nEND:VCARD',
+                    settings: {
+                        color: '#6b46c1',
+                        bgColor: '#faf5ff',
+                        size: 256,
+                        errorLevel: 'M',
+                        margin: 4
+                    },
+                    tags: ['personal', 'kontakt', 'vcard'],
+                    premium: false
                 },
                 {
-                    id: 'personal-sms',
-                    name: 'SMS Nachricht',
-                    description: 'Vordefinierte SMS senden',
-                    icon: '💌',
-                    type: 'sms',
-                    settings: { color: '#059669', bgColor: '#ecfdf5', size: '300' },
-                    content: 'sms:+4917012345678?body=Hallo! Hier ist meine Nachricht über den QR Code. Wie geht es dir?'
+                    id: 'home-location',
+                    name: 'Wohnadresse',
+                    description: 'Standort der Wohnadresse',
+                    type: 'geo',
+                    icon: '🏠',
+                    content: 'geo:52.520008,13.404954?q=Zuhause',
+                    settings: {
+                        color: '#059669',
+                        bgColor: '#ecfdf5',
+                        size: 256,
+                        errorLevel: 'M',
+                        margin: 4
+                    },
+                    tags: ['personal', 'location', 'home'],
+                    premium: false
                 },
                 {
-                    id: 'personal-review',
-                    name: 'Google Bewertung',
-                    description: 'Direktlink zur Bewertungsabgabe',
-                    icon: '⭐',
+                    id: 'personal-message',
+                    name: 'Persönliche Nachricht',
+                    description: 'Text-Nachricht oder Gruß',
+                    type: 'text',
+                    icon: '💬',
+                    content: 'Hallo! Schön, dass Sie meinen QR-Code gescannt haben. Kontaktieren Sie mich gerne!',
+                    settings: {
+                        color: '#7c3aed',
+                        bgColor: '#f3f4f6',
+                        size: 256,
+                        errorLevel: 'M',
+                        margin: 4
+                    },
+                    tags: ['personal', 'text', 'message'],
+                    premium: false
+                }
+            ],
+            wifi: [
+                {
+                    id: 'home-wifi',
+                    name: 'Privates WLAN',
+                    description: 'WLAN-Zugangsdaten für Zuhause',
+                    type: 'wifi',
+                    icon: '🏠',
+                    content: 'WIFI:T:WPA;S:Mein-WLAN;P:sicheres-passwort;H:false;;',
+                    settings: {
+                        color: '#1f2937',
+                        bgColor: '#f9fafb',
+                        size: 256,
+                        errorLevel: 'M',
+                        margin: 4
+                    },
+                    tags: ['wifi', 'home', 'internet'],
+                    premium: false
+                },
+                {
+                    id: 'guest-wifi',
+                    name: 'Gäste-WLAN',
+                    description: 'WLAN-Zugang für Gäste',
+                    type: 'wifi',
+                    icon: '👥',
+                    content: 'WIFI:T:WPA;S:Gaeste-WLAN;P:willkommen123;H:false;;',
+                    settings: {
+                        color: '#dc2626',
+                        bgColor: '#fef2f2',
+                        size: 256,
+                        errorLevel: 'M',
+                        margin: 4
+                    },
+                    tags: ['wifi', 'guest', 'internet'],
+                    premium: false
+                },
+                {
+                    id: 'office-wifi',
+                    name: 'Büro-WLAN',
+                    description: 'Geschäftliches WLAN',
+                    type: 'wifi',
+                    icon: '🏢',
+                    content: 'WIFI:T:WPA2;S:Buero-Netzwerk;P:business2024;H:true;;',
+                    settings: {
+                        color: '#1565c0',
+                        bgColor: '#e3f2fd',
+                        size: 256,
+                        errorLevel: 'H',
+                        margin: 4
+                    },
+                    tags: ['wifi', 'business', 'office'],
+                    premium: false
+                }
+            ],
+            event: [
+                {
+                    id: 'wedding-invitation',
+                    name: 'Hochzeitseinladung',
+                    description: 'Einladung zur Hochzeitsfeier',
+                    type: 'text',
+                    icon: '💒',
+                    content: 'Sie sind herzlich eingeladen zur Hochzeit von Max & Maria am 15. Juni 2024 um 14:00 Uhr in der Stadtkirche Berlin. Weitere Infos: hochzeit-max-maria.de',
+                    settings: {
+                        color: '#be185d',
+                        bgColor: '#fdf2f8',
+                        size: 256,
+                        errorLevel: 'M',
+                        margin: 4
+                    },
+                    tags: ['event', 'wedding', 'invitation'],
+                    premium: true
+                },
+                {
+                    id: 'birthday-party',
+                    name: 'Geburtstagsparty',
+                    description: 'Einladung zur Geburtstagsfeier',
+                    type: 'text',
+                    icon: '🎉',
+                    content: 'Geburtstagsparty! 🎂 Wann: Samstag, 20:00 Uhr. Wo: Musterstraße 123, Berlin. Bringt gute Laune mit!',
+                    settings: {
+                        color: '#ea580c',
+                        bgColor: '#fff7ed',
+                        size: 256,
+                        errorLevel: 'M',
+                        margin: 4
+                    },
+                    tags: ['event', 'birthday', 'party'],
+                    premium: false
+                },
+                {
+                    id: 'conference-info',
+                    name: 'Konferenz-Info',
+                    description: 'Informationen zur Konferenz',
                     type: 'url',
-                    settings: { color: '#ea4335', bgColor: '#fef7f0', size: '300' },
-                    content: 'https://g.page/r/IHRE_GOOGLE_BEWERTUNGS_URL'
+                    icon: '🎯',
+                    content: 'https://konferenz2024.de/programm',
+                    settings: {
+                        color: '#0f766e',
+                        bgColor: '#f0fdfa',
+                        size: 256,
+                        errorLevel: 'M',
+                        margin: 4
+                    },
+                    tags: ['event', 'conference', 'business'],
+                    premium: false
+                }
+            ],
+            restaurant: [
+                {
+                    id: 'menu-digital',
+                    name: 'Digitale Speisekarte',
+                    description: 'Link zur Online-Speisekarte',
+                    type: 'url',
+                    icon: '🍽️',
+                    content: 'https://restaurant-mustermann.de/menu',
+                    settings: {
+                        color: '#b45309',
+                        bgColor: '#fefbf3',
+                        size: 256,
+                        errorLevel: 'M',
+                        margin: 4
+                    },
+                    tags: ['restaurant', 'menu', 'food'],
+                    premium: false
+                },
+                {
+                    id: 'table-reservation',
+                    name: 'Tisch-Reservierung',
+                    description: 'Link zur Online-Reservierung',
+                    type: 'url',
+                    icon: '📅',
+                    content: 'https://restaurant-mustermann.de/reservation',
+                    settings: {
+                        color: '#dc2626',
+                        bgColor: '#fef2f2',
+                        size: 256,
+                        errorLevel: 'M',
+                        margin: 4
+                    },
+                    tags: ['restaurant', 'reservation', 'booking'],
+                    premium: false
                 }
             ]
         };
     }
 
-    // Event Listeners einrichten
-    setupEventListeners() {
-        // Template-Button Klicks abfangen
-        document.addEventListener('click', (e) => {
-            // Templates verwenden Button (Generator)
-            if (e.target.matches('[data-feature="templates"]') || 
-                e.target.closest('[data-feature="templates"]')) {
-                e.preventDefault();
-                this.openModal();
-            }
-            
-            // Templates Schnellaktion (Dashboard)
-            if (e.target.matches('[data-action="show-templates"]') || 
-                e.target.closest('[data-action="show-templates"]')) {
-                e.preventDefault();
-                this.openModal();
-            }
-        });
-
-        // Modal Event Listeners
-        if (this.modal) {
-            // Schließen Button
-            const closeBtn = this.modal.querySelector('[data-close-template]');
-            if (closeBtn) {
-                closeBtn.addEventListener('click', () => this.closeModal());
-            }
-
-            // Außerhalb klicken zum Schließen
-            this.modal.addEventListener('click', (e) => {
-                if (e.target === this.modal) {
-                    this.closeModal();
-                }
-            });
-
-            // ESC zum Schließen
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && this.modal.style.display === 'flex') {
-                    this.closeModal();
-                }
-            });
-        }
-
-        // Template-Karten Klicks
-        if (this.grid) {
-            this.grid.addEventListener('click', (e) => {
-                const templateCard = e.target.closest('.template-card');
-                if (templateCard) {
-                    const templateId = templateCard.dataset.id;
-                    this.selectTemplate(templateId);
-                }
-            });
-        }
-    }
-
-    // Modal dynamisch erstellen falls nicht vorhanden
+    /**
+     * Modal-Element erstellen
+     */
     createModal() {
+        // Prüfen ob Modal bereits existiert
+        if (this.modal) {
+            return;
+        }
+
         const modalHTML = `
-            <div id="template-modal" class="modal" style="display: none;">
-                <div class="modal-content template-modal-content">
+            <div id="template-modal" class="template-modal">
+                <div class="template-modal-content">
                     <div class="modal-header">
-                        <h2>
-                            <span class="modal-icon">📋</span>
-                            QR-Code Templates
-                        </h2>
-                        <button class="modal-close" data-close-template aria-label="Schließen">×</button>
+                        <div class="modal-title">
+                            <span class="modal-icon">📝</span>
+                            <h2>QR-Code Templates</h2>
+                        </div>
+                        <button class="modal-close" aria-label="Modal schließen">
+                            <svg width="20" height="20" viewBox="0 0 20 20">
+                                <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </button>
                     </div>
                     <div class="modal-body">
-                        <div class="template-categories">
-                            <button class="template-category active" data-category="business">
-                                <span class="category-icon">💼</span>
-                                Business
-                            </button>
-                            <button class="template-category" data-category="social">
-                                <span class="category-icon">📱</span>
-                                Social Media
-                            </button>
-                            <button class="template-category" data-category="event">
-                                <span class="category-icon">🎉</span>
-                                Events
-                            </button>
-                            <button class="template-category" data-category="personal">
-                                <span class="category-icon">👤</span>
-                                Persönlich
-                            </button>
+                        <div class="template-sidebar">
+                            <div class="template-search">
+                                <input type="text" id="template-search" placeholder="Templates suchen..." />
+                                <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16">
+                                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                                </svg>
+                            </div>
+                            <div class="template-categories">
+                                <!-- Kategorien werden dynamisch geladen -->
+                            </div>
+                            <div class="template-stats">
+                                <div class="stat-item">
+                                    <span class="stat-number" id="total-templates">0</span>
+                                    <span class="stat-label">Templates</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number" id="premium-templates">0</span>
+                                    <span class="stat-label">Premium</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="template-grid" id="template-grid">
-                            <!-- Templates werden hier gerendert -->
+                        <div class="template-main">
+                            <div class="template-header">
+                                <h3 id="category-title">Business Templates</h3>
+                                <div class="template-filters">
+                                    <button class="filter-btn active" data-filter="all">Alle</button>
+                                    <button class="filter-btn" data-filter="free">Kostenlos</button>
+                                    <button class="filter-btn" data-filter="premium">Premium</button>
+                                </div>
+                            </div>
+                            <div class="template-grid">
+                                <!-- Templates werden dynamisch geladen -->
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn btn--secondary" data-close-template>Abbrechen</button>
-                        <button class="btn btn--primary" id="apply-template" disabled>Template anwenden</button>
+                        <div class="footer-info">
+                            <span id="selected-template-info">Wählen Sie ein Template aus</span>
+                        </div>
+                        <div class="footer-actions">
+                            <button class="btn btn--secondary" id="cancel-template">Abbrechen</button>
+                            <button class="btn btn--primary" id="use-template" disabled>Template verwenden</button>
+                        </div>
                     </div>
                 </div>
             </div>
         `;
 
+        // Modal zum DOM hinzufügen
         document.body.insertAdjacentHTML('beforeend', modalHTML);
         this.modal = document.getElementById('template-modal');
-        this.grid = document.getElementById('template-grid');
 
-        // Kategorie-Navigation einrichten
-        this.setupCategoryNavigation();
+        // Modal-Inhalt initialisieren
+        this.populateModal();
     }
 
-    // Kategorie-Navigation
-    setupCategoryNavigation() {
-        const categoryButtons = this.modal.querySelectorAll('.template-category');
+    /**
+     * Modal mit Inhalten füllen
+     */
+    populateModal() {
+        if (!this.modal) return;
+
+        this.renderCategories();
+        this.renderTemplates(this.currentCategory);
+        this.updateStats();
+    }
+
+    /**
+     * Kategorien rendern
+     */
+    renderCategories() {
+        const categoriesContainer = this.modal.querySelector('.template-categories');
+        if (!categoriesContainer) return;
+
+        const categories = this.getCategoriesData();
         
-        categoryButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                // Aktive Kategorie wechseln
-                categoryButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-                
-                // Templates für Kategorie rendern
-                const category = button.dataset.category;
-                this.renderTemplates(category);
-            });
-        });
+        categoriesContainer.innerHTML = categories.map(category => `
+            <button class="template-category ${category.id === this.currentCategory ? 'active' : ''}" 
+                    data-category="${category.id}">
+                <span class="category-icon">${category.icon}</span>
+                <div class="category-info">
+                    <span class="category-name">${category.name}</span>
+                    <span class="category-count">${category.count}</span>
+                </div>
+            </button>
+        `).join('');
     }
 
-    // Templates rendern
-    renderTemplates(category = 'business') {
-        if (!this.grid) {
-            console.warn('Template-Grid nicht verfügbar');
+    /**
+     * Templates rendern
+     */
+    renderTemplates(categoryId) {
+        const gridContainer = this.modal.querySelector('.template-grid');
+        const categoryTitle = this.modal.querySelector('#category-title');
+        
+        if (!gridContainer) return;
+
+        const templates = this.templates[categoryId] || [];
+        const categoryInfo = this.getCategoriesData().find(c => c.id === categoryId);
+
+        if (categoryTitle && categoryInfo) {
+            categoryTitle.textContent = categoryInfo.name;
+        }
+
+        if (templates.length === 0) {
+            gridContainer.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">📄</div>
+                    <h4>Keine Templates gefunden</h4>
+                    <p>Für diese Kategorie sind noch keine Templates verfügbar.</p>
+                </div>
+            `;
             return;
         }
 
-        const templates = this.templates[category] || [];
-        
-        this.grid.innerHTML = templates.map(template => `
-            <div class="template-card" data-id="${template.id}">
+        gridContainer.innerHTML = templates.map(template => this.renderTemplateCard(template)).join('');
+    }
+
+    /**
+     * Template-Karte rendern
+     */
+    renderTemplateCard(template) {
+        return `
+            <div class="template-card ${template.premium ? 'premium' : ''}" data-template-id="${template.id}">
                 <div class="template-preview" style="background: ${template.settings.bgColor}">
                     <div class="template-icon" style="color: ${template.settings.color}">
                         ${template.icon}
                     </div>
-                    <div class="template-sample-qr">
+                    <div class="qr-preview">
                         <div class="qr-dots" style="background: ${template.settings.color}"></div>
                     </div>
+                    ${template.premium ? '<div class="premium-badge">Premium</div>' : ''}
                 </div>
                 <div class="template-info">
                     <h4 class="template-name">${template.name}</h4>
@@ -4666,250 +4611,491 @@ END:VCARD`
                     <div class="template-meta">
                         <span class="template-type">${this.getTypeLabel(template.type)}</span>
                         <span class="template-size">${template.settings.size}px</span>
+                        <div class="template-color-preview" style="background: ${template.settings.color}"></div>
+                    </div>
+                    <div class="template-tags">
+                        ${template.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
                     </div>
                 </div>
                 <div class="template-actions">
-                    <button class="btn btn--sm btn--primary template-select-btn">
+                    <button class="btn btn--sm btn--outline template-preview-btn" data-template-id="${template.id}">
+                        Vorschau
+                    </button>
+                    <button class="btn btn--sm btn--primary template-select-btn" data-template-id="${template.id}">
                         Auswählen
                     </button>
                 </div>
             </div>
-        `).join('');
+        `;
     }
 
-    // Template auswählen
-    selectTemplate(templateId) {
-        // Alle Karten deselektieren
-        this.grid.querySelectorAll('.template-card').forEach(card => {
-            card.classList.remove('selected');
-        });
-
-        // Ausgewählte Karte markieren
-        const selectedCard = this.grid.querySelector(`[data-id="${templateId}"]`);
-        if (selectedCard) {
-            selectedCard.classList.add('selected');
-        }
-
-        // Template in Instanzvariable speichern
-        this.selectedTemplate = this.findTemplateById(templateId);
-        
-        // Apply-Button aktivieren
-        const applyBtn = this.modal.querySelector('#apply-template');
-        if (applyBtn) {
-            applyBtn.disabled = false;
-            applyBtn.textContent = `"${this.selectedTemplate.name}" anwenden`;
-            
-            // Event Listener für Apply-Button
-            applyBtn.onclick = () => this.applySelectedTemplate();
-        }
-
-        // Feedback
-        if (window.qrApp && typeof window.qrApp.showToast === 'function') {
-            window.qrApp.showToast(`Template "${this.selectedTemplate.name}" ausgewählt`, 'info', 1500);
-        }
-    }
-
-    // Template nach ID finden
-    findTemplateById(templateId) {
-        for (const category of Object.values(this.templates)) {
-            const template = category.find(t => t.id === templateId);
-            if (template) return template;
-        }
-        return null;
-    }
-
-    // Ausgewähltes Template anwenden
-    applySelectedTemplate() {
-        if (!this.selectedTemplate) return;
+    /**
+     * Event Listeners einrichten
+     */
+    setupEventListeners() {
+        if (!this.modal) return;
 
         // Modal schließen
-        this.closeModal();
+        this.addEventHandler(this.modal.querySelector('.modal-close'), 'click', () => {
+            this.hideModal();
+        });
 
-        // Zur Generator-Seite navigieren
-        if (this.qrApp.showPage) {
-            this.qrApp.showPage('generator');
-        } else if (this.qrApp.navigateToPage) {
-            this.qrApp.navigateToPage('generator');
-        }
+        this.addEventHandler(this.modal.querySelector('#cancel-template'), 'click', () => {
+            this.hideModal();
+        });
 
-        // Template-Daten anwenden
-        setTimeout(() => {
-            this.applyTemplateToGenerator(this.selectedTemplate);
-        }, 300);
+        // Escape-Taste
+        this.addEventHandler(document, 'keydown', (e) => {
+            if (e.key === 'Escape' && this.isModalOpen) {
+                this.hideModal();
+            }
+        });
+
+        // Backdrop-Click
+        this.addEventHandler(this.modal, 'click', (e) => {
+            if (e.target === this.modal) {
+                this.hideModal();
+            }
+        });
+
+        // Kategorie-Wechsel
+        this.addEventHandler(this.modal.querySelector('.template-categories'), 'click', (e) => {
+            const categoryBtn = e.target.closest('.template-category');
+            if (!categoryBtn) return;
+
+            const categoryId = categoryBtn.dataset.category;
+            this.switchCategory(categoryId);
+        });
+
+        // Template-Auswahl
+        this.addEventHandler(this.modal, 'click', (e) => {
+            const selectBtn = e.target.closest('.template-select-btn');
+            const previewBtn = e.target.closest('.template-preview-btn');
+            
+            if (selectBtn) {
+                const templateId = selectBtn.dataset.templateId;
+                this.selectTemplate(templateId);
+            } else if (previewBtn) {
+                const templateId = previewBtn.dataset.templateId;
+                this.previewTemplate(templateId);
+            }
+        });
+
+        // Suche
+        this.addEventHandler(this.modal.querySelector('#template-search'), 'input', (e) => {
+            this.searchTemplates(e.target.value);
+        });
+
+        // Filter
+        this.addEventHandler(this.modal.querySelector('.template-filters'), 'click', (e) => {
+            const filterBtn = e.target.closest('.filter-btn');
+            if (!filterBtn) return;
+
+            // Aktiven Filter setzen
+            this.modal.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            filterBtn.classList.add('active');
+
+            const filter = filterBtn.dataset.filter;
+            this.filterTemplates(filter);
+        });
+
+        // Template verwenden
+        this.addEventHandler(this.modal.querySelector('#use-template'), 'click', () => {
+            if (this.selectedTemplate) {
+                this.applyTemplate(this.selectedTemplate);
+            }
+        });
     }
 
-    // Template-Daten im Generator anwenden
-    applyTemplateToGenerator(template) {
-        try {
-            // QR-Type setzen
-            const qrTypeSelect = document.getElementById('qr-type');
-            if (qrTypeSelect) {
-                qrTypeSelect.value = template.type;
-                qrTypeSelect.dispatchEvent(new Event('change', { bubbles: true }));
-            }
+    /**
+     * Event Handler hinzufügen und verfolgen
+     */
+    addEventHandler(element, event, handler) {
+        if (!element) return;
 
-            // Content setzen
-            const qrContentTextarea = document.getElementById('qr-content');
-            if (qrContentTextarea) {
-                qrContentTextarea.value = template.content;
-                qrContentTextarea.dispatchEvent(new Event('input', { bubbles: true }));
-            }
-
-            // Farben und Größe anwenden (falls QRCustomization verfügbar)
-            if (window.qrCustomization) {
-                window.qrCustomization.setColor(template.settings.color);
-                window.qrCustomization.setBgColor(template.settings.bgColor);
-                window.qrCustomization.setSize(template.settings.size);
-            } else {
-                // Fallback: Direkt auf Form-Elemente zugreifen
-                const colorInput = document.getElementById('qr-color');
-                const bgColorInput = document.getElementById('qr-bg-color');
-                const sizeSelect = document.getElementById('qr-size');
-
-                if (colorInput) colorInput.value = template.settings.color;
-                if (bgColorInput) bgColorInput.value = template.settings.bgColor;
-                if (sizeSelect) sizeSelect.value = template.settings.size;
-            }
-
-            // QR Code generieren
-            const generateBtn = document.getElementById('generate-btn');
-            if (generateBtn) {
-                generateBtn.click();
-            }
-
-            // Erfolgs-Toast
-            if (window.qrApp && typeof window.qrApp.showToast === 'function') {
-                window.qrApp.showToast(
-                    `✨ Template "${template.name}" erfolgreich angewendet!`, 
-                    'success', 
-                    3000
-                );
-            }
-
-        } catch (error) {
-            console.error('Fehler beim Anwenden des Templates:', error);
-            if (window.qrApp && typeof window.qrApp.showToast === 'function') {
-                window.qrApp.showToast('Fehler beim Anwenden des Templates', 'error', 3000);
-            }
+        element.addEventListener(event, handler);
+        
+        // Handler für Cleanup speichern
+        if (!this.eventHandlers.has(element)) {
+            this.eventHandlers.set(element, []);
         }
+        this.eventHandlers.get(element).push({ event, handler });
     }
 
-    // Modal öffnen
-    openModal() {
+    /**
+     * Modal anzeigen
+     */
+    showModal() {
         if (!this.modal) {
             this.createModal();
         }
 
+        document.body.classList.add('modal-open');
         this.modal.style.display = 'flex';
-        this.modal.setAttribute('aria-hidden', 'false');
+        
+        requestAnimationFrame(() => {
+            this.modal.classList.add('open');
+        });
 
-        // Standard-Kategorie rendern
-        this.renderTemplates('business');
+        this.isModalOpen = true;
 
-        // Focus für Accessibility
-        const firstCategory = this.modal.querySelector('.template-category');
-        if (firstCategory) {
-            firstCategory.focus();
+        // Fokus auf erstes Element setzen
+        const firstFocusable = this.modal.querySelector('input, button, [tabindex]');
+        if (firstFocusable) {
+            firstFocusable.focus();
         }
-
-        // Body-Scroll verhindern
-        document.body.style.overflow = 'hidden';
     }
 
-    // Modal schließen
-    closeModal() {
-        if (this.modal) {
+    /**
+     * Modal verstecken
+     */
+    hideModal() {
+        if (!this.modal || !this.isModalOpen) return;
+
+        this.modal.classList.remove('open');
+        
+        setTimeout(() => {
             this.modal.style.display = 'none';
-            this.modal.setAttribute('aria-hidden', 'true');
-        }
+            document.body.classList.remove('modal-open');
+        }, 300);
 
-        // Selection zurücksetzen
+        this.isModalOpen = false;
         this.selectedTemplate = null;
-
-        // Body-Scroll wiederherstellen
-        document.body.style.overflow = '';
+        this.updateSelectedTemplateInfo();
     }
 
-    // Type-Label für bessere UX
+    /**
+     * Kategorie wechseln
+     */
+    switchCategory(categoryId) {
+        if (!this.templates[categoryId]) return;
+
+        this.currentCategory = categoryId;
+
+        // Aktive Kategorie markieren
+        this.modal.querySelectorAll('.template-category').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.category === categoryId);
+        });
+
+        // Templates rendern
+        this.renderTemplates(categoryId);
+    }
+
+    /**
+     * Template auswählen
+     */
+    selectTemplate(templateId) {
+        const template = this.findTemplateById(templateId);
+        if (!template) return;
+
+        // Premium-Check
+        if (template.premium && !this.isPremiumUser()) {
+            this.showPremiumModal();
+            return;
+        }
+
+        this.selectedTemplate = template;
+        
+        // Visuelles Feedback
+        this.modal.querySelectorAll('.template-card').forEach(card => {
+            card.classList.toggle('selected', card.dataset.templateId === templateId);
+        });
+
+        // Button aktivieren
+        const useButton = this.modal.querySelector('#use-template');
+        useButton.disabled = false;
+
+        this.updateSelectedTemplateInfo();
+    }
+
+    /**
+     * Template-Vorschau
+     */
+    previewTemplate(templateId) {
+        const template = this.findTemplateById(templateId);
+        if (!template) return;
+
+        // Einfache Vorschau im Generator (falls verfügbar)
+        if (window.qrApp && typeof window.qrApp.previewTemplate === 'function') {
+            window.qrApp.previewTemplate(template);
+        } else {
+            // Fallback: Template-Details anzeigen
+            this.showTemplateDetails(template);
+        }
+    }
+
+    /**
+     * Template anwenden
+     */
+    applyTemplate(template) {
+        if (!template) return;
+
+        try {
+            // An QRProApp weiterleiten falls verfügbar
+            if (window.qrApp && typeof window.qrApp.applyTemplate === 'function') {
+                window.qrApp.applyTemplate(template);
+                this.hideModal();
+                return;
+            }
+
+            // Fallback: Direkte Anwendung
+            this.applyTemplateDirectly(template);
+            
+        } catch (error) {
+            console.error('Fehler beim Anwenden des Templates:', error);
+            this.showError('Template konnte nicht angewendet werden.');
+        }
+    }
+
+    /**
+     * Template direkt anwenden (Fallback)
+     */
+    applyTemplateDirectly(template) {
+        // Content setzen
+        const contentInput = document.getElementById('qr-content');
+        if (contentInput && template.content) {
+            contentInput.value = template.content;
+            contentInput.dispatchEvent(new Event('input'));
+        }
+
+        // Typ setzen
+        const typeSelect = document.getElementById('qr-type');
+        if (typeSelect && template.type) {
+            typeSelect.value = template.type;
+            typeSelect.dispatchEvent(new Event('change'));
+        }
+
+        // Farben und Einstellungen setzen
+        if (template.settings) {
+            const colorInput = document.getElementById('qr-color');
+            const bgColorInput = document.getElementById('qr-bg-color');
+            const sizeSelect = document.getElementById('qr-size');
+
+            if (colorInput) colorInput.value = template.settings.color;
+            if (bgColorInput) bgColorInput.value = template.settings.bgColor;
+            if (sizeSelect) sizeSelect.value = template.settings.size;
+        }
+
+        // Zum Generator navigieren
+        if (window.qrApp && typeof window.qrApp.navigateToPage === 'function') {
+            window.qrApp.navigateToPage('generator');
+        }
+
+        // Modal schließen
+        this.hideModal();
+
+        // Erfolgs-Toast anzeigen
+        this.showSuccess(`Template "${template.name}" wurde angewendet`);
+
+        // Vorschau aktualisieren
+        setTimeout(() => {
+            if (window.qrApp && typeof window.qrApp.updatePreview === 'function') {
+                window.qrApp.updatePreview();
+            }
+        }, 100);
+    }
+
+    /**
+     * Templates suchen
+     */
+    searchTemplates(query) {
+        if (!query.trim()) {
+            this.renderTemplates(this.currentCategory);
+            return;
+        }
+
+        const allTemplates = Object.values(this.templates).flat();
+        const filteredTemplates = allTemplates.filter(template => 
+            template.name.toLowerCase().includes(query.toLowerCase()) ||
+            template.description.toLowerCase().includes(query.toLowerCase()) ||
+            template.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase()))
+        );
+
+        this.renderSearchResults(filteredTemplates, query);
+    }
+
+    /**
+     * Templates filtern
+     */
+    filterTemplates(filter) {
+        const templates = this.templates[this.currentCategory] || [];
+        
+        let filteredTemplates = templates;
+        
+        switch (filter) {
+            case 'free':
+                filteredTemplates = templates.filter(t => !t.premium);
+                break;
+            case 'premium':
+                filteredTemplates = templates.filter(t => t.premium);
+                break;
+            default:
+                filteredTemplates = templates;
+        }
+
+        const gridContainer = this.modal.querySelector('.template-grid');
+        if (gridContainer) {
+            gridContainer.innerHTML = filteredTemplates.map(template => 
+                this.renderTemplateCard(template)
+            ).join('');
+        }
+    }
+
+    /**
+     * Suchergebnisse rendern
+     */
+    renderSearchResults(templates, query) {
+        const gridContainer = this.modal.querySelector('.template-grid');
+        const categoryTitle = this.modal.querySelector('#category-title');
+        
+        if (categoryTitle) {
+            categoryTitle.textContent = `Suchergebnisse für "${query}"`;
+        }
+
+        if (templates.length === 0) {
+            gridContainer.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">🔍</div>
+                    <h4>Keine Templates gefunden</h4>
+                    <p>Versuchen Sie andere Suchbegriffe.</p>
+                </div>
+            `;
+            return;
+        }
+
+        gridContainer.innerHTML = templates.map(template => this.renderTemplateCard(template)).join('');
+    }
+
+    /**
+     * Statistiken aktualisieren
+     */
+    updateStats() {
+        const totalCount = Object.values(this.templates).flat().length;
+        const premiumCount = Object.values(this.templates).flat().filter(t => t.premium).length;
+
+        const totalElement = this.modal.querySelector('#total-templates');
+        const premiumElement = this.modal.querySelector('#premium-templates');
+
+        if (totalElement) totalElement.textContent = totalCount;
+        if (premiumElement) premiumElement.textContent = premiumCount;
+    }
+
+    /**
+     * Ausgewähltes Template Info aktualisieren
+     */
+    updateSelectedTemplateInfo() {
+        const infoElement = this.modal.querySelector('#selected-template-info');
+        if (!infoElement) return;
+
+        if (this.selectedTemplate) {
+            infoElement.textContent = `"${this.selectedTemplate.name}" ausgewählt`;
+        } else {
+            infoElement.textContent = 'Wählen Sie ein Template aus';
+        }
+    }
+
+    /**
+     * Hilfsfunktionen
+     */
+    findTemplateById(id) {
+        return Object.values(this.templates).flat().find(t => t.id === id);
+    }
+
+    getCategoriesData() {
+        return [
+            { id: 'business', name: 'Business', icon: '💼', count: this.templates.business?.length || 0 },
+            { id: 'social', name: 'Social Media', icon: '📱', count: this.templates.social?.length || 0 },
+            { id: 'personal', name: 'Persönlich', icon: '👤', count: this.templates.personal?.length || 0 },
+            { id: 'wifi', name: 'WiFi', icon: '📶', count: this.templates.wifi?.length || 0 },
+            { id: 'event', name: 'Events', icon: '🎉', count: this.templates.event?.length || 0 },
+            { id: 'restaurant', name: 'Restaurant', icon: '🍽️', count: this.templates.restaurant?.length || 0 }
+        ];
+    }
+
     getTypeLabel(type) {
         const labels = {
-            'url': 'Website',
+            'url': 'URL',
             'text': 'Text',
             'email': 'E-Mail',
             'phone': 'Telefon',
             'sms': 'SMS',
-            'wifi': 'WLAN',
-            'vcard': 'Kontakt'
+            'wifi': 'WiFi',
+            'vcard': 'Kontakt',
+            'geo': 'Standort'
         };
-        return labels[type] || type;
+        return labels[type] || type.toUpperCase();
     }
 
-    // Template-Statistiken
-    getStats() {
-        const totalTemplates = Object.values(this.templates).reduce((sum, category) => sum + category.length, 0);
-        return {
-            total: totalTemplates,
-            categories: Object.keys(this.templates).length,
-            mostUsedCategory: 'business' // Könnte aus localStorage kommen
-        };
+    isPremiumUser() {
+        // Premium-Status prüfen - kann später erweitert werden
+        return localStorage.getItem('premium') === 'true' || false;
     }
 
-    // Eigene Templates hinzufügen
-    addCustomTemplate(category, template) {
-        if (!this.templates[category]) {
-            this.templates[category] = [];
-        }
-        
-        template.id = `custom-${Date.now()}`;
-        this.templates[category].push(template);
-
-        // In localStorage speichern für Persistenz
-        try {
-            localStorage.setItem('custom-templates', JSON.stringify(this.getCustomTemplates()));
-        } catch (e) {
-            console.warn('Konnte Custom Templates nicht speichern');
-        }
+    showPremiumModal() {
+        // Premium-Modal anzeigen
+        this.showError('Dieses Template ist nur für Premium-Nutzer verfügbar.');
     }
 
-    // Custom Templates laden
-    loadCustomTemplates() {
-        try {
-            const customTemplates = JSON.parse(localStorage.getItem('custom-templates') || '{}');
-            
-            for (const [category, templates] of Object.entries(customTemplates)) {
-                if (!this.templates[category]) {
-                    this.templates[category] = [];
-                }
-                this.templates[category].push(...templates);
-            }
-        } catch (e) {
-            console.warn('Fehler beim Laden der Custom Templates');
+    showTemplateDetails(template) {
+        // Template-Details in einem kleinen Modal anzeigen
+        const details = `
+            Name: ${template.name}
+            Typ: ${this.getTypeLabel(template.type)}
+            Beschreibung: ${template.description}
+            Premium: ${template.premium ? 'Ja' : 'Nein'}
+        `;
+        alert(details); // Kann später durch ein schönes Modal ersetzt werden
+    }
+
+    showError(message) {
+        if (window.qrApp && typeof window.qrApp.showToast === 'function') {
+            window.qrApp.showToast(message, 'error');
+        } else {
+            console.error(message);
         }
     }
 
-    // Custom Templates extrahieren
-    getCustomTemplates() {
-        const customTemplates = {};
-        
-        for (const [category, templates] of Object.entries(this.templates)) {
-            const customItems = templates.filter(t => t.id.startsWith('custom-'));
-            if (customItems.length > 0) {
-                customTemplates[category] = customItems;
-            }
+    showSuccess(message) {
+        if (window.qrApp && typeof window.qrApp.showToast === 'function') {
+            window.qrApp.showToast(message, 'success');
+        } else {
+            console.log(message);
         }
-        
-        return customTemplates;
+    }
+
+    /**
+     * Cleanup beim Zerstören
+     */
+    destroy() {
+        // Event Listeners entfernen
+        this.eventHandlers.forEach((handlers, element) => {
+            handlers.forEach(({ event, handler }) => {
+                element.removeEventListener(event, handler);
+            });
+        });
+        this.eventHandlers.clear();
+
+        // Modal entfernen
+        if (this.modal) {
+            this.modal.remove();
+            this.modal = null;
+        }
+
+        // Cleanup
+        this.templates = {};
+        this.selectedTemplate = null;
+        this.isModalOpen = false;
     }
 }
 
-// Template-Manager initialisieren
-document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-        if (window.qrApp) {
-            window.templateManager = new TemplateManager(window.qrApp);
-            console.log('✅ Template-Manager erfolgreich initialisiert');
-        } else {
-            console.warn('❌ QR App nicht gefunden - Template-Manager nicht initialisiert');
-        }
-    }, 1000);
-});
+// Global verfügbar machen
+window.TemplateManager = TemplateManager;
+
+// Auto-Initialisierung wenn DOM bereit ist
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        window.templateManager = new TemplateManager();
+    });
+} else {
+    window.templateManager = new TemplateManager();
+}

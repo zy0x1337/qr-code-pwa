@@ -665,30 +665,26 @@
         </main>
     </div>
 
-<!-- Modal Wrapper -->
-<div id="template-modal" class="modal" style="display: none;">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>QR-Code-Templates</h2>
-      <button class="modal-close" data-close-template>&times;</button>
+<!-- Template Modal -->
+<div id="template-modal" class="template-modal">
+    <div class="template-modal-content">
+        <div class="modal-header">
+            <h2><span class="modal-icon">📝</span>QR-Code Templates</h2>
+            <button class="modal-close" aria-label="Modal schließen">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="template-categories">
+                <!-- Kategorien werden dynamisch geladen -->
+            </div>
+            <div class="template-grid">
+                <!-- Templates werden dynamisch geladen -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn--secondary">Abbrechen</button>
+            <button class="btn btn--primary" disabled>Template verwenden</button>
+        </div>
     </div>
-    <div class="modal-body">
-      <div class="template-grid" id="template-grid">
-        <!-- Wird per JavaScript gefüllt -->
-      </div>
-    </div>
-  </div>
-</div>
-
-    <!-- Footer -->
-    <div class="tm-footer">
-      <button class="tm-btn tm-btn--secondary" id="tm-cancel">Abbrechen</button>
-      <button class="tm-btn tm-btn--primary"   id="tm-apply">
-        <svg><!-- check icon --></svg>
-        Template anwenden
-      </button>
-    </div>
-  </div>
 </div>
 
     <!-- Floating Install Button -->

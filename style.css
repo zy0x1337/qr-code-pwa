@@ -3473,3 +3473,98 @@ select.form-control {
     transform: scale(1.05);
     box-shadow: var(--shadow-sm);
 }
+
+/* Preset Selector Styling */
+.preset-selector {
+    background-image: url("data:image/svg+xml,%3csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3e%3cdefs%3e%3cpattern id='smallGrid' width='8' height='8' patternUnits='userSpaceOnUse'%3e%3cpath d='M 8 0 L 0 0 0 8' fill='none' stroke='gray' stroke-width='0.5'/%3e%3c/pattern%3e%3c/defs%3e%3crect width='100' height='100' fill='url(%23smallGrid)' /%3e%3c/svg%3e");
+    position: relative;
+}
+
+/* Preset Tiles Layout */
+.preset-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: var(--space-12);
+    margin-top: var(--space-16);
+}
+
+.preset-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--space-8);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-base);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-standard);
+    background: var(--color-background);
+}
+
+.preset-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-primary-light);
+}
+
+.preset-tile.active {
+    border-color: var(--color-primary);
+    background: var(--color-primary-lightest);
+    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.1);
+}
+
+.tile-color {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+    margin-bottom: var(--space-4);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.tile-label {
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    text-align: center;
+    color: var(--color-text-secondary);
+}
+
+/* Select Option Styling */
+.preset-selector option {
+    padding: var(--space-8);
+    background-size: 20px 20px;
+    background-repeat: no-repeat;
+    background-position: 8px center;
+    padding-left: 35px;
+}
+
+/* Custom Color Indicator für Select */
+.preset-selector::after {
+    content: '';
+    position: absolute;
+    right: 30px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    border: 1px solid var(--color-border);
+    border-radius: 3px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Mobile Optimierungen */
+@media (max-width: 768px) {
+    .preset-tiles {
+        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+        gap: var(--space-8);
+    }
+    
+    .tile-color {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .tile-label {
+        font-size: 10px;
+    }
+}

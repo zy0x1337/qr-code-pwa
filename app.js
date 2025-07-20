@@ -75,6 +75,7 @@ class QRProApp {
   async init() {
     this.showLoadingScreen();
     this.setupEventListeners();
+    this.setupBackgroundPresets();
     this.initializeData();
     await this.loadLibraries();
     this.registerServiceWorker();
@@ -473,12 +474,23 @@ resetToDefaultSettings() {
     });
   }
   
+  // WICHTIG: Sofortige Updates für Farb-/Größenänderungen
   if (qrColor) {
-    qrColor.addEventListener('change', () => this.updatePreview());
+    qrColor.addEventListener('change', () => this.updatePreviewImmediate());
+    qrColor.addEventListener('input', () => this.updatePreviewImmediate());
   }
   
   if (qrBgColor) {
-    qrBgColor.addEventListener('change', () => this.updatePreview());
+    qrBgColor.addEventListener('change', () => this.updatePreviewImmediate());
+    qrBgColor.addEventListener('input', () => {
+      // Bei manueller Farbänderung automatisch auf "custom" setzen
+      const bgPresetSelect = document.getElementById('qr-bg-preset');
+      if (bgPresetSelect && bgPresetSelect.value !== 'custom') {
+        bgPresetSelect.value = 'custom';
+        this.updateBackgroundPresetUI();
+      }
+      this.updatePreviewImmediate();
+    });
   }
   
   if (downloadBtn) {
@@ -531,7 +543,6 @@ resetToDefaultSettings() {
       this.filterHistory(e.target.value);
     });
     
-    // Suchfeld leeren mit Escape
     searchHistory.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         e.target.value = '';
@@ -574,7 +585,6 @@ resetToDefaultSettings() {
       this.handleQuickAction(action);
     });
     
-    // Keyboard Navigation für Accessibility
     card.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
@@ -620,31 +630,26 @@ resetToDefaultSettings() {
 
   // Global Keyboard Shortcuts
   document.addEventListener('keydown', (e) => {
-    // Ctrl/Cmd + G = Generator öffnen
     if ((e.ctrlKey || e.metaKey) && e.key === 'g') {
       e.preventDefault();
       this.navigateToPage('generator');
     }
     
-    // Ctrl/Cmd + S = Scanner öffnen
     if ((e.ctrlKey || e.metaKey) && e.key === 's') {
       e.preventDefault();
       this.navigateToPage('scanner');
     }
     
-    // Ctrl/Cmd + H = History/Verlauf öffnen
     if ((e.ctrlKey || e.metaKey) && e.key === 'h') {
       e.preventDefault();
       this.navigateToPage('history');
     }
     
-    // Ctrl/Cmd + D = Dashboard öffnen
     if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
       e.preventDefault();
       this.navigateToPage('dashboard');
     }
     
-    // Escape = Scanner stoppen (falls aktiv)
     if (e.key === 'Escape' && this.isScanning) {
       this.stopScanner();
     }
@@ -689,12 +694,10 @@ resetToDefaultSettings() {
   // Visibility Change (Tab wechseln)
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
-      // Tab ist nicht mehr sichtbar - Scanner pausieren falls aktiv
       if (this.isScanning) {
         this.pauseScanner();
       }
     } else {
-      // Tab ist wieder sichtbar - Scanner fortsetzen falls pausiert
       if (this.scannerPaused) {
         this.resumeScanner();
       }
@@ -703,7 +706,6 @@ resetToDefaultSettings() {
 
   // Dynamic History Event Listeners (für später hinzugefügte Elemente)
   document.addEventListener('click', (e) => {
-    // History Item Actions
     if (e.target.classList.contains('history-copy-btn')) {
       const content = e.target.dataset.content;
       this.copyToClipboard(content);
@@ -734,17 +736,6 @@ resetToDefaultSettings() {
       this.handleResize();
     }, 250);
   });
-
-  // TEMPORÄRER TEST-BUTTON
-  const scannerPage = document.getElementById('scanner-page');
-  if (scannerPage) {
-    const testBtn = document.createElement('button');
-    testBtn.textContent = '🧪 Test Scan';
-    testBtn.className = 'btn btn--outline';
-    testBtn.onclick = () => this.testQRRecognition();
-    testBtn.style.margin = '1rem';
-    scannerPage.appendChild(testBtn);
-    }
 
   // Paste Event für schnelles QR Code generieren
   document.addEventListener('paste', (e) => {
@@ -1451,16 +1442,163 @@ detectContentType(content) {
     return 'Text';
 }
 
+// In der QRProApp Klasse - verbesserte updatePreview Methode
 updatePreview() {
-    // Preview-Timeout clearen um Performance zu verbessern
+    // Preview-Timeout clearen für bessere Performance
     if (this.previewTimeout) {
         clearTimeout(this.previewTimeout);
     }
     
-    // Verzögerung für bessere Performance bei schnellem Tippen
+    // Verzögerung nur bei Text-Input, sofort bei Farb-/Größenänderungen
+    const delay = arguments[0] === 'immediate' ? 0 : 300;
+    
     this.previewTimeout = setTimeout(() => {
         this.generateQRCodePreview();
-    }, 300);
+    }, delay);
+}
+
+// Erweiterte generateQRCodePreview Methode
+generateQRCodePreview() {
+    const content = document.getElementById('qr-content')?.value.trim();
+    const preview = document.querySelector('.qr-preview');
+    
+    if (!preview) {
+        console.warn('QR Preview Container nicht gefunden');
+        return;
+    }
+
+    // Leeren Inhalt behandeln
+    if (!content) {
+        preview.innerHTML = `
+            <div class="preview-placeholder">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                    <path d="M14 14h7v7h-7z"></path>
+                </svg>
+                <p>QR Code Vorschau</p>
+                <small>Geben Sie Inhalt ein um die Vorschau zu sehen</small>
+            </div>
+        `;
+        return;
+    }
+
+    // QRCode Library Check
+    if (!window.QRCode) {
+        preview.innerHTML = `
+            <div class="preview-error">
+                <p>⚠️ QR Library wird geladen...</p>
+            </div>
+        `;
+        
+        this.loadLibraries().then(() => {
+            setTimeout(() => this.generateQRCodePreview(), 500);
+        });
+        return;
+    }
+
+    try {
+        console.log('🔄 Generiere QR Preview für:', content.substring(0, 50) + '...');
+        
+        // Loading-Zustand anzeigen
+        preview.innerHTML = `
+            <div class="preview-loading">
+                <div class="loading-spinner"></div>
+                <p>Generiere Vorschau...</p>
+            </div>
+        `;
+
+        // Alten QR Code löschen
+        setTimeout(() => {
+            preview.innerHTML = '';
+            
+            // Container für QR Code erstellen
+            const qrContainer = document.createElement('div');
+            qrContainer.className = 'qr-preview-container';
+            qrContainer.style.cssText = `
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 200px;
+                background: white;
+                border-radius: 8px;
+                padding: 20px;
+            `;
+            
+            preview.appendChild(qrContainer);
+
+            // QR Code Optionen - ALLE Anpassungen berücksichtigen
+            const options = {
+                text: content,
+                width: this.getQRSize(),
+                height: this.getQRSize(),
+                colorDark: this.getQRColor(),
+                colorLight: this.getQRBgColor(),
+                correctLevel: QRCode.CorrectLevel.M,
+                quietZone: 10,
+                quietZoneColor: this.getQRBgColor()
+            };
+
+            // QR Code erstellen
+            const qr = new QRCode(qrContainer, options);
+
+            console.log('✅ QR Preview erfolgreich generiert');
+            
+            // Content-Info hinzufügen
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'preview-info';
+            infoDiv.innerHTML = `
+                <small>
+                    <strong>Typ:</strong> ${this.detectContentType(content)} • 
+                    <strong>Länge:</strong> ${content.length} Zeichen • 
+                    <strong>Größe:</strong> ${this.getQRSize()}px
+                </small>
+            `;
+            infoDiv.style.cssText = `
+                text-align: center;
+                margin-top: 10px;
+                color: #666;
+                font-size: 12px;
+            `;
+            preview.appendChild(infoDiv);
+
+        }, 100);
+
+    } catch (error) {
+        console.error('❌ QR Preview Fehler:', error);
+        preview.innerHTML = `
+            <div class="preview-error">
+                <p>⚠️ Vorschau fehlgeschlagen</p>
+                <small>${error.message}</small>
+            </div>
+        `;
+    }
+}
+
+// QR-Einstellungen abrufen - zentral verwaltet
+getQRColor() {
+    return document.getElementById('qr-color')?.value || '#000000';
+}
+
+getQRBgColor() {
+    return document.getElementById('qr-bg-color')?.value || '#ffffff';
+}
+
+getQRSize() {
+    const sizeInput = document.getElementById('qr-size');
+    return parseInt(sizeInput?.value || '300');
+}
+
+// Sofortiges Update für Farb-/Größenänderungen
+updatePreviewImmediate() {
+    // Vorheriges Timeout clearen
+    if (this.previewTimeout) {
+        clearTimeout(this.previewTimeout);
+    }
+    
+    // Sofort ausführen
+    this.generateQRCodePreview();
 }
 
   async loadLibraries() {
@@ -2255,12 +2393,18 @@ restartScanner() {
     }, 300);
   }
 
-  // In der QRProApp Klasse hinzufügen
+  // In der QRProApp Klasse
 setupBackgroundPresets() {
+    console.log('🎨 Initialisiere Hintergrund-Presets...');
+    
     const bgPresetSelect = document.getElementById('qr-bg-preset');
     const bgColorInput = document.getElementById('qr-bg-color');
+    const toggleViewBtn = document.getElementById('toggle-preset-view');
     
-    if (!bgPresetSelect || !bgColorInput) return;
+    if (!bgPresetSelect || !bgColorInput) {
+        console.warn('Hintergrund-Preset Elemente nicht gefunden');
+        return;
+    }
     
     // Preset-Farben definieren
     this.bgPresets = {
@@ -2278,28 +2422,294 @@ setupBackgroundPresets() {
         'lavender': '#f8f4ff'
     };
     
-    // Event Listener für Preset-Auswahl
+    // Event Listener für Select-Änderung
     bgPresetSelect.addEventListener('change', (e) => {
-        const selectedPreset = e.target.value;
-        
-        if (selectedPreset === 'custom') {
-            // Benutzer kann eigene Farbe wählen
-            bgColorInput.disabled = false;
-        } else if (this.bgPresets[selectedPreset]) {
-            // Preset-Farbe anwenden
-            bgColorInput.value = this.bgPresets[selectedPreset];
-            bgColorInput.disabled = true;
-            
-            // Vorschau aktualisieren
-            this.updatePreview();
-            
-            // Toast-Benachrichtigung
-            this.showToast(`Hintergrund-Preset "${this.getPresetName(selectedPreset)}" angewendet`, 'success');
-        }
+        this.handleBackgroundPresetChange(e.target.value);
     });
     
+    // Event Listener für Farb-Input Änderung
+    bgColorInput.addEventListener('input', (e) => {
+        // Bei manueller Farbänderung auf "custom" setzen
+        if (bgPresetSelect.value !== 'custom') {
+            bgPresetSelect.value = 'custom';
+            bgColorInput.disabled = false;
+        }
+        this.updatePreview();
+    });
+    
+    // Kachel-Ansicht erstellen
+    this.createPresetTiles();
+    
+    // Toggle Button Event Listener
+    if (toggleViewBtn) {
+        toggleViewBtn.addEventListener('click', () => {
+            this.togglePresetView();
+        });
+    }
+    
+    // Select Options mit Farb-Previews erweitern
+    this.enhanceSelectOptions();
+    
     // Initialer Zustand
-    bgColorInput.disabled = bgPresetSelect.value !== 'custom';
+    this.updateBackgroundPresetUI();
+    
+    console.log('✅ Hintergrund-Presets initialisiert');
+}
+
+// Hintergrund-Preset Änderung verarbeiten
+handleBackgroundPresetChange(selectedPreset) {
+    const bgColorInput = document.getElementById('qr-bg-color');
+    const bgPresetSelect = document.getElementById('qr-bg-preset');
+    
+    console.log(`🎨 Hintergrund-Preset geändert zu: ${selectedPreset}`);
+    
+    // Validierung der Eingaben
+    if (!bgColorInput) {
+        console.warn('Hintergrund-Farb-Input nicht gefunden');
+        return;
+    }
+    
+    if (selectedPreset === 'custom') {
+        // Benutzer kann eigene Farbe wählen
+        bgColorInput.disabled = false;
+        bgColorInput.style.opacity = '1';
+        bgColorInput.style.cursor = 'pointer';
+        
+        // Optional: Fokus auf Input setzen
+        setTimeout(() => bgColorInput.focus(), 100);
+        
+        console.log('🎨 Custom-Modus aktiviert');
+        
+    } else if (this.bgPresets && this.bgPresets[selectedPreset]) {
+        // Preset-Farbe anwenden
+        const presetColor = this.bgPresets[selectedPreset];
+        
+        // Farbe setzen
+        bgColorInput.value = presetColor;
+        bgColorInput.disabled = true;
+        bgColorInput.style.opacity = '0.7';
+        bgColorInput.style.cursor = 'not-allowed';
+        
+        // Visual Feedback
+        bgColorInput.style.borderColor = presetColor;
+        
+        // Preset auch in Kacheln markieren
+        this.updateActiveTile(selectedPreset);
+        
+        // Kontrast-Check für bessere Accessibility
+        const contrastColor = this.getContrastColor(presetColor);
+        console.log(`🎨 Preset "${selectedPreset}" angewendet. Kontrastfarbe: ${contrastColor}`);
+        
+        // Success-Toast mit Preset-Namen
+        this.showToast(
+            `Hintergrund "${this.getPresetName(selectedPreset)}" angewendet`, 
+            'success', 
+            2000
+        );
+        
+    } else {
+        // Ungültiges Preset
+        console.warn(`❌ Ungültiges Preset: ${selectedPreset}`);
+        
+        // Fallback zu "custom"
+        if (bgPresetSelect) {
+            bgPresetSelect.value = 'custom';
+        }
+        
+        bgColorInput.disabled = false;
+        bgColorInput.style.opacity = '1';
+        
+        this.showToast('Ungültiges Preset - auf "Eigene Farbe" zurückgesetzt', 'warning');
+        return;
+    }
+    
+    // Preview sofort aktualisieren (ohne Verzögerung)
+    this.updatePreviewImmediate();
+    
+    // Einstellungen speichern
+    this.saveSettings();
+    
+    // Analytics/Tracking (optional)
+    if (this.settings.analytics) {
+        this.trackEvent('background_preset_changed', {
+            preset: selectedPreset,
+            color: this.bgPresets[selectedPreset] || 'custom'
+        });
+    }
+    
+    // Accessibility: Screen Reader Feedback
+    this.announceToScreenReader(
+        `Hintergrundfarbe geändert zu ${this.getPresetName(selectedPreset)}`
+    );
+}
+
+// Screen Reader Ankündigung für Accessibility
+announceToScreenReader(message) {
+    const announcement = document.createElement('div');
+    announcement.setAttribute('aria-live', 'polite');
+    announcement.setAttribute('aria-atomic', 'true');
+    announcement.style.cssText = `
+        position: absolute;
+        left: -10000px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+    `;
+    
+    document.body.appendChild(announcement);
+    announcement.textContent = message;
+    
+    // Nach 1 Sekunde entfernen
+    setTimeout(() => {
+        if (announcement.parentNode) {
+            announcement.parentNode.removeChild(announcement);
+        }
+    }, 1000);
+}
+
+// Event Tracking (optional für Analytics)
+trackEvent(eventName, properties = {}) {
+    if (typeof gtag !== 'undefined') {
+        gtag('event', eventName, properties);
+    }
+    
+    console.log(`📊 Event tracked: ${eventName}`, properties);
+}
+
+// Kachel-Ansicht erstellen
+createPresetTiles() {
+    const tilesContainer = document.getElementById('bg-preset-tiles');
+    if (!tilesContainer) return;
+    
+    // Custom Tile bereits im HTML vorhanden
+    
+    // Preset Tiles hinzufügen
+    Object.entries(this.bgPresets).forEach(([key, color]) => {
+        const tile = document.createElement('div');
+        tile.className = 'preset-tile';
+        tile.dataset.preset = key;
+        
+        const colorDiv = document.createElement('div');
+        colorDiv.className = 'tile-color';
+        colorDiv.style.backgroundColor = color;
+        
+        const label = document.createElement('span');
+        label.className = 'tile-label';
+        label.textContent = this.getPresetName(key);
+        
+        tile.appendChild(colorDiv);
+        tile.appendChild(label);
+        
+        // Click Event für Kachel
+        tile.addEventListener('click', () => {
+            this.handleTileClick(key);
+        });
+        
+        tilesContainer.appendChild(tile);
+    });
+}
+
+// Kachel-Klick verarbeiten
+handleTileClick(presetKey) {
+    const bgPresetSelect = document.getElementById('qr-bg-preset');
+    
+    // Select aktualisieren
+    bgPresetSelect.value = presetKey;
+    
+    // Preset-Änderung verarbeiten
+    this.handleBackgroundPresetChange(presetKey);
+    
+    // Aktive Kachel markieren
+    this.updateActiveTile(presetKey);
+}
+
+// Aktive Kachel markieren
+updateActiveTile(activePreset) {
+    const tiles = document.querySelectorAll('.preset-tile');
+    tiles.forEach(tile => {
+        tile.classList.toggle('active', tile.dataset.preset === activePreset);
+    });
+}
+
+// Ansicht zwischen Select und Kacheln wechseln
+togglePresetView() {
+    const selectElement = document.getElementById('qr-bg-preset');
+    const tilesContainer = document.getElementById('bg-preset-tiles');
+    const toggleBtn = document.getElementById('toggle-preset-view');
+    
+    if (!selectElement || !tilesContainer || !toggleBtn) return;
+    
+    const isSelectVisible = selectElement.style.display !== 'none';
+    
+    if (isSelectVisible) {
+        // Zu Kachel-Ansicht wechseln
+        selectElement.style.display = 'none';
+        tilesContainer.style.display = 'grid';
+        toggleBtn.innerHTML = '📝 Liste';
+        toggleBtn.setAttribute('aria-label', 'Zur Listen-Ansicht wechseln');
+    } else {
+        // Zu Select-Ansicht wechseln
+        selectElement.style.display = 'block';
+        tilesContainer.style.display = 'none';
+        toggleBtn.innerHTML = '📋 Kacheln';
+        toggleBtn.setAttribute('aria-label', 'Zur Kachel-Ansicht wechseln');
+    }
+}
+
+// Select Options mit Farb-Hintergründen erweitern
+enhanceSelectOptions() {
+    const bgPresetSelect = document.getElementById('qr-bg-preset');
+    if (!bgPresetSelect) return;
+    
+    // CSS für Option-Hintergründe hinzufügen
+    const style = document.createElement('style');
+    let optionStyles = '';
+    
+    Object.entries(this.bgPresets).forEach(([key, color]) => {
+        optionStyles += `
+            #qr-bg-preset option[value="${key}"] {
+                background-color: ${color};
+                color: ${this.getContrastColor(color)};
+            }
+        `;
+    });
+    
+    style.textContent = optionStyles;
+    document.head.appendChild(style);
+}
+
+// Kontrast-Farbe berechnen
+getContrastColor(hexColor) {
+    // Hex zu RGB konvertieren
+    const r = parseInt(hexColor.substr(1, 2), 16);
+    const g = parseInt(hexColor.substr(3, 2), 16);
+    const b = parseInt(hexColor.substr(5, 2), 16);
+    
+    // Helligkeit berechnen
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    
+    return brightness > 125 ? '#000000' : '#ffffff';
+}
+
+// UI-Zustand aktualisieren
+updateBackgroundPresetUI() {
+    const bgPresetSelect = document.getElementById('qr-bg-preset');
+    const bgColorInput = document.getElementById('qr-bg-color');
+    
+    if (!bgPresetSelect || !bgColorInput) return;
+    
+    const currentPreset = bgPresetSelect.value;
+    
+    if (currentPreset === 'custom') {
+        bgColorInput.disabled = false;
+        bgColorInput.style.opacity = '1';
+    } else {
+        bgColorInput.disabled = true;
+        bgColorInput.style.opacity = '0.7';
+    }
+    
+    // Aktive Kachel markieren
+    this.updateActiveTile(currentPreset);
 }
 
 // Preset-Namen für Benutzeranzeige
@@ -2320,16 +2730,6 @@ getPresetName(presetKey) {
     };
     
     return presetNames[presetKey] || presetKey;
-}
-
-// In der init() Methode hinzufügen
-async init() {
-    this.showLoadingScreen();
-    this.setupEventListeners();
-    this.setupBackgroundPresets(); // Neue Zeile hinzufügen
-    this.initializeData();
-    await this.loadLibraries();
-    this.registerServiceWorker();
 }
 
 // Visuelle Preset-Vorschau erstellen
@@ -2525,7 +2925,6 @@ class QRCustomization {
                 if (qrColorInput) {
                     qrColorInput.value = color;
                     this.qrColor = color;
-                    this.updatePreview();
                 }
             });
         });
@@ -2554,15 +2953,11 @@ class QRCustomization {
                         preset.classList.remove('active');
                     }
                 });
-                
-                this.updatePreview();
             });
         }
-
         if (qrBgColorInput) {
             qrBgColorInput.addEventListener('change', (e) => {
                 this.qrBgColor = e.target.value;
-                this.updatePreview();
             });
         }
     }
@@ -2586,35 +2981,6 @@ class QRCustomization {
                 this.updatePreview();
                 this.showSizeToast(selectedSize);
             });
-        }
-    }
-
-    // Preview aktualisieren
-    updatePreview() {
-        const content = document.getElementById('qr-content')?.value.trim();
-        if (!content || !window.QRCode) return;
-
-        const preview = document.querySelector('.qr-preview');
-        if (!preview) return;
-
-        try {
-            // Vorherigen QR Code löschen
-            preview.innerHTML = '';
-
-            // QR Code mit aktuellen Einstellungen generieren
-            const qr = new QRCode(preview, {
-                text: content,
-                width: parseInt(this.qrSize),
-                height: parseInt(this.qrSize),
-                colorDark: this.qrColor,
-                colorLight: this.qrBgColor,
-                correctLevel: QRCode.CorrectLevel.H
-            });
-
-            console.log(`QR Code aktualisiert: ${this.qrSize}px, Farbe: ${this.qrColor}`);
-
-        } catch (error) {
-            console.error('Fehler beim QR Preview Update:', error);
         }
     }
 

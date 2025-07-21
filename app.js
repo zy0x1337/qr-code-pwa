@@ -1337,10 +1337,6 @@ clearHistory() {
         localStorage.removeItem('qr-pro-history');
         localStorage.removeItem('qr-pro-scan-history');
         
-        // Tägliche Zählung zurücksetzen (optional)
-        this.dailyQRCount = 0;
-        localStorage.setItem('qr-pro-daily-count', '0');
-        
         // UI aktualisieren
         this.updateHistoryPage();
         this.updateDashboard();
@@ -3140,9 +3136,6 @@ getHistoryFiltersHTML() {
                     </button>
                     <button id="import-history" class="btn btn--secondary">
                         📥 Importieren
-                    </button>
-                    <button id="clear-history-btn" class="btn btn--outline">
-                        🗑️ Verlauf löschen
                     </button>
                 </div>
             </div>

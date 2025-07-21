@@ -72,6 +72,7 @@ class QRProApp {
     this.addHistoryFilters();
     this.setupHistoryEventListeners();
     this.updateDashboard();
+    this.updateStatsCards();
     // Falls direkt auf History-Seite gestartet
     if (this.currentPage === 'history') {
         setTimeout(() => this.initializeHistoryPage(), 200);
@@ -523,6 +524,14 @@ class QRProApp {
         }
     });
 
+    // Stat Cards click handler
+    document.querySelectorAll('.stat-card').forEach(card => {
+    card.addEventListener('click', () => {
+        const statType = card.dataset.stat;
+        this.handleStatCardClick(statType);
+    });
+});
+
     // Resize Event für responsive Anpassungen
     window.addEventListener('resize', () => {
         clearTimeout(this.resizeTimeout);
@@ -552,7 +561,7 @@ addEventHandler(element, event, handler) {
     
     element.addEventListener(event, handler);
     
-    // Optional: Event Handler für Cleanup speichern
+    // Event Handler für Cleanup speichern
     if (!this.eventHandlers) {
         this.eventHandlers = new Map();
     }
@@ -563,16 +572,23 @@ addEventHandler(element, event, handler) {
     this.eventHandlers.get(element).push({ event, handler });
 }
 
-// (temporär für Testing)
-testQRRecognition() {
-  console.log('🧪 Teste QR-Erkennung...');
-  
-  // Simuliere erfolgreichen QR-Scan
-  setTimeout(() => {
-    this.onScanSuccess('https://www.google.com', null);
-  }, 2000);
-  
-  this.showToast('🧪 Test-Scan in 2 Sekunden...', 'info');
+handleStatCardClick(statType) {
+    switch(statType) {
+        case 'qr-generated':
+            this.navigateToPage('history');
+            // Optionally filter to show only generated QR codes
+            break;
+        case 'qr-scanned':
+            this.navigateToPage('history');
+            // Optionally filter to show only scanned QR codes
+            break;
+        case 'today-active':
+            this.navigateToPage('history');
+            // Optionally filter to show only today's activity
+            break;
+        default:
+            break;
+    }
 }
 
 // Stat Cards mit echten Daten aktualisieren
@@ -584,11 +600,11 @@ updateStatsCards() {
         templatesCount: this.getTemplatesCount()
     };
 
-    // Karten aktualisieren
-    this.updateStatCard('qr-generated', stats.qrGenerated);
-    this.updateStatCard('qr-scanned', stats.qrScanned);
-    this.updateStatCard('today-active', stats.todayActive);
-    this.updateStatCard('templates-count', stats.templatesCount);
+    // Add slight delays for staggered animation
+    setTimeout(() => this.updateStatCard('qr-generated', stats.qrGenerated), 0);
+    setTimeout(() => this.updateStatCard('qr-scanned', stats.qrScanned), 100);
+    setTimeout(() => this.updateStatCard('today-active', stats.todayActive), 200);
+    setTimeout(() => this.updateStatCard('templates-count', stats.templatesCount), 300);
 }
 
 updateStatCard(cardId, value) {
@@ -1904,6 +1920,7 @@ saveSettings() {
         
         // Dashboard aktualisieren
         this.updateDashboard();
+        this.updateStatsCards();
         
     } catch (error) {
         console.error('❌ QR Generation error:', error);
@@ -2531,45 +2548,6 @@ async stopScanner() {
     console.log('✅ Scanner gestoppt');
 }
 
-handleScanSuccess(decodedText, decodedResult) {
-  console.log('📱 QR-Code Rohdaten:', decodedText);
-  
-  // Scanner stoppen
-  this.stopScanner();
-  
-  // Validierung ob es wirklich ein QR-Code ist
-  if (!decodedText || decodedText.length < 3) {
-    console.log('❌ Ungültige QR-Code Daten, ignoriere...');
-    this.restartScanner(); // Scanner wieder starten
-    return;
-  }
-  
-  // UI aktualisieren
-  const resultDiv = document.getElementById('scan-result');
-  const resultText = document.getElementById('result-text');
-  
-  if (resultText) {
-    resultText.textContent = decodedText;
-  }
-  
-  if (resultDiv) {
-    resultDiv.style.display = 'block';
-  }
-  
-  // Gescannte Daten analysieren und entsprechende Aktion ausführen
-  this.handleScannedData(decodedText);
-  
-  // Zu Scan-History hinzufügen
-  this.addToScanHistory({
-    type: 'scanned',
-    content: decodedText,
-    timestamp: Date.now()
-  });
-  
-  this.showToast('QR Code erfolgreich gescannt!', 'success');
-  this.updateDashboard();
-}
-
   async stopScanner() {
     if (this.html5QrCode && this.isScanning) {
       try {
@@ -2626,6 +2604,7 @@ handleScanSuccess(decodedText, decodedResult) {
   
   this.showToast('QR Code erfolgreich gescannt!', 'success');
   this.updateDashboard();
+  this.updateStatsCards();
 }
 
 // Neue Methode für Datenbehandlung
@@ -2795,7 +2774,6 @@ restartScanner() {
   }
 
   // UI Updates
-  // Erweiterte updateDashboard Funktion
 updateDashboard() {
     this.updateStatsCards();
     this.updateRecentActivities();
@@ -2876,17 +2854,21 @@ getScannedCount() {
 
 getTodayActivity() {
     const today = new Date().toDateString();
-    const generated = this.qrHistory.filter(item => 
-        new Date(item.timestamp).toDateString() === today
-    ).length;
-    const scanned = this.scanHistory.filter(item => 
-        new Date(item.timestamp).toDateString() === today
-    ).length;
-    return generated + scanned;
+    const todayGenerated = this.qrHistory.filter(item => {
+        const itemDate = new Date(item.timestamp).toDateString();
+        return itemDate === today;
+    }).length;
+    
+    const todayScanned = this.scanHistory.filter(item => {
+        const itemDate = new Date(item.timestamp).toDateString();
+        return itemDate === today;
+    }).length;
+    
+    return todayGenerated + todayScanned;
 }
 
 getTemplatesCount() {
-    return 19;
+    return this.templateManager ? Object.keys(this.templateManager.templates || {}).length : 19;
 }
 
 // HILFSMETHODE FÜR SICHERE UPDATES

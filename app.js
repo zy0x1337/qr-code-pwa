@@ -1080,7 +1080,7 @@ addHistoryFilters() {
                     <button id="import-history" class="btn btn--secondary">
                         📥 Importieren
                     </button>
-                    <button id="clear-history-btn" class="btn btn--outline">
+                    <button id="clear-history" class="btn btn--outline">
                         🗑️ Verlauf löschen
                     </button>
                 </div>
@@ -3113,7 +3113,7 @@ getHistoryFiltersHTML() {
                     <button id="import-history" class="btn btn--secondary">
                         📥 Importieren
                     </button>
-                    <button id="clear-history-btn" class="btn btn--outline">
+                    <button id="clear-history" class="btn btn--outline">
                         🗑️ Verlauf löschen
                     </button>
                 </div>

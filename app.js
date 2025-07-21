@@ -2184,37 +2184,39 @@ async downloadQRCode(format = 'png') {
         const timestamp = new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-');
         const filename = `qr-code-${timestamp}`;
         
-        // Download ausführen
+        // Download SOFORT ausführen
+        let dataUrl;
         switch (format.toLowerCase()) {
             case 'png':
-                const dataUrl = qrCanvas.toDataURL('image/png');
-                this.triggerDownload(dataUrl, `${filename}.png`);
+                dataUrl = qrCanvas.toDataURL('image/png');
                 break;
             case 'jpg':
+            case 'jpeg':
                 const tempCanvas = this.createTempCanvas(qrCanvas);
-                const jpgDataUrl = tempCanvas.toDataURL('image/jpeg', 0.9);
-                this.triggerDownload(jpgDataUrl, `${filename}.jpg`);
+                dataUrl = tempCanvas.toDataURL('image/jpeg', 0.9);
                 break;
             default:
-                const defaultDataUrl = qrCanvas.toDataURL('image/png');
-                this.triggerDownload(defaultDataUrl, `${filename}.png`);
+                dataUrl = qrCanvas.toDataURL('image/png');
         }
+        
+        // Sofortiger Download-Trigger
+        this.triggerDownload(dataUrl, `${filename}.${format}`);
         
         this.showToast(`QR Code als ${format.toUpperCase()} heruntergeladen!`, 'success');
         
     } catch (error) {
         console.error('Download-Fehler:', error);
         this.showToast(`Download fehlgeschlagen: ${error.message}`, 'error');
+    } finally {
+        // Button nach 500ms zurücksetzen
+        setTimeout(() => {
+            if (downloadBtn) {
+                downloadBtn.disabled = false;
+                downloadBtn.classList.remove('loading');
+                downloadBtn.innerHTML = originalText;
+            }
+        }, 500);
     }
-    
-    // Button immer nach 1 Sekunde zurücksetzen
-    setTimeout(() => {
-        if (downloadBtn) {
-            downloadBtn.disabled = false;
-            downloadBtn.classList.remove('loading');
-            downloadBtn.innerHTML = originalText;
-        }
-    }, 1000);
 }
 
 // Temporäres Canvas mit weißem Hintergrund
@@ -5038,17 +5040,29 @@ updateDownloadIcon() {
 // Download auslösen
 triggerDownload(dataUrl, filename) {
     try {
+        console.log('🔽 Starte Download:', filename);
+        
         const link = document.createElement('a');
         link.download = filename;
         link.href = dataUrl;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        link.style.display = 'none';
         
-        console.log(`✅ Download gestartet: ${filename}`);
+        // Link zum DOM hinzufügen
+        document.body.appendChild(link);
+        
+        // Download auslösen
+        link.click();
+        
+        // Link wieder entfernen
+        setTimeout(() => {
+            document.body.removeChild(link);
+        }, 100);
+        
+        console.log('✅ Download ausgelöst für:', filename);
+        
     } catch (error) {
-        console.error('Download-Trigger Fehler:', error);
-        throw error;
+        console.error('❌ Download-Trigger Fehler:', error);
+        throw new Error('Download konnte nicht gestartet werden');
     }
 }
 

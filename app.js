@@ -1080,9 +1080,15 @@ addHistoryFilters() {
                     <button id="import-history" class="btn btn--secondary">
                         📥 Importieren
                     </button>
-                    <button id="clear-history-btn" class="btn btn--outline">
-                        🗑️ Verlauf löschen
-                    </button>
+                    <button id="clear-history-btn" class="btn btn--outline btn--sm">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="3,6 5,6 21,6"/>
+          <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2v2"/>
+          <line x1="10" y1="11" x2="10" y2="17"/>
+          <line x1="14" y1="11" x2="14" y2="17"/>
+        </svg>
+        Verlauf löschen
+      </button>
                 </div>
             </div>
         </div>
@@ -1326,37 +1332,13 @@ formatFullTime(timestamp) {
 }
 
 clearHistory() {
-    // Bestätigungsdialog anzeigen
-    if (confirm('Möchten Sie den gesamten Verlauf löschen? Diese Aktion kann nicht rückgängig gemacht werden.')) {
-        
-        // Arrays leeren
-        this.qrHistory = [];
-        this.scanHistory = [];
-        
-        // localStorage bereinigen
-        localStorage.removeItem('qr-pro-history');
-        localStorage.removeItem('qr-pro-scan-history');
-        
-        // UI aktualisieren
-        this.updateHistoryPage();
-        this.updateDashboard();
-        this.updateStatsCards();
-        
-        // Benutzer-Feedback
-        this.showToast('Verlauf wurde erfolgreich gelöscht', 'success');
-        
-        // Suchfeld leeren
-        const searchInput = document.getElementById('search-history');
-        if (searchInput) {
-            searchInput.value = '';
-        }
-        
-        // Filter zurücksetzen
-        const typeFilter = document.getElementById('type-filter');
-        const dateFilter = document.getElementById('date-filter');
-        if (typeFilter) typeFilter.value = 'all';
-        if (dateFilter) dateFilter.value = 'all';
-    }
+  this.qrHistory = [];
+  this.scanHistory = [];
+  localStorage.removeItem('qr-pro-history');
+  localStorage.removeItem('qr-pro-scan-history');
+  this.displayHistory([]);
+  this.updateDashboard();
+  this.showToast('Verlauf gelöscht', 'success');
 }
 
 exportHistory() {

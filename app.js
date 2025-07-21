@@ -255,26 +255,20 @@ class QRProApp {
     downloadBtn.addEventListener('click', async (e) => {
         e.preventDefault();
         
-        // Prevent multiple clicks
-        if (downloadBtn.disabled) return;
-        
         const format = downloadBtn.dataset.format || 'png';
         
-        try {
-            await this.downloadQRCode(format);
-        } catch (error) {
-            console.error('Download failed:', error);
-        } finally {
-            // ZUSÄTZLICHE Sicherheits-Reaktivierung
-            setTimeout(() => {
-                if (downloadBtn.disabled) {
-                    downloadBtn.disabled = false;
-                    downloadBtn.classList.remove('loading');
-                    downloadBtn.innerHTML = downloadBtn.innerHTML.replace(/Download läuft.../, 'Herunterladen');
-                    console.log('🔧 Backup-Button-Reaktivierung ausgeführt');
-                }
-            }, 2000);
-        }
+        // Download starten
+        await this.downloadQRCode(format);
+        
+        // ZUSÄTZLICHE Sicherung nach 2 Sekunden
+        setTimeout(() => {
+            if (downloadBtn.disabled) {
+                downloadBtn.disabled = false;
+                downloadBtn.classList.remove('loading');
+                downloadBtn.innerHTML = downloadBtn.innerHTML.replace('Download läuft...', 'Herunterladen');
+                console.log('🔧 Backup-Reaktivierung ausgeführt');
+            }
+        }, 2000);
     });
 }
 
@@ -2172,92 +2166,55 @@ async downloadQRCode(format = 'png') {
     const qrCanvas = document.querySelector('.qr-preview canvas');
     
     if (!qrCanvas) {
-        this.showDownloadError('Kein QR Code zum Herunterladen verfügbar');
+        this.showToast('Kein QR Code zum Herunterladen verfügbar', 'error');
         return;
     }
     
-    // Button-Referenz sichern
-    let originalButtonText = downloadBtn ? downloadBtn.innerHTML : '';
+    // Button-Status speichern
+    const originalText = downloadBtn ? downloadBtn.innerHTML : '';
     
     try {
-        // Button sofort deaktivieren
+        // Loading-State setzen
         if (downloadBtn) {
             downloadBtn.disabled = true;
             downloadBtn.classList.add('loading');
-            downloadBtn.innerHTML = `
-                <div class="loading-spinner"></div>
-                Download läuft...
-            `;
+            downloadBtn.innerHTML = '<div class="loading-spinner"></div> Download läuft...';
         }
         
         const timestamp = new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-');
-        const baseFilename = this.downloadFilename || 'qr-code';
-        const filename = `${baseFilename}-${timestamp}`;
+        const filename = `qr-code-${timestamp}`;
         
-        // Download-Promise mit Timeout
-        const downloadPromise = new Promise((resolve, reject) => {
-            let dataUrl;
-            
-            switch (format.toLowerCase()) {
-                case 'png':
-                    dataUrl = qrCanvas.toDataURL('image/png');
-                    this.triggerDownload(dataUrl, `${filename}.png`);
-                    break;
-                    
-                case 'jpg':
-                case 'jpeg':
-                    const tempCanvas = this.createTempCanvas(qrCanvas);
-                    dataUrl = tempCanvas.toDataURL('image/jpeg', (this.downloadQuality || 95) / 100);
-                    this.triggerDownload(dataUrl, `${filename}.jpg`);
-                    break;
-                    
-                case 'svg':
-                    dataUrl = this.generateSVG();
-                    this.triggerDownload(dataUrl, `${filename}.svg`);
-                    break;
-                    
-                case 'pdf':
-                    this.generatePDF(`${filename}.pdf`);
-                    break;
-                    
-                default:
-                    dataUrl = qrCanvas.toDataURL('image/png');
-                    this.triggerDownload(dataUrl, `${filename}.png`);
-            }
-            
-            // Kurze Verzögerung für bessere UX
-            setTimeout(() => resolve(), 500);
-        });
+        // Download ausführen
+        switch (format.toLowerCase()) {
+            case 'png':
+                const dataUrl = qrCanvas.toDataURL('image/png');
+                this.triggerDownload(dataUrl, `${filename}.png`);
+                break;
+            case 'jpg':
+                const tempCanvas = this.createTempCanvas(qrCanvas);
+                const jpgDataUrl = tempCanvas.toDataURL('image/jpeg', 0.9);
+                this.triggerDownload(jpgDataUrl, `${filename}.jpg`);
+                break;
+            default:
+                const defaultDataUrl = qrCanvas.toDataURL('image/png');
+                this.triggerDownload(defaultDataUrl, `${filename}.png`);
+        }
         
-        // Timeout nach 10 Sekunden
-        const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Download-Timeout')), 10000);
-        });
-        
-        // Race zwischen Download und Timeout
-        await Promise.race([downloadPromise, timeoutPromise]);
-        
-        // Erfolgs-Toast
-        this.showToast(`QR Code als ${format.toUpperCase()} heruntergeladen!`, 'success', 3000);
-        
-        // Download-Statistiken
-        this.trackDownload(format, filename);
+        this.showToast(`QR Code als ${format.toUpperCase()} heruntergeladen!`, 'success');
         
     } catch (error) {
         console.error('Download-Fehler:', error);
-        this.showDownloadError(`Fehler beim Herunterladen als ${format.toUpperCase()}`);
-    } finally {
-        // GARANTIERTE Button-Reaktivierung
-        setTimeout(() => {
-            if (downloadBtn) {
-                downloadBtn.disabled = false;
-                downloadBtn.classList.remove('loading');
-                downloadBtn.innerHTML = originalButtonText || `Als ${format.toUpperCase()} herunterladen`;
-                
-                console.log('✅ Download-Button reaktiviert');
-            }
-        }, 100); // Kleine Verzögerung für saubere UI-Updates
+        this.showToast(`Download fehlgeschlagen: ${error.message}`, 'error');
     }
+    
+    // Button immer nach 1 Sekunde zurücksetzen
+    setTimeout(() => {
+        if (downloadBtn) {
+            downloadBtn.disabled = false;
+            downloadBtn.classList.remove('loading');
+            downloadBtn.innerHTML = originalText;
+        }
+    }, 1000);
 }
 
 // Temporäres Canvas mit weißem Hintergrund
@@ -5076,73 +5033,6 @@ updateDownloadIcon() {
     
     const iconPath = formatIcons[this.selectedFormat] || formatIcons.png;
     iconSvg.innerHTML = iconPath;
-}
-
-// QR Code herunterladen
-downloadQRCode(format = 'png') {
-    const qrCanvas = document.querySelector('.qr-preview canvas');
-    if (!qrCanvas) {
-        this.showDownloadError('Kein QR Code zum Herunterladen verfügbar');
-        return;
-    }
-    
-    try {
-        const timestamp = new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-');
-        const filename = `${this.downloadFilename || 'qr-code'}-${timestamp}`;
-        let dataUrl;
-        
-        switch (format.toLowerCase()) {
-            case 'png':
-                dataUrl = qrCanvas.toDataURL('image/png');
-                this.triggerDownload(dataUrl, `${filename}.png`);
-                break;
-                
-            case 'jpg':
-            case 'jpeg':
-                // Weißer Hintergrund für JPG
-                const tempCanvas = document.createElement('canvas');
-                const tempCtx = tempCanvas.getContext('2d');
-                tempCanvas.width = qrCanvas.width;
-                tempCanvas.height = qrCanvas.height;
-                
-                tempCtx.fillStyle = '#FFFFFF';
-                tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-                tempCtx.drawImage(qrCanvas, 0, 0);
-                
-                dataUrl = tempCanvas.toDataURL('image/jpeg', (this.downloadQuality || 95) / 100);
-                this.triggerDownload(dataUrl, `${filename}.jpg`);
-                break;
-                
-            case 'svg':
-                dataUrl = this.generateSVG();
-                this.triggerDownload(dataUrl, `${filename}.svg`);
-                break;
-                
-            case 'pdf':
-                this.generatePDF(`${filename}.pdf`);
-                break;
-                
-            case 'eps':
-                this.generateEPS(`${filename}.eps`);
-                break;
-                
-            default:
-                dataUrl = qrCanvas.toDataURL('image/png');
-                this.triggerDownload(dataUrl, `${filename}.png`);
-        }
-        
-        // Erfolgs-Toast anzeigen
-        if (window.qrApp && typeof window.qrApp.showToast === 'function') {
-            window.qrApp.showToast(`QR Code als ${format.toUpperCase()} heruntergeladen!`, 'success', 3000);
-        }
-        
-        // Download-Statistiken aktualisieren
-        this.trackDownload(format, filename);
-        
-    } catch (error) {
-        console.error('Download-Fehler:', error);
-        this.showDownloadError(`Fehler beim Herunterladen als ${format.toUpperCase()}`);
-    }
 }
 
 // Download auslösen

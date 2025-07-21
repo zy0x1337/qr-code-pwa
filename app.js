@@ -803,6 +803,26 @@ deleteHistoryItem(itemId, buttonElement) {
             </div>
         </div>
     `;
+
+    const confirmBtn = modal.querySelector('.confirm-delete');
+    confirmBtn.addEventListener('click', () => {
+        // 1. Element aus Array entfernen
+        this.qrHistory = this.qrHistory.filter(item => item.id !== itemId);
+        this.scanHistory = this.scanHistory.filter(item => item.id !== itemId);
+        
+        // 2. localStorage aktualisieren
+        localStorage.setItem('qr-pro-history', JSON.stringify(this.qrHistory));
+        localStorage.setItem('qr-pro-scan-history', JSON.stringify(this.scanHistory));
+        
+        // 3. UI aktualisieren
+        this.updateHistoryDisplay();
+        
+        // 4. Modal schließen
+        document.body.removeChild(modal);
+        
+        // 5. Erfolgs-Toast anzeigen
+        this.showToast('Eintrag erfolgreich gelöscht', 'success');
+    });
     
     document.body.appendChild(modal);
     

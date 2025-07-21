@@ -6604,17 +6604,25 @@ input:checked + .toggle-slider:before {
     }
 }
 
-.background-style-tile {
-    -webkit-tap-highlight-color: transparent;
-    outline: none;
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
+.btn.loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.7;
+    background-color: #6c757d !important;
+    cursor: not-allowed;
 }
 
-.background-style-tile:focus-visible {
-    /* Eigenes Focus-Styling statt des blauen Punkts */
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
+.loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }

@@ -2145,13 +2145,25 @@ loadScript(src) {
 
 // Download-Funktion
 async downloadQRCode(format = 'png') {
+    const downloadBtn = document.getElementById('download-btn');
     const qrCanvas = document.querySelector('.qr-preview canvas');
+    
     if (!qrCanvas) {
         this.showDownloadError('Kein QR Code zum Herunterladen verfügbar');
         return Promise.reject('No QR code available');
     }
     
     try {
+        // Button sofort deaktivieren und Loading-State setzen
+        if (downloadBtn) {
+            downloadBtn.disabled = true;
+            downloadBtn.classList.add('loading');
+            downloadBtn.innerHTML = `
+                <div class="loading-spinner"></div>
+                Download läuft...
+            `;
+        }
+        
         const timestamp = new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-');
         const baseFilename = this.downloadFilename || 'qr-code';
         const filename = `${baseFilename}-${timestamp}`;
@@ -2165,7 +2177,6 @@ async downloadQRCode(format = 'png') {
                 
             case 'jpg':
             case 'jpeg':
-                // JPG mit weißem Hintergrund
                 const tempCanvas = this.createTempCanvas(qrCanvas);
                 dataUrl = tempCanvas.toDataURL('image/jpeg', (this.downloadQuality || 95) / 100);
                 this.triggerDownload(dataUrl, `${filename}.jpg`);
@@ -2180,23 +2191,13 @@ async downloadQRCode(format = 'png') {
                 await this.generatePDF(`${filename}.pdf`);
                 break;
                 
-            case 'eps':
-                await this.generateEPS(`${filename}.eps`);
-                break;
-                
             default:
                 dataUrl = qrCanvas.toDataURL('image/png');
                 this.triggerDownload(dataUrl, `${filename}.png`);
         }
         
         // Erfolgs-Toast
-        if (window.qrApp && typeof window.qrApp.showToast === 'function') {
-            window.qrApp.showToast(
-                `QR Code als ${format.toUpperCase()} heruntergeladen!`, 
-                'success', 
-                3000
-            );
-        }
+        this.showToast(`QR Code als ${format.toUpperCase()} heruntergeladen!`, 'success', 3000);
         
         // Download-Statistiken aktualisieren
         this.trackDownload(format, filename);
@@ -2207,6 +2208,13 @@ async downloadQRCode(format = 'png') {
         console.error('Download-Fehler:', error);
         this.showDownloadError(`Fehler beim Herunterladen als ${format.toUpperCase()}`);
         return Promise.reject(error);
+    } finally {
+        // Button immer wieder aktivieren (auch bei Fehlern)
+        if (downloadBtn) {
+            downloadBtn.disabled = false;
+            downloadBtn.classList.remove('loading');
+            downloadBtn.innerHTML = `Als ${format.toUpperCase()} herunterladen`;
+        }
     }
 }
 
@@ -5097,18 +5105,19 @@ downloadQRCode(format = 'png') {
 
 // Download auslösen
 triggerDownload(dataUrl, filename) {
-    const link = document.createElement('a');
-    link.download = filename;
-    link.href = dataUrl;
-    link.style.display = 'none';
-    
-    document.body.appendChild(link);
-    link.click();
-    
-    // Cleanup nach kurzer Zeit
-    setTimeout(() => {
+    try {
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = dataUrl;
+        document.body.appendChild(link);
+        link.click();
         document.body.removeChild(link);
-    }, 100);
+        
+        console.log(`✅ Download gestartet: ${filename}`);
+    } catch (error) {
+        console.error('Download-Trigger Fehler:', error);
+        throw error;
+    }
 }
 
 // SVG generieren

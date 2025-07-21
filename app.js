@@ -4878,6 +4878,64 @@ createDownloadSection() {
     return downloadSection;
 }
 
+async downloadQRCode(format = 'png') {
+    const downloadBtn = document.getElementById('download-btn');
+    const qrCanvas = document.querySelector('.qr-preview canvas');
+    
+    if (!qrCanvas) {
+        this.showToast('Kein QR Code zum Herunterladen verfügbar', 'error');
+        return;
+    }
+    
+    // Button-Status speichern
+    const originalText = downloadBtn ? downloadBtn.innerHTML : '';
+    
+    try {
+        // Loading-State setzen
+        if (downloadBtn) {
+            downloadBtn.disabled = true;
+            downloadBtn.classList.add('loading');
+            downloadBtn.innerHTML = '<div class="loading-spinner"></div> Download läuft...';
+        }
+        
+        const timestamp = new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-');
+        const filename = `qr-code-${timestamp}`;
+        
+        // Download SOFORT ausführen
+        let dataUrl;
+        switch (format.toLowerCase()) {
+            case 'png':
+                dataUrl = qrCanvas.toDataURL('image/png');
+                break;
+            case 'jpg':
+            case 'jpeg':
+                const tempCanvas = this.createTempCanvas(qrCanvas);
+                dataUrl = tempCanvas.toDataURL('image/jpeg', 0.9);
+                break;
+            default:
+                dataUrl = qrCanvas.toDataURL('image/png');
+        }
+        
+        // KRITISCH: Sofortiger Download-Trigger
+        this.triggerDownload(dataUrl, `${filename}.${format}`);
+        
+        this.showToast(`QR Code als ${format.toUpperCase()} heruntergeladen!`, 'success');
+        
+    } catch (error) {
+        console.error('Download-Fehler:', error);
+        this.showToast(`Download fehlgeschlagen: ${error.message}`, 'error');
+    } finally {
+        // Button nach 500ms zurücksetzen
+        setTimeout(() => {
+            if (downloadBtn) {
+                downloadBtn.disabled = false;
+                downloadBtn.classList.remove('loading');
+                downloadBtn.innerHTML = originalText;
+            }
+        }, 500);
+    }
+}
+
 // Download Event Listeners
 attachDownloadEventListeners() {
     // Format-Auswahl Handler

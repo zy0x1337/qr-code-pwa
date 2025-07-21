@@ -1142,16 +1142,16 @@ displayHistory(historyItems = null) {
                 </div>
                 <div class="history-actions">
                     <button class="btn-icon history-copy-btn" data-content="${escapedContent}" title="Kopieren">
-                        <span class="material-icons">content_copy</span>
+                        <span class="material-icons">Kopieren</span>
                     </button>
                     <button class="btn-icon history-regenerate-btn" data-content="${escapedContent}" title="Neu generieren">
-                        <span class="material-icons">refresh</span>
+                        <span class="material-icons">Wiederverwenden</span>
                     </button>
                     <button class="btn-icon history-share-btn" data-content="${escapedContent}" title="Teilen">
-                        <span class="material-icons">share</span>
+                        <span class="material-icons">Teilen</span>
                     </button>
                     <button class="btn-icon history-delete-btn" data-id="${item.id}" title="Löschen">
-                        <span class="material-icons">delete</span>
+                        <span class="material-icons">Löschen</span>
                     </button>
                 </div>
             </div>
@@ -5641,7 +5641,7 @@ class TemplateManager {
                         margin: 4
                     },
                     tags: ['event', 'wedding', 'invitation'],
-                    premium: true
+                    premium: false
                 },
                 {
                     id: 'birthday-party',

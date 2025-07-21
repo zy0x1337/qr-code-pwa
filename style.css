@@ -6603,3 +6603,18 @@ input:checked + .toggle-slider:before {
         flex-direction: column;
     }
 }
+
+.background-style-tile {
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.background-style-tile:focus-visible {
+    /* Eigenes Focus-Styling statt des blauen Punkts */
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}

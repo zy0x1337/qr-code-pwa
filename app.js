@@ -1323,13 +1323,27 @@ formatFullTime(timestamp) {
 }
 
 clearHistory() {
-  this.qrHistory = [];
-  this.scanHistory = [];
-  localStorage.removeItem('qr-pro-history');
-  localStorage.removeItem('qr-pro-scan-history');
-  this.displayHistory([]);
-  this.updateDashboard();
-  this.showToast('Verlauf gelöscht', 'success');
+  try {
+    // Lokale Arrays leeren
+    this.qrHistory = [];
+    this.scanHistory = [];
+    
+    // localStorage leeren
+    localStorage.removeItem('qr-pro-history');
+    localStorage.removeItem('qr-pro-scan-history');
+    
+    // UI aktualisieren
+    this.updateHistoryDisplay();
+    this.updateDashboard();
+    
+    // Benutzer informieren
+    this.showToast('Verlauf erfolgreich gelöscht', 'success');
+    
+    console.log('History cleared successfully');
+  } catch (error) {
+    console.error('Error clearing history:', error);
+    this.showToast('Fehler beim Löschen des Verlaufs', 'error');
+  }
 }
 
 exportHistory() {

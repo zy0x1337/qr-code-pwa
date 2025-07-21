@@ -71,6 +71,7 @@ class QRProApp {
     await this.initializeTemplateManager();
     this.addHistoryFilters();
     this.setupHistoryEventListeners();
+    this.setupClearHistoryButton();
     this.updateDashboard();
     // Falls direkt auf History-Seite gestartet
     if (this.currentPage === 'history') {
@@ -1323,6 +1324,34 @@ formatFullTime(timestamp) {
         hour: '2-digit',
         minute: '2-digit'
     });
+}
+
+setupClearHistoryButton() {
+    const clearBtn = document.getElementById('clear-history-btn');
+    
+    if (clearBtn) {
+        clearBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('🗑️ Clear History Button geklickt');
+            this.clearHistoryWithConfirmation();
+        });
+        console.log('✅ Clear-History Event Listener eingerichtet');
+    } else {
+        console.error('❌ Clear-History Button nicht gefunden');
+    }
+}
+
+clearHistoryWithConfirmation() {
+    const confirmed = confirm(
+        'Möchten Sie wirklich den kompletten Verlauf löschen?\n\n' +
+        'Diese Aktion kann nicht rückgängig gemacht werden.'
+    );
+    
+    if (confirmed) {
+        this.clearHistory(); // Ihre bereits vorhandene Funktion
+    } else {
+        console.log('Verlauf löschen abgebrochen');
+    }
 }
 
 clearHistory() {
@@ -4916,7 +4945,7 @@ async downloadQRCode(format = 'png') {
                 dataUrl = qrCanvas.toDataURL('image/png');
         }
         
-        // KRITISCH: Sofortiger Download-Trigger
+        // Sofortiger Download-Trigger
         this.triggerDownload(dataUrl, `${filename}.${format}`);
         
         this.showToast(`QR Code als ${format.toUpperCase()} heruntergeladen!`, 'success');

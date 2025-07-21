@@ -71,7 +71,6 @@ class QRProApp {
     await this.initializeTemplateManager();
     this.addHistoryFilters();
     this.setupHistoryEventListeners();
-    this.setupClearHistoryButton();
     this.updateDashboard();
     // Falls direkt auf History-Seite gestartet
     if (this.currentPage === 'history') {
@@ -803,26 +802,6 @@ deleteHistoryItem(itemId, buttonElement) {
             </div>
         </div>
     `;
-
-    const confirmBtn = modal.querySelector('.confirm-delete');
-    confirmBtn.addEventListener('click', () => {
-        // 1. Element aus Array entfernen
-        this.qrHistory = this.qrHistory.filter(item => item.id !== itemId);
-        this.scanHistory = this.scanHistory.filter(item => item.id !== itemId);
-        
-        // 2. localStorage aktualisieren
-        localStorage.setItem('qr-pro-history', JSON.stringify(this.qrHistory));
-        localStorage.setItem('qr-pro-scan-history', JSON.stringify(this.scanHistory));
-        
-        // 3. UI aktualisieren
-        this.updateHistoryDisplay();
-        
-        // 4. Modal schließen
-        document.body.removeChild(modal);
-        
-        // 5. Erfolgs-Toast anzeigen
-        this.showToast('Eintrag erfolgreich gelöscht', 'success');
-    });
     
     document.body.appendChild(modal);
     
@@ -1101,7 +1080,7 @@ addHistoryFilters() {
                     <button id="import-history" class="btn btn--secondary">
                         📥 Importieren
                     </button>
-                    <button id="clear-history" class="btn btn--outline">
+                    <button id="clear-history-btn" class="btn btn--outline">
                         🗑️ Verlauf löschen
                     </button>
                 </div>
@@ -1346,42 +1325,42 @@ formatFullTime(timestamp) {
     });
 }
 
-setupClearHistoryButton() {
-    const clearBtn = document.getElementById('clear-history-btn');
-    
-    if (clearBtn) {
-        clearBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('🗑️ Clear History Button geklickt');
-            this.clearHistoryWithConfirmation();
-        });
-        console.log('✅ Clear-History Event Listener eingerichtet');
-    } else {
-        console.error('❌ Clear-History Button nicht gefunden');
-    }
-}
-
-clearHistoryWithConfirmation() {
-    const confirmed = confirm(
-        'Möchten Sie wirklich den kompletten Verlauf löschen?\n\n' +
-        'Diese Aktion kann nicht rückgängig gemacht werden.'
-    );
-    
-    if (confirmed) {
-        this.clearHistory(); // Ihre bereits vorhandene Funktion
-    } else {
-        console.log('Verlauf löschen abgebrochen');
-    }
-}
-
 clearHistory() {
-  this.qrHistory = [];
-  this.scanHistory = [];
-  localStorage.removeItem('qr-pro-history');
-  localStorage.removeItem('qr-pro-scan-history');
-  this.displayHistory([]);
-  this.updateDashboard();
-  this.showToast('Verlauf gelöscht', 'success');
+    // Bestätigungsdialog anzeigen
+    if (confirm('Möchten Sie den gesamten Verlauf löschen? Diese Aktion kann nicht rückgängig gemacht werden.')) {
+        
+        // Arrays leeren
+        this.qrHistory = [];
+        this.scanHistory = [];
+        
+        // localStorage bereinigen
+        localStorage.removeItem('qr-pro-history');
+        localStorage.removeItem('qr-pro-scan-history');
+        
+        // Tägliche Zählung zurücksetzen (optional)
+        this.dailyQRCount = 0;
+        localStorage.setItem('qr-pro-daily-count', '0');
+        
+        // UI aktualisieren
+        this.updateHistoryPage();
+        this.updateDashboard();
+        this.updateStatsCards();
+        
+        // Benutzer-Feedback
+        this.showToast('Verlauf wurde erfolgreich gelöscht', 'success');
+        
+        // Suchfeld leeren
+        const searchInput = document.getElementById('search-history');
+        if (searchInput) {
+            searchInput.value = '';
+        }
+        
+        // Filter zurücksetzen
+        const typeFilter = document.getElementById('type-filter');
+        const dateFilter = document.getElementById('date-filter');
+        if (typeFilter) typeFilter.value = 'all';
+        if (dateFilter) dateFilter.value = 'all';
+    }
 }
 
 exportHistory() {
@@ -3162,7 +3141,7 @@ getHistoryFiltersHTML() {
                     <button id="import-history" class="btn btn--secondary">
                         📥 Importieren
                     </button>
-                    <button id="clear-history" class="btn btn--outline">
+                    <button id="clear-history-btn" class="btn btn--outline">
                         🗑️ Verlauf löschen
                     </button>
                 </div>
@@ -4965,7 +4944,7 @@ async downloadQRCode(format = 'png') {
                 dataUrl = qrCanvas.toDataURL('image/png');
         }
         
-        // Sofortiger Download-Trigger
+        // KRITISCH: Sofortiger Download-Trigger
         this.triggerDownload(dataUrl, `${filename}.${format}`);
         
         this.showToast(`QR Code als ${format.toUpperCase()} heruntergeladen!`, 'success');

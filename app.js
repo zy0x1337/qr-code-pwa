@@ -796,6 +796,28 @@ document.addEventListener('change', (e) => {
     }
 });
 
+// Logo-Bereich Toggle-Funktionalität
+document.addEventListener('DOMContentLoaded', function() {
+    const logoToggle = document.getElementById('logo-enabled');
+    const logoContent = document.getElementById('logo-content');
+    
+    logoToggle.addEventListener('change', function() {
+        if (this.checked) {
+            logoContent.classList.add('active');
+        } else {
+            logoContent.classList.remove('active');
+        }
+    });
+    
+    // Range Slider Value Update
+    const logoSizeSlider = document.getElementById('logo-size');
+    const logoSizeValue = document.getElementById('logo-size-value');
+    
+    logoSizeSlider.addEventListener('input', function() {
+        logoSizeValue.textContent = this.value + '%';
+    });
+});
+
     // Resize Event für responsive Anpassungen
     window.addEventListener('resize', () => {
         clearTimeout(this.resizeTimeout);

@@ -4527,7 +4527,7 @@ setupBgColorPresets() {
     
     if (!bgColorGroup) return;
 
-    // **WICHTIG: Prüfe ob Container bereits existiert**
+    // Prüfe ob Container bereits existiert
     let bgPresetsContainer = bgColorGroup.querySelector('.bg-color-presets-wrapper');
     
     if (!bgPresetsContainer) {
@@ -4594,48 +4594,6 @@ setupBgColorPresets() {
             this.updateBgColorFromInput();
         };
         qrBgColorInput.addEventListener('input', this.bgColorInputHandler);
-
-        setTimeout(() => {
-        this.reinitializeLogoListeners();
-    }, 50);
-    }
-}
-
-reinitializeLogoListeners() {
-    console.log('🔄 Reinitialisiere Logo-Event-Listener...');
-    
-    const logoUpload = document.getElementById('logo-upload');
-    if (logoUpload && !logoUpload.hasAttribute('data-logo-reinitialized')) {
-        // Alten Listener entfernen
-        logoUpload.removeEventListener('change', this.logoUploadHandler);
-        
-        // Neuen Handler definieren
-        this.logoUploadHandler = (e) => this.handleLogoUpload(e);
-        
-        // Event-Listener neu setzen
-        logoUpload.addEventListener('change', this.logoUploadHandler);
-        logoUpload.setAttribute('data-logo-reinitialized', 'true');
-        
-        console.log('✅ Logo-Event-Listener neu gesetzt');
-    }
-}
-
-    reinitializeLogoListeners() {
-    console.log('🔄 Reinitialisiere Logo-Event-Listener...');
-    
-    const logoUpload = document.getElementById('logo-upload');
-    if (logoUpload && !logoUpload.hasAttribute('data-logo-reinitialized')) {
-        // Alten Listener entfernen
-        logoUpload.removeEventListener('change', this.logoUploadHandler);
-        
-        // Neuen Handler definieren
-        this.logoUploadHandler = (e) => this.handleLogoUpload(e);
-        
-        // Event-Listener neu setzen
-        logoUpload.addEventListener('change', this.logoUploadHandler);
-        logoUpload.setAttribute('data-logo-reinitialized', 'true');
-        
-        console.log('✅ Logo-Event-Listener neu gesetzt');
     }
 }
 

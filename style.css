@@ -7317,7 +7317,7 @@ input:checked + .toggle-slider:before {
     color: var(--primary-color);
 }
 
-/* Mobile Optimierung */[8][9]
+/* Mobile Optimierung */
 @media (max-width: 768px) {
     .logo-section {
         padding: 16px;
@@ -7359,7 +7359,7 @@ input:checked + .toggle-slider:before {
     }
 }
 
-/* Smooth Übergänge und Animationen */[8]
+/* Smooth Übergänge und Animationen */
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -7382,7 +7382,7 @@ input:checked + .toggle-slider:before {
     border-color: var(--primary-color);
 }
 
-/* Hover-Effekte für bessere UX */[8]
+/* Hover-Effekte für bessere UX */
 .logo-section * {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -7396,27 +7396,4 @@ input:checked + .toggle-slider:before {
 
 #logo-size:focus {
     box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.3);
-}
-
-:root {
-    --primary-color: #3b82f6;
-    --primary-color-light: #93c5fd;
-    --primary-color-rgb: 59, 130, 246;
-    --danger-color: #ef4444;
-    --danger-color-dark: #dc2626;
-    --danger-color-rgb: 239, 68, 68;
-    --text-primary: #1f2937;
-    --text-secondary: #6b7280;
-    --background-light: #f9fafb;
-    --card-background: #ffffff;
-    --border-color: #e5e7eb;
-}
-
-/* Dark Theme Support */
-[data-theme="dark"] {
-    --text-primary: #f9fafb;
-    --text-secondary: #d1d5db;
-    --background-light: #374151;
-    --card-background: #1f2937;
-    --border-color: #4b5563;
 }

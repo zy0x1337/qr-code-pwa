@@ -6030,6 +6030,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 500);
 });
 
+// Sofortige Bereinigung beim Laden der Seite
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        const duplicates = document.querySelectorAll('.background-section');
+        if (duplicates.length > 1) {
+            for (let i = 1; i < duplicates.length; i++) {
+                duplicates[i].style.display = 'none';
+            }
+        }
+    }, 100);
+});
+
 /**
  * TemplateManager - Vollständige Template-Verwaltung für QR-Code PWA
  * Verwaltet Templates, Modal-Interaktion und Template-Anwendung

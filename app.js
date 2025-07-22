@@ -3910,6 +3910,39 @@ updateContentBasedPreview() {
     }
 }
 
+// Formatierter Inhalt basierend auf QR-Type
+getFormattedContent(qrType) {
+    const content = document.getElementById('qr-content')?.value;
+    if (!content) return '';
+
+    switch(qrType) {
+        case 'url':
+            // URL validieren und formatieren
+            if (!content.startsWith('http://') && !content.startsWith('https://')) {
+                return `https://${content}`;
+            }
+            return content;
+            
+        case 'email':
+            return `mailto:${content}`;
+            
+        case 'phone':
+            return `tel:${content}`;
+            
+        case 'sms':
+            const smsContent = content.split('|');
+            return `sms:${smsContent[0]}${smsContent[1] ? `:${smsContent[1]}` : ''}`;
+            
+        case 'wifi':
+            // WiFi QR-Code Format: WIFI:T:WPA;S:NetworkName;P:Password;;
+            const wifiData = content.split('|');
+            return `WIFI:T:WPA;S:${wifiData[0]};P:${wifiData[1] || ''};;`;
+            
+        default:
+            return content;
+    }
+}
+
 async generateQRCodeWithLogo(canvas, qrText) {
     return new Promise((resolve, reject) => {
         try {

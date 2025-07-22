@@ -6844,8 +6844,13 @@ input:checked + .toggle-slider:before {
 .logo-content.active {
   max-height: 400px;
   opacity: 1;
-  overflow-y: auto;
+  overflow-y: hidden;
   padding: var(--space-20);
+}
+
+.logo-content.active:hover,
+.logo-content.active:focus {
+    overflow-y: auto; /* Scrollbar bei Hover/Focus */
 }
 
 /* Enhanced Upload Area */

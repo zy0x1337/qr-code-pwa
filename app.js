@@ -197,18 +197,6 @@ setupLogoEventListenersSecure() {
         console.log('✅ Logo Size Slider Event-Listener gesetzt');
     }
     
-    // Preset-Buttons
-    const presetBtns = document.querySelectorAll('.preset-btn');
-    presetBtns.forEach(btn => {
-        btn.onclick = (e) => {
-            e.preventDefault();
-            console.log('✨ Preset Button geklickt:', btn.getAttribute('data-preset'));
-            
-            const preset = btn.getAttribute('data-preset');
-            this.applyLogoPreset(preset);
-        };
-    });
-    
     console.log('✅ Alle Logo Event-Listener erfolgreich gesetzt');
 }
 
@@ -229,16 +217,6 @@ setupLogoEventDelegation() {
             e.preventDefault();
             console.log('🗑️ Remove Logo via Delegation geklickt');
             this.removeLogo();
-            return;
-        }
-        
-        // Preset Buttons
-        const presetBtn = e.target.closest('.preset-btn');
-        if (presetBtn) {
-            e.preventDefault();
-            console.log('✨ Preset via Delegation geklickt:', presetBtn.dataset.preset);
-            
-            this.applyLogoPreset(presetBtn.dataset.preset);
             return;
         }
     });
@@ -458,55 +436,6 @@ updateLogoSize(size) {
             rangeProgress.style.width = `${progress}%`;
         }
     }
-}
-
-// Preset anwenden
-applyLogoPreset(preset) {
-    if (!this.currentLogo) {
-        this.showToast('❌ Bitte zuerst ein Logo hochladen', 'error');
-        return;
-    }
-    
-    const presets = {
-        'small-corner': { size: 15, position: 'top-right', shape: 'square' },
-        'medium-center': { size: 25, position: 'center', shape: 'circle' },
-        'large-center': { size: 35, position: 'center', shape: 'rounded' }
-    };
-    
-    const presetData = presets[preset];
-    if (presetData) {
-        // Werte setzen
-        this.currentLogo.size = presetData.size;
-        this.currentLogo.position = presetData.position;
-        this.currentLogo.shape = presetData.shape;
-        
-        // UI aktualisieren
-        document.getElementById('logo-size').value = presetData.size;
-        document.getElementById('logo-size-value').textContent = `${presetData.size}%`;
-        
-        // Position-Button aktivieren
-        document.querySelectorAll('.position-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.getAttribute('data-position') === presetData.position);
-        });
-        
-        // Shape-Button aktivieren
-        document.querySelectorAll('.shape-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.getAttribute('data-shape') === presetData.shape);
-        });
-        
-        // Preview aktualisieren
-        this.updatePreview();
-        this.showToast(`✨ Preset "${this.getPresetLabel(preset)}" angewendet`, 'success');
-    }
-}
-
-getPresetLabel(preset) {
-    const labels = {
-        'small-corner': 'Klein & Ecke',
-        'medium-center': 'Mittel & Zentrum',
-        'large-center': 'Groß & Zentrum'
-    };
-    return labels[preset] || preset;
 }
 
   toggleLogoFeature() {
@@ -5151,7 +5080,7 @@ showCustomColorFeedback(color) {
         }, 300);
     }
 
-    // NEUE FUNKTION: Hintergrundfarb-Preset auswählen
+    // Hintergrundfarb-Preset auswählen
     selectBgColorPreset(element, color) {
         // Alle anderen Hintergrund-Presets deaktivieren
         document.querySelectorAll('.bg-color-preset').forEach(preset => {
@@ -5791,41 +5720,6 @@ toggleLogoControls() {
     } else {
         logoControls.classList.remove('active');
         logoControls.classList.add('inactive');
-    }
-}
-
-// Logo-Presets anwenden
-applyLogoPreset(preset) {
-    const presets = {
-        'small-corner': { size: 15, position: 'bottom-right', shape: 'circle', padding: 5 },
-        'medium-center': { size: 25, position: 'center', shape: 'rounded', padding: 10 },
-        'large-center': { size: 35, position: 'center', shape: 'square', padding: 15 }
-    };
-    
-    const config = presets[preset];
-    if (config) {
-        this.logoSize = config.size;
-        this.logoPosition = config.position;
-        this.logoShape = config.shape;
-        this.logoPadding = config.padding;
-        
-        // UI aktualisieren
-        document.getElementById('logo-size').value = this.logoSize;
-        document.getElementById('logo-size-value').textContent = `${this.logoSize}%`;
-        document.getElementById('logo-position').value = this.logoPosition;
-        document.getElementById('logo-padding').value = this.logoPadding;
-        document.getElementById('logo-padding-value').textContent = `${this.logoPadding}px`;
-        
-        // Form-Buttons aktualisieren
-        document.querySelectorAll('.shape-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.shape === this.logoShape);
-        });
-        
-        this.updatePreview();
-        
-        if (window.qrApp && typeof window.qrApp.showToast === 'function') {
-            window.qrApp.showToast(`Preset "${preset}" angewendet`, 'success', 1500);
-        }
     }
 }
 

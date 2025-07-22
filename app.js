@@ -74,7 +74,6 @@ class QRProApp {
     this.initializeData();
     await this.loadLibraries();
     this.initializeQRCustomization();
-    this.initializeLogoFunctionality();
     this.registerServiceWorker();
     this.setupQRTypeHandler();
     this.setupDashboardActions();
@@ -798,6 +797,13 @@ if (logoFeatureBtn) {
         this.toggleLogoFeature();
     });
 }
+
+document.addEventListener('change', (e) => {
+    if (e.target && e.target.id === 'logo-upload') {
+        console.log('📷 Logo-Upload via Delegation erkannt');
+        this.handleLogoUpload(e);
+    }
+});
 
     // Resize Event für responsive Anpassungen
     window.addEventListener('resize', () => {

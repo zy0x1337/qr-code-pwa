@@ -88,6 +88,20 @@ class QRProApp {
     }
   }
 
+  debugLogo() {
+    console.log('=== LOGO DEBUG ===');
+    console.log('currentLogo:', this.currentLogo);
+    console.log('currentLogo exists:', !!this.currentLogo);
+    if (this.currentLogo) {
+        console.log('Logo data length:', this.currentLogo.data?.length);
+        console.log('Logo size:', this.currentLogo.size);
+        console.log('Logo file:', this.currentLogo.file?.name);
+    }
+    console.log('Logo Upload Element:', document.getElementById('logo-upload'));
+    console.log('Logo Preview Element:', document.getElementById('logo-preview'));
+    console.log('==================');
+}
+
   initializeQRCustomization() {
     try {
         this.qrCustomization = new QRCustomization();

@@ -330,28 +330,59 @@ setupLogoEventDelegation() {
 
 // Toggle Logo-Sektion
 toggleLogoSection(enabled) {
+    this.logoEnabled = enabled;
     const logoContent = document.getElementById('logo-content');
+    
     if (logoContent) {
         if (enabled) {
-            logoContent.style.maxHeight = logoContent.scrollHeight + 'px';
+            // Sichtbar machen
+            logoContent.style.display = 'block';
+            logoContent.style.maxHeight = 'none';
             logoContent.style.opacity = '1';
             logoContent.classList.add('active');
             
-            // Event-Listener nach dem Einblenden neu setzen
+            // Event-Listener komplett neu setzen
             setTimeout(() => {
-                this.setupLogoEventListenersSecure();
-            }, 100);
+                this.reinitializeLogoEvents();
+            }, 150);
+            
         } else {
-            // Sanftes Ausblenden ohne Upload-Funktionalität zu zerstören
-            logoContent.style.maxHeight = '0px';
-            logoContent.style.opacity = '0';
+            // Verstecken aber DOM-Elemente erhalten
+            logoContent.style.display = 'none';
             logoContent.classList.remove('active');
             
-            // Logo entfernen, aber Upload-Handler behalten
-            if (this.currentLogo) {
-                this.removeLogo();
-            }
+            // Nur Logo-Daten löschen, nicht die Event-Listener
+            this.currentLogo = null;
+            const logoPreview = document.getElementById('logo-preview');
+            if (logoPreview) logoPreview.style.display = 'none';
         }
+    }
+}
+
+// Neue Hilfsmethode für komplette Event-Reinitialisierung
+reinitializeLogoEvents() {
+    // Upload-Zone Event-Listener
+    const uploadZone = document.getElementById('logo-upload-zone');
+    const fileInput = document.getElementById('logo-upload');
+    
+    if (uploadZone && fileInput) {
+        // Click-Handler für Upload-Zone
+        uploadZone.onclick = (e) => {
+            e.preventDefault();
+            console.log('📁 Upload-Zone geklickt (nach Toggle)');
+            fileInput.click();
+        };
+        
+        // File-Input Handler
+        fileInput.onchange = (e) => {
+            console.log('📁 Datei ausgewählt (nach Toggle)');
+            this.handleLogoUpload(e);
+        };
+        
+        // Drag & Drop erneut einrichten
+        this.setupLogoDropZone(uploadZone);
+        
+        console.log('✅ Logo Upload Events nach Toggle neu gesetzt');
     }
 }
 

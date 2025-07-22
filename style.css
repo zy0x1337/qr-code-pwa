@@ -6653,52 +6653,222 @@ input:checked + .toggle-slider:before {
     margin-right: 6px;
 }
 
+/* Logo Upload Section Styles */
+.logo-section {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #e9ecef;
+}
+
 .logo-upload-container {
     display: flex;
     gap: 10px;
-    margin-top: 5px;
+    margin-top: 8px;
+    flex-wrap: wrap;
 }
 
-.logo-preview {
-    margin-top: 10px;
-    padding: 10px;
-    border: 2px dashed #ddd;
-    border-radius: 8px;
-    text-align: center;
-}
-
-.logo-preview img {
-    max-width: 100px;
-    max-height: 100px;
-    object-fit: contain;
-    border-radius: 4px;
-}
-
+/* Button Styles */
 #add-logo-btn {
     background: #6c757d;
     border: none;
-    padding: 8px 16px;
+    padding: 10px 16px;
     border-radius: 6px;
     color: white;
     cursor: pointer;
-    transition: background 0.2s;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
 }
 
 #add-logo-btn:hover {
     background: #5a6268;
+    transform: translateY(-1px);
 }
 
 #remove-logo-btn {
     background: transparent;
     border: 1px solid #dc3545;
     color: #dc3545;
-    padding: 8px 16px;
+    padding: 10px 16px;
     border-radius: 6px;
     cursor: pointer;
-    transition: all 0.2s;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
 }
 
 #remove-logo-btn:hover {
     background: #dc3545;
     color: white;
+    transform: translateY(-1px);
+}
+
+/* Logo Vorschau */
+.logo-preview {
+    margin-top: 15px;
+    padding: 15px;
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    text-align: center;
+    background: white;
+    transition: border-color 0.2s ease;
+}
+
+.logo-preview.has-logo {
+    border-color: #28a745;
+    border-style: solid;
+}
+
+.logo-preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.logo-preview-title {
+    font-weight: 600;
+    color: #495057;
+    font-size: 14px;
+}
+
+.logo-info {
+    color: #6c757d;
+    font-size: 12px;
+}
+
+.logo-preview-image {
+    max-width: 120px;
+    max-height: 120px;
+    object-fit: contain;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    background: #f8f9fa;
+    padding: 5px;
+}
+
+/* Logo Einstellungen */
+.logo-settings {
+    margin-top: 15px;
+    padding: 12px;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.form-group-inline {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.form-label-small {
+    font-size: 13px;
+    font-weight: 500;
+    color: #495057;
+    min-width: 80px;
+}
+
+.form-range {
+    flex: 1;
+    margin: 0;
+}
+
+.range-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #007bff;
+    min-width: 35px;
+    text-align: right;
+}
+
+/* Upload Hinweise */
+.upload-hints {
+    margin-top: 10px;
+}
+
+.upload-hints small {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #6c757d;
+    font-size: 12px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .logo-upload-container {
+        flex-direction: column;
+    }
+    
+    #add-logo-btn,
+    #remove-logo-btn {
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .form-group-inline {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    
+    .form-label-small {
+        min-width: auto;
+    }
+    
+    .range-value {
+        text-align: center;
+    }
+}
+
+/* Animation für Upload */
+.logo-upload-container.uploading #add-logo-btn {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.logo-upload-container.uploading #add-logo-btn::after {
+    content: '';
+    width: 12px;
+    height: 12px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-left: 8px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Error States */
+.upload-error {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.upload-success {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    border-radius: 4px;
+    font-size: 13px;
 }

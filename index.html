@@ -348,7 +348,7 @@
                         <h4>Erweiterte Funktionen</h4>
                         <div class="feature-options">
                             <!-- Logo Upload Section -->
-<div class="form-group">
+<div class="form-group logo-section">
     <label for="logo-file-input" class="form-label">
         <i class="fas fa-image"></i> Logo hinzufügen
     </label>
@@ -359,10 +359,33 @@
         <button type="button" id="remove-logo-btn" class="btn btn-outline-secondary" style="display: none;">
             <i class="fas fa-trash"></i> Logo entfernen
         </button>
-        <input type="file" id="logo-file-input" accept="image/*" style="display: none;">
+        <input type="file" id="logo-file-input" accept="image/png,image/jpeg,image/jpg,image/gif,image/svg+xml" style="display: none;">
     </div>
+    
+    <!-- Logo Vorschau -->
     <div id="logo-preview" class="logo-preview" style="display: none;">
-        <img id="logo-preview-img" alt="Logo Vorschau">
+        <div class="logo-preview-header">
+            <span class="logo-preview-title">Logo Vorschau:</span>
+            <small class="logo-info" id="logo-info"></small>
+        </div>
+        <img id="logo-preview-img" alt="Logo Vorschau" class="logo-preview-image">
+    </div>
+    
+    <!-- Logo Einstellungen (optional, erweitert) -->
+    <div id="logo-settings" class="logo-settings" style="display: none;">
+        <div class="form-group-inline">
+            <label for="logo-size-slider" class="form-label-small">Logo Größe:</label>
+            <input type="range" id="logo-size-slider" min="10" max="30" value="20" class="form-range">
+            <span id="logo-size-value" class="range-value">20%</span>
+        </div>
+    </div>
+    
+    <!-- Upload Hinweise -->
+    <div class="upload-hints">
+        <small class="text-muted">
+            <i class="fas fa-info-circle"></i> 
+            Unterstützte Formate: PNG, JPG, GIF, SVG (max. 2MB)
+        </small>
     </div>
 </div>
                             <button class="btn btn--sm btn--outline" data-action="show-templates" id="generator-templates-btn">

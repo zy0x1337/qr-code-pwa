@@ -56,6 +56,11 @@ class QRProApp {
                 </svg>
             `
         };
+
+        // Logo-Support
+    this.logoImage = null;
+    this.logoSize = 0.2;
+    this.logoEnabled = false;
     
     this.init();
   }
@@ -69,6 +74,7 @@ class QRProApp {
     this.setupQRTypeHandler();
     this.setupDashboardActions();
     await this.initializeTemplateManager();
+    this.initializeQRCustomization();
     this.addHistoryFilters();
     this.setupHistoryEventListeners();
     this.updateDashboard();
@@ -78,6 +84,19 @@ class QRProApp {
         setTimeout(() => this.initializeHistoryPage(), 200);
     }
   }
+
+  initializeQRCustomization() {
+    // QRCustomization-Instanz erstellen und integrieren
+    if (window.QRCustomization) {
+        setTimeout(() => {
+            this.qrCustomization = new QRCustomization();
+            this.qrCustomization.integrateWithMainApp(this);
+            console.log('✅ QRCustomization erfolgreich integriert');
+        }, 100);
+    } else {
+        console.warn('⚠️ QRCustomization-Klasse nicht gefunden');
+    }
+}
 
   async registerServiceWorker() {
   if ('serviceWorker' in navigator) {
@@ -531,6 +550,17 @@ class QRProApp {
         this.handleStatCardClick(statType);
     });
 });
+
+// QRCustomization Event Integration
+    this.setupQRCustomizationEvents();
+}
+
+setupQRCustomizationEvents() {
+    // Integration falls QRCustomization verfügbar
+    if (this.qrCustomization) {
+        // Bereits in QRCustomization behandelt
+        console.log('QRCustomization Events bereits eingerichtet');
+    }
 
     // Resize Event für responsive Anpassungen
     window.addEventListener('resize', () => {
@@ -1864,7 +1894,6 @@ saveSettings() {
         return;
     }
 
-    // Sicherstellen, dass QRCode verfügbar ist
     if (!window.QRCode) {
         console.log('QRCode not available, attempting to load...');
         this.showToast('QR-Bibliothek wird geladen...', 'info');
@@ -1881,11 +1910,9 @@ saveSettings() {
     try {
         console.log('🔄 Generating QR Code...');
         const preview = document.querySelector('.qr-preview');
-        
-        // Vorherigen QR Code löschen
         preview.innerHTML = '';
         
-        // QR Code Daten sammeln
+        // QR Code Daten sammeln (erweitert für Logo-Support)
         const qrData = {
             id: 'generated-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
             content: content,
@@ -1894,31 +1921,34 @@ saveSettings() {
             bgColor: document.getElementById('qr-bg-color')?.value || '#FFFFFF',
             size: parseInt(document.getElementById('qr-size')?.value) || 300,
             timestamp: Date.now(),
-            type: 'generated'
+            type: 'generated',
+            // NEUE EIGENSCHAFTEN für Logo-Support
+            hasLogo: this.qrCustomization?.logoEnabled && this.qrCustomization?.logoFile,
+            logoSettings: this.qrCustomization?.getSettings()?.logo
         };
         
-        // Neuen QR Code generieren (qrcodejs API)
-        const qr = new QRCode(preview, {
-            text: content,
-            width: qrData.size,
-            height: qrData.size,
-            colorDark: qrData.color,
-            colorLight: qrData.bgColor,
-            correctLevel: QRCode.CorrectLevel.H
-        });
+        // QR Code über QRCustomization generieren falls verfügbar
+        if (this.qrCustomization && typeof this.qrCustomization.updatePreview === 'function') {
+            this.qrCustomization.updatePreview();
+        } else {
+            // Fallback: Standard QR Code ohne Logo
+            const qr = new QRCode(preview, {
+                text: content,
+                width: qrData.size,
+                height: qrData.size,
+                colorDark: qrData.color,
+                colorLight: qrData.bgColor,
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
 
         console.log('✅ QR Code generated successfully');
         this.showToast('QR Code erfolgreich generiert', 'success');
         
-        // Zu Historie hinzufügen
         this.addToHistory(qrData);
-        console.log('📝 QR Code zu Historie hinzugefügt:', qrData);
-        
-        // Daily Count erhöhen
         this.dailyQRCount++;
         localStorage.setItem('qr-pro-daily-count', this.dailyQRCount.toString());
         
-        // Dashboard aktualisieren
         this.updateDashboard();
         this.updateStatsCards();
         
@@ -2111,12 +2141,17 @@ detectContentType(content) {
 }
 
 updatePreview() {
-    // Preview-Timeout clearen um Performance zu verbessern
+    // An QRCustomization delegieren falls verfügbar
+    if (this.qrCustomization && typeof this.qrCustomization.updatePreview === 'function') {
+        this.qrCustomization.updatePreview();
+        return;
+    }
+    
+    // Fallback: Bestehende Preview-Logik
     if (this.previewTimeout) {
         clearTimeout(this.previewTimeout);
     }
     
-    // Verzögerung für bessere Performance bei schnellem Tippen
     this.previewTimeout = setTimeout(() => {
         this.generateQRCodePreview();
     }, 300);
@@ -2945,18 +2980,45 @@ getTemplatesCount() {
     this.applyTheme();
   }
 
-  applyTheme() {
-    const { theme } = this.settings;
-    const html = document.documentElement;
-    
-    if (theme === 'dark') {
-      html.setAttribute('data-color-scheme', 'dark');
-    } else if (theme === 'light') {
-      html.setAttribute('data-color-scheme', 'light');
-    } else {
-      html.removeAttribute('data-color-scheme');
+  applyTemplate(template) {
+    try {
+        // Content setzen
+        const contentInput = document.getElementById('qr-content');
+        if (contentInput && template.content) {
+            contentInput.value = template.content;
+            contentInput.dispatchEvent(new Event('input'));
+        }
+
+        // Typ setzen
+        const typeSelect = document.getElementById('qr-type');
+        if (typeSelect && template.type) {
+            typeSelect.value = template.type;
+            typeSelect.dispatchEvent(new Event('change'));
+        }
+
+        // QRCustomization Einstellungen anwenden
+        if (this.qrCustomization && template.settings) {
+            this.qrCustomization.setColor(template.settings.color);
+            this.qrCustomization.setBgColor(template.settings.bgColor);
+            this.qrCustomization.setSize(template.settings.size);
+        } else {
+            // Fallback: Direkte Einstellung
+            this.applyTemplateSettings(template.settings);
+        }
+
+        // Zum Generator navigieren
+        this.navigateToPage('generator');
+
+        // Vorschau aktualisieren
+        setTimeout(() => this.updatePreview(), 100);
+
+        this.showToast(`Template "${template.name}" wurde angewendet`, 'success');
+
+    } catch (error) {
+        console.error('Fehler beim Anwenden des Templates:', error);
+        this.showToast('Fehler beim Anwenden des Templates', 'error');
     }
-  }
+}
 
   // Navigation
   navigateToPage(page) {
@@ -3002,6 +3064,47 @@ getTemplatesCount() {
       this.updateDashboard();
     }
   }
+
+  focusGenerator() {
+    const qrContentInput = document.getElementById('qr-content');
+    if (qrContentInput) {
+        qrContentInput.focus();
+        if (qrContentInput.setSelectionRange) {
+            const len = qrContentInput.value.length;
+            qrContentInput.setSelectionRange(len, len);
+        }
+    }
+    
+    const generatorSection = document.querySelector('.qr-generator-section');
+    if (generatorSection) {
+        generatorSection.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+        });
+    }
+}
+
+// Logo-Einstellungen abrufen (falls extern benötigt)
+getLogoSettings() {
+    if (this.qrCustomization && typeof this.qrCustomization.getSettings === 'function') {
+        return this.qrCustomization.getSettings().logo;
+    }
+    return null;
+}
+
+// QR-Einstellungen abrufen
+getQRSettings() {
+    if (this.qrCustomization && typeof this.qrCustomization.getSettings === 'function') {
+        return this.qrCustomization.getSettings();
+    }
+    
+    // Fallback
+    return {
+        color: document.getElementById('qr-color')?.value || '#000000',
+        bgColor: document.getElementById('qr-bg-color')?.value || '#ffffff',
+        size: document.getElementById('qr-size')?.value || '300'
+    };
+}
 
   initializeHistoryPage() {
     console.log('🔄 Initialisiere Verlaufsseite...');

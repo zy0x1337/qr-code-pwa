@@ -2560,7 +2560,6 @@ async generateBaseQRCode(content, qrData = {}) {
 
 async addLogoToQRCode(qrCanvas) {
     if (!this.currentLogo || !this.currentLogo.data) {
-        console.log('⚠️ Kein Logo-Data verfügbar');
         return qrCanvas;
     }
 
@@ -2573,52 +2572,82 @@ async addLogoToQRCode(qrCanvas) {
         
         // QR Code zeichnen
         ctx.drawImage(qrCanvas, 0, 0);
-        console.log('✅ QR Code auf neues Canvas gezeichnet');
         
-        // Logo laden und zeichnen
         const logoImg = new Image();
         logoImg.onload = () => {
             try {
-                // Logo-Größe berechnen
-                const logoSizePercent = this.currentLogo.size || 20;
-                const logoSize = (logoSizePercent / 100) * finalCanvas.width;
-                const logoX = (finalCanvas.width - logoSize) / 2;
-                const logoY = (finalCanvas.height - logoSize) / 2;
+                // Logo-Parameter berechnen
+                const logoSize = (this.currentLogo.size / 100) * finalCanvas.width;
+                const { x, y } = this.calculateLogoPosition(finalCanvas, logoSize);
                 
-                console.log(`📏 Logo-Parameter: Größe=${logoSize}px, Position=(${logoX}, ${logoY})`);
+                // Canvas für Logo-Verarbeitung
+                const logoCanvas = this.processLogoWithSettings(logoImg, logoSize);
                 
-                // Hintergrund für Logo (wichtig für Lesbarkeit)
-                const bgColor = document.getElementById('qr-bg-color')?.value || '#ffffff';
-                const padding = logoSize * 0.1;
+                // Hintergrund zeichnen falls konfiguriert
+                if (this.currentLogo.background !== 'transparent') {
+                    this.drawLogoBackground(ctx, x, y, logoSize);
+                }
                 
-                ctx.fillStyle = bgColor;
-                ctx.fillRect(
-                    logoX - padding, 
-                    logoY - padding, 
-                    logoSize + (padding * 2), 
-                    logoSize + (padding * 2)
-                );
+                // Logo mit Transparenz und Rotation zeichnen
+                this.drawProcessedLogo(ctx, logoCanvas, x, y, logoSize);
                 
-                // Logo zeichnen
-                ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
-                
-                console.log('✅ Logo erfolgreich auf QR Code gezeichnet');
                 resolve(finalCanvas);
                 
             } catch (error) {
-                console.error('❌ Fehler beim Logo-Zeichnen:', error);
-                resolve(qrCanvas); // Fallback ohne Logo
+                console.error('❌ Erweiterte Logo-Integration fehlgeschlagen:', error);
+                resolve(qrCanvas);
             }
         };
         
-        logoImg.onerror = (error) => {
-            console.error('❌ Logo konnte nicht geladen werden:', error);
-            resolve(qrCanvas); // Fallback ohne Logo
-        };
-        
-        console.log('🔄 Lade Logo-Image:', this.currentLogo.data.substring(0, 50) + '...');
+        logoImg.onerror = () => resolve(qrCanvas);
         logoImg.src = this.currentLogo.data;
     });
+}
+
+// Logo-Position basierend auf Einstellungen berechnen
+calculateLogoPosition(canvas, logoSize) {
+    const { position } = this.currentLogo;
+    let x, y;
+    
+    switch (position) {
+        case 'top-left':
+            x = logoSize * 0.1;
+            y = logoSize * 0.1;
+            break;
+        case 'top-center':
+            x = (canvas.width - logoSize) / 2;
+            y = logoSize * 0.1;
+            break;
+        case 'top-right':
+            x = canvas.width - logoSize - (logoSize * 0.1);
+            y = logoSize * 0.1;
+            break;
+        case 'center-left':
+            x = logoSize * 0.1;
+            y = (canvas.height - logoSize) / 2;
+            break;
+        case 'center-right':
+            x = canvas.width - logoSize - (logoSize * 0.1);
+            y = (canvas.height - logoSize) / 2;
+            break;
+        case 'bottom-left':
+            x = logoSize * 0.1;
+            y = canvas.height - logoSize - (logoSize * 0.1);
+            break;
+        case 'bottom-center':
+            x = (canvas.width - logoSize) / 2;
+            y = canvas.height - logoSize - (logoSize * 0.1);
+            break;
+        case 'bottom-right':
+            x = canvas.width - logoSize - (logoSize * 0.1);
+            y = canvas.height - logoSize - (logoSize * 0.1);
+            break;
+        default: // center
+            x = (canvas.width - logoSize) / 2;
+            y = (canvas.height - logoSize) / 2;
+    }
+    
+    return { x, y };
 }
 
   async loadLibraries() {
@@ -5328,61 +5357,362 @@ attachLogoEventListeners() {
 }
 
 // Logo-Upload verarbeiten
+// Erweiterte Logo-Upload Behandlung mit verbesserter Validierung
 handleLogoUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
 
     console.log('📁 Logo-Datei ausgewählt:', file.name, file.type, file.size);
 
-    // Validierung
-    if (!file.type.startsWith('image/')) {
-        this.showToast('Bitte wählen Sie eine Bilddatei aus', 'error');
+    // Erweiterte Validierung
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/svg+xml', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+        this.showToast('Unterstützte Formate: PNG, JPG, GIF, SVG, WebP', 'error');
         return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-        this.showToast('Logo-Datei ist zu groß (max. 5MB)', 'error');
+    if (file.size > 10 * 1024 * 1024) { // 10MB Limit
+        this.showToast('Logo-Datei ist zu groß (max. 10MB)', 'error');
         return;
     }
+
+    // Loading-Zustand anzeigen
+    this.showLogoLoadingState();
 
     const reader = new FileReader();
     reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-            // currentLogo korrekt setzen
-            this.currentLogo = {
-                data: e.target.result,
-                width: img.width,
-                height: img.height,
-                file: file,
-                size: 20 // Standard-Größe 20%
-            };
-            
-            console.log('✅ Logo erfolgreich geladen:', this.currentLogo);
-            
-            this.displayLogoPreview(e.target.result);
-            this.showLogoControls();
-            
-            // SOFORTIGER Preview-Update
-            this.updatePreview();
-            
-            this.showToast('📷 Logo erfolgreich hinzugefügt!', 'success');
-        };
-        
-        img.onerror = () => {
-            console.error('❌ Logo-Image konnte nicht geladen werden');
-            this.showToast('Logo-Bild konnte nicht geladen werden', 'error');
-        };
-        
-        img.src = e.target.result;
+        // SVG-Dateien anders behandeln
+        if (file.type === 'image/svg+xml') {
+            this.handleSVGLogo(e.target.result, file);
+        } else {
+            this.handleRasterLogo(e.target.result, file);
+        }
     };
     
     reader.onerror = () => {
         console.error('❌ Datei konnte nicht gelesen werden');
         this.showToast('Datei konnte nicht gelesen werden', 'error');
+        this.hideLogoLoadingState();
     };
     
     reader.readAsDataURL(file);
+}
+
+// SVG-Logo Behandlung
+handleSVGLogo(dataUrl, file) {
+    this.currentLogo = {
+        data: dataUrl,
+        file: file,
+        type: 'svg',
+        size: this.logoSettings.size,
+        position: this.logoSettings.position,
+        background: this.logoSettings.background
+    };
+    
+    this.displayLogoPreview(dataUrl);
+    this.showAdvancedLogoControls();
+    this.updatePreview();
+    this.hideLogoLoadingState();
+    this.showToast('🎨 SVG-Logo erfolgreich geladen!', 'success');
+}
+
+// Raster-Logo Behandlung (PNG, JPG, etc.)
+handleRasterLogo(dataUrl, file) {
+    const img = new Image();
+    img.onload = () => {
+        // Automatische Optimierung für kleine Logos
+        const optimizedCanvas = this.optimizeLogoImage(img, file.type);
+        
+        this.currentLogo = {
+            data: optimizedCanvas.toDataURL(file.type === 'image/png' ? 'image/png' : 'image/jpeg', 0.9),
+            originalData: dataUrl,
+            width: img.width,
+            height: img.height,
+            file: file,
+            type: 'raster',
+            size: this.logoSettings.size,
+            position: this.logoSettings.position,
+            background: this.logoSettings.background,
+            optimized: true
+        };
+        
+        console.log('✅ Logo optimiert:', this.currentLogo);
+        
+        this.displayLogoPreview(this.currentLogo.data);
+        this.showAdvancedLogoControls();
+        this.updatePreview();
+        this.hideLogoLoadingState();
+        this.showToast('🖼️ Logo erfolgreich optimiert und geladen!', 'success');
+    };
+    
+    img.onerror = () => {
+        console.error('❌ Logo-Image konnte nicht geladen werden');
+        this.showToast('Logo-Bild konnte nicht geladen werden', 'error');
+        this.hideLogoLoadingState();
+    };
+    
+    img.src = dataUrl;
+}
+
+// Logo-Optimierung
+optimizeLogoImage(img, mimeType) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Maximale Größe für Logos
+    const maxSize = 512;
+    let { width, height } = img;
+    
+    // Proportionale Skalierung
+    if (width > maxSize || height > maxSize) {
+        const ratio = Math.min(maxSize / width, maxSize / height);
+        width = Math.floor(width * ratio);
+        height = Math.floor(height * ratio);
+    }
+    
+    canvas.width = width;
+    canvas.height = height;
+    
+    // Hohe Qualität für Skalierung
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    
+    // Logo zeichnen
+    ctx.drawImage(img, 0, 0, width, height);
+    
+    return canvas;
+}
+
+// Erweiterte Logo-Controls anzeigen
+showAdvancedLogoControls() {
+    const logoControls = document.querySelector('.logo-controls');
+    if (!logoControls) return;
+
+    logoControls.style.display = 'block';
+    logoControls.innerHTML = `
+        <div class="logo-settings-grid">
+            <!-- Größe-Einstellung -->
+            <div class="setting-group">
+                <label for="logo-size">Logo-Größe</label>
+                <div class="range-container">
+                    <input type="range" id="logo-size" min="5" max="50" value="${this.logoSettings.size}" class="range-input">
+                    <span class="range-value">${this.logoSettings.size}%</span>
+                </div>
+            </div>
+            
+            <!-- Position-Einstellung -->
+            <div class="setting-group">
+                <label>Logo-Position</label>
+                <div class="position-grid">
+                    <button class="position-btn ${this.logoSettings.position === 'top-left' ? 'active' : ''}" data-position="top-left">↖</button>
+                    <button class="position-btn ${this.logoSettings.position === 'top-center' ? 'active' : ''}" data-position="top-center">↑</button>
+                    <button class="position-btn ${this.logoSettings.position === 'top-right' ? 'active' : ''}" data-position="top-right">↗</button>
+                    <button class="position-btn ${this.logoSettings.position === 'center-left' ? 'active' : ''}" data-position="center-left">←</button>
+                    <button class="position-btn ${this.logoSettings.position === 'center' ? 'active' : ''}" data-position="center">●</button>
+                    <button class="position-btn ${this.logoSettings.position === 'center-right' ? 'active' : ''}" data-position="center-right">→</button>
+                    <button class="position-btn ${this.logoSettings.position === 'bottom-left' ? 'active' : ''}" data-position="bottom-left">↙</button>
+                    <button class="position-btn ${this.logoSettings.position === 'bottom-center' ? 'active' : ''}" data-position="bottom-center">↓</button>
+                    <button class="position-btn ${this.logoSettings.position === 'bottom-right' ? 'active' : ''}" data-position="bottom-right">↘</button>
+                </div>
+            </div>
+            
+            <!-- Hintergrund-Einstellungen -->
+            <div class="setting-group">
+                <label>Logo-Hintergrund</label>
+                <div class="background-options">
+                    <button class="bg-option ${this.logoSettings.background === 'transparent' ? 'active' : ''}" data-bg="transparent">
+                        <span class="bg-preview transparent"></span>
+                        Transparent
+                    </button>
+                    <button class="bg-option ${this.logoSettings.background === 'white' ? 'active' : ''}" data-bg="white">
+                        <span class="bg-preview white"></span>
+                        Weiß
+                    </button>
+                    <button class="bg-option ${this.logoSettings.background === 'black' ? 'active' : ''}" data-bg="black">
+                        <span class="bg-preview black"></span>
+                        Schwarz
+                    </button>
+                    <button class="bg-option ${this.logoSettings.background === 'custom' ? 'active' : ''}" data-bg="custom">
+                        <input type="color" id="logo-bg-color" value="#ffffff">
+                        Benutzerdefiniert
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Form-Einstellungen -->
+            <div class="setting-group">
+                <label>Logo-Form</label>
+                <div class="shape-options">
+                    <button class="shape-btn ${this.logoSettings.shape === 'none' ? 'active' : ''}" data-shape="none">Original</button>
+                    <button class="shape-btn ${this.logoSettings.shape === 'circle' ? 'active' : ''}" data-shape="circle">Kreis</button>
+                    <button class="shape-btn ${this.logoSettings.shape === 'rounded' ? 'active' : ''}" data-shape="rounded">Abgerundet</button>
+                    <button class="shape-btn ${this.logoSettings.shape === 'square' ? 'active' : ''}" data-shape="square">Quadrat</button>
+                </div>
+            </div>
+            
+            <!-- Erweiterte Optionen -->
+            <div class="setting-group advanced-options">
+                <details>
+                    <summary>Erweiterte Einstellungen</summary>
+                    <div class="advanced-controls">
+                        <div class="control-row">
+                            <label for="logo-opacity">Transparenz</label>
+                            <input type="range" id="logo-opacity" min="0.1" max="1" step="0.1" value="1" class="range-input">
+                            <span class="range-value">100%</span>
+                        </div>
+                        <div class="control-row">
+                            <label for="logo-rotation">Drehung</label>
+                            <input type="range" id="logo-rotation" min="-180" max="180" step="15" value="0" class="range-input">
+                            <span class="range-value">0°</span>
+                        </div>
+                        <div class="control-row">
+                            <label for="logo-border">Rahmen</label>
+                            <input type="range" id="logo-border" min="0" max="10" value="0" class="range-input">
+                            <span class="range-value">0px</span>
+                        </div>
+                    </div>
+                </details>
+            </div>
+            
+            <!-- Action-Buttons -->
+            <div class="logo-actions">
+                <button id="logo-preview-btn" class="btn btn--secondary" title="Vorschau">
+                    👁️ Vorschau
+                </button>
+                <button id="logo-reset-btn" class="btn btn--secondary" title="Zurücksetzen">
+                    🔄 Zurücksetzen
+                </button>
+                <button id="logo-remove-btn" class="btn btn--danger" title="Entfernen">
+                    🗑️ Entfernen
+                </button>
+            </div>
+        </div>
+    `;
+
+    // Event-Listener für erweiterte Controls
+    this.setupAdvancedLogoEventListeners();
+}
+
+// Event-Listener für erweiterte Logo-Controls
+setupAdvancedLogoEventListeners() {
+    // Größe-Änderung
+    const logoSize = document.getElementById('logo-size');
+    if (logoSize) {
+        logoSize.addEventListener('input', (e) => {
+            this.logoSettings.size = parseInt(e.target.value);
+            e.target.parentElement.querySelector('.range-value').textContent = `${e.target.value}%`;
+            this.updateCurrentLogo();
+            this.updatePreview();
+        });
+    }
+
+    // Position-Änderung
+    document.querySelectorAll('.position-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.position-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            this.logoSettings.position = e.target.dataset.position;
+            this.updateCurrentLogo();
+            this.updatePreview();
+        });
+    });
+
+    // Hintergrund-Änderung
+    document.querySelectorAll('.bg-option').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.bg-option').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            this.logoSettings.background = e.target.dataset.bg;
+            this.updateCurrentLogo();
+            this.updatePreview();
+        });
+    });
+
+    // Form-Änderung
+    document.querySelectorAll('.shape-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            this.logoSettings.shape = e.target.dataset.shape;
+            this.updateCurrentLogo();
+            this.updatePreview();
+        });
+    });
+
+    // Erweiterte Controls
+    ['logo-opacity', 'logo-rotation', 'logo-border'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('input', (e) => {
+                const value = e.target.value;
+                const unit = id === 'logo-rotation' ? '°' : id === 'logo-border' ? 'px' : '%';
+                const displayValue = id === 'logo-opacity' ? Math.round(value * 100) : value;
+                
+                e.target.parentElement.querySelector('.range-value').textContent = `${displayValue}${unit}`;
+                
+                this.logoSettings[id.replace('logo-', '')] = parseFloat(value);
+                this.updateCurrentLogo();
+                this.updatePreview();
+            });
+        }
+    });
+
+    // Action-Buttons
+    document.getElementById('logo-preview-btn')?.addEventListener('click', () => this.showLogoPreviewModal());
+    document.getElementById('logo-reset-btn')?.addEventListener('click', () => this.resetLogoSettings());
+    document.getElementById('logo-remove-btn')?.addEventListener('click', () => this.removeLogo());
+}
+
+// Current Logo mit Settings aktualisieren
+updateCurrentLogo() {
+    if (this.currentLogo) {
+        this.currentLogo = {
+            ...this.currentLogo,
+            ...this.logoSettings
+        };
+    }
+}
+
+// Drag & Drop für Logo-Upload
+initializeDragAndDrop() {
+    const uploadZone = document.getElementById('upload-zone');
+    if (!uploadZone) return;
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadZone.addEventListener(eventName, this.preventDefaults, false);
+        document.body.addEventListener(eventName, this.preventDefaults, false);
+    });
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadZone.addEventListener(eventName, () => uploadZone.classList.add('drag-over'), false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadZone.addEventListener(eventName, () => uploadZone.classList.remove('drag-over'), false);
+    });
+
+    uploadZone.addEventListener('drop', this.handleLogoDrop.bind(this), false);
+}
+
+preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+handleLogoDrop(e) {
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        const file = files[0];
+        if (file.type.startsWith('image/')) {
+            // Simulated file input event
+            const mockEvent = {
+                target: { files: [file] }
+            };
+            this.handleLogoUpload(mockEvent);
+        } else {
+            this.showToast('Bitte nur Bilddateien verwenden', 'error');
+        }
+    }
 }
 
 // Logo-Vorschau anzeigen

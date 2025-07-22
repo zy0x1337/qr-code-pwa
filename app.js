@@ -115,30 +115,18 @@ class QRProApp {
 initializeLogoFunctionality() {
     console.log('🔄 Initialisiere Logo-Funktionalität...');
     
-    // Event-Listener für Logo-Upload
     const logoUpload = document.getElementById('logo-upload');
     if (logoUpload) {
-        // Alte Listener entfernen
-        logoUpload.replaceWith(logoUpload.cloneNode(true));
-        const newLogoUpload = document.getElementById('logo-upload');
-        
-        newLogoUpload.addEventListener('change', (e) => {
-            this.handleLogoUpload(e);
-        });
-        
-        console.log('✅ Logo Event-Listener eingerichtet');
-    } else {
-        console.warn('❌ Logo-Upload Element nicht gefunden');
-    }
-    
-    // Logo-Feature Button
-    const logoFeatureBtn = document.querySelector('[data-feature="logo"]');
-    if (logoFeatureBtn && !logoFeatureBtn.hasAttribute('data-listener-added')) {
-        logoFeatureBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.toggleLogoFeature();
-        });
-        logoFeatureBtn.setAttribute('data-listener-added', 'true');
+        // Prüfen ob bereits Event-Listener vorhanden
+        if (!logoUpload.hasAttribute('data-logo-initialized')) {
+            logoUpload.addEventListener('change', (e) => {
+                this.handleLogoUpload(e);
+            });
+            logoUpload.setAttribute('data-logo-initialized', 'true');
+            console.log('✅ Logo Event-Listener eingerichtet');
+        } else {
+            console.log('ℹ️ Logo bereits initialisiert - überspringe');
+        }
     }
 }
 
@@ -800,8 +788,11 @@ if (logoFeatureBtn) {
 
 document.addEventListener('change', (e) => {
     if (e.target && e.target.id === 'logo-upload') {
-        console.log('📷 Logo-Upload via Delegation erkannt');
-        this.handleLogoUpload(e);
+        // Prüfen ob direkter Listener bereits behandelt hat
+        if (!e.target.hasAttribute('data-logo-initialized')) {
+            console.log('📷 Logo-Upload via Delegation erkannt (Fallback)');
+            this.handleLogoUpload(e);
+        }
     }
 });
 

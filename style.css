@@ -6652,3 +6652,53 @@ input:checked + .toggle-slider:before {
 .btn--outline.btn--sm svg {
     margin-right: 6px;
 }
+
+.logo-upload-container {
+    display: flex;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.logo-preview {
+    margin-top: 10px;
+    padding: 10px;
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.logo-preview img {
+    max-width: 100px;
+    max-height: 100px;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+#add-logo-btn {
+    background: #6c757d;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+#add-logo-btn:hover {
+    background: #5a6268;
+}
+
+#remove-logo-btn {
+    background: transparent;
+    border: 1px solid #dc3545;
+    color: #dc3545;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#remove-logo-btn:hover {
+    background: #dc3545;
+    color: white;
+}

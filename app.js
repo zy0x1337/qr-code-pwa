@@ -3149,57 +3149,48 @@ getTemplatesCount() {
 
   // Navigation
   navigateToPage(page) {
-    // Aktuelle Seite speichern
-    this.currentPage = page;
+    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+    document.querySelector(`[data-page="${page}"]`)?.classList.add('active');
     
-    // Navigation-Aktionen je nach Seite
-    switch (page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(`${page}-page`)?.classList.add('active');
+    
+    this.currentPage = page;
+
+    // Alle Seiten ausblenden
+    document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+
+    // Zielseite anzeigen
+    const targetPage = document.getElementById(`${page}-page`);
+    const navItem = document.querySelector(`[data-page="${page}"]`);
+    
+    if (targetPage) targetPage.classList.remove('hidden');
+    if (navItem) navItem.classList.add('active');
+    
+    // Spezifische Seitenaktionen
+    switch(page) {
+        case 'dashboard':
+            this.updateDashboard();
+            break;
+        case 'history':
+            // Sofortige Initialisierung der Verlaufsseite
+            setTimeout(() => this.initializeHistoryPage(), 100);
+            break;
         case 'generator':
-            this.showGeneratorPage();
             this.focusGenerator();
             break;
         case 'scanner':
-            this.showScannerPage();
-            break;
-        case 'history':
-            this.showHistoryPage();
-            break;
-        case 'templates':
-            this.showTemplatesPage();
-            break;
-        default:
-            this.showGeneratorPage();
+            this.initScanner();
             break;
     }
     
-    // Navigation-UI updaten
-    this.updateNavigationUI(page);
-}
-
-showGeneratorPage() {
-    // Alle Seiten ausblenden
-    document.querySelectorAll('.page-section').forEach(section => {
-        section.style.display = 'none';
-    });
-    
-    // Generator-Seite anzeigen
-    const generatorPage = document.querySelector('.generator-page, .generator-section');
-    if (generatorPage) {
-        generatorPage.style.display = 'block';
+    if (page === 'dashboard') {
+      this.updateDashboard();
     }
-}
-
-updateNavigationUI(activePage) {
-    // Navigation-Links updaten
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.classList.remove('nav-link--active');
-    });
-    
-    const activeLink = document.querySelector(`[data-page="${activePage}"]`);
-    if (activeLink) {
-        activeLink.classList.add('nav-link--active');
-    }
-}
+  }
 
   focusGenerator() {
     // Generator-Seite fokussieren und UI anpassen

@@ -115,81 +115,217 @@ class QRProApp {
 
 // Vollständige Logo-Funktionalität initialisieren
 initializeLogoFunctionality() {
-    console.log('🔄 Initialisiere vollständige Logo-Funktionalität...');
+    console.log('🔄 Initialisiere Logo-Funktionalität mit verbessertem Event-Handling...');
     
-    // Toggle-Handler für Logo aktivieren/deaktivieren
+    // DEFENSIVES Event-Handling mit setTimeout
+    setTimeout(() => {
+        this.setupLogoEventListenersSecure();
+    }, 200);
+    
+    // Backup: Event-Delegation für dynamisch erstellte Elemente
+    this.setupLogoEventDelegation();
+    
+    console.log('✅ Logo-Funktionalität initialisiert');
+}
+
+setupLogoEventListenersSecure() {
+    // Toggle-Handler mit doppelter Sicherheit
     const logoToggle = document.getElementById('logo-enabled');
     if (logoToggle) {
-        logoToggle.addEventListener('change', (e) => {
-            this.toggleLogoSection(e.target.checked);
-        });
+        // Alte Event-Listener entfernen
+        logoToggle.replaceWith(logoToggle.cloneNode(true));
+        
+        // Neuen Event-Listener setzen
+        const newToggle = document.getElementById('logo-enabled');
+        if (newToggle) {
+            newToggle.addEventListener('change', (e) => {
+                console.log('📷 Logo Toggle aktiviert:', e.target.checked);
+                this.toggleLogoSection(e.target.checked);
+            });
+            console.log('✅ Logo Toggle Event-Listener gesetzt');
+        }
     }
     
-    // Upload-Zone Drag & Drop
+    // Upload-Zone mit mehrfacher Sicherheit
     const uploadZone = document.getElementById('logo-upload-zone');
     if (uploadZone) {
+        // Click-Handler
+        uploadZone.onclick = (e) => {
+            e.preventDefault();
+            console.log('📁 Upload-Zone geklickt');
+            const fileInput = document.getElementById('logo-upload');
+            if (fileInput) {
+                fileInput.click();
+            }
+        };
+        
         this.setupLogoDropZone(uploadZone);
+        console.log('✅ Upload-Zone Event-Listener gesetzt');
     }
     
     // File Input Handler
     const logoUpload = document.getElementById('logo-upload');
     if (logoUpload) {
-        logoUpload.addEventListener('change', (e) => {
+        logoUpload.onchange = (e) => {
+            console.log('📁 Datei ausgewählt:', e.target.files[0]?.name);
             this.handleLogoUpload(e);
-        });
+        };
+        console.log('✅ File Upload Event-Listener gesetzt');
     }
     
-    // Logo entfernen
+    // Logo entfernen Button
     const removeLogo = document.getElementById('remove-logo');
     if (removeLogo) {
-        removeLogo.addEventListener('click', () => {
+        removeLogo.onclick = (e) => {
+            e.preventDefault();
+            console.log('🗑️ Logo entfernen geklickt');
             this.removeLogo();
-        });
+        };
+        console.log('✅ Remove Logo Event-Listener gesetzt');
     }
     
-    // Größe-Slider
+    // Größe-Slider mit direkter Zuweisung
     const logoSize = document.getElementById('logo-size');
     const logoSizeValue = document.getElementById('logo-size-value');
     if (logoSize && logoSizeValue) {
-        logoSize.addEventListener('input', (e) => {
+        logoSize.oninput = (e) => {
             const value = e.target.value;
             logoSizeValue.textContent = `${value}%`;
+            console.log('📏 Logo-Größe geändert:', value);
             this.updateLogoSize(parseInt(value));
-        });
+        };
+        console.log('✅ Logo Size Slider Event-Listener gesetzt');
     }
     
     // Position-Grid Buttons
-    document.querySelectorAll('.position-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+    const positionBtns = document.querySelectorAll('.position-btn');
+    positionBtns.forEach(btn => {
+        btn.onclick = (e) => {
+            e.preventDefault();
+            console.log('📍 Position Button geklickt:', btn.getAttribute('data-position'));
+            
             // Aktive Position ändern
             document.querySelectorAll('.position-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             
             const position = btn.getAttribute('data-position');
             this.updateLogoPosition(position);
-        });
+        };
     });
     
     // Form-Buttons
-    document.querySelectorAll('.shape-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+    const shapeBtns = document.querySelectorAll('.shape-btn');
+    shapeBtns.forEach(btn => {
+        btn.onclick = (e) => {
+            e.preventDefault();
+            console.log('🔳 Shape Button geklickt:', btn.getAttribute('data-shape'));
+            
             document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             
             const shape = btn.getAttribute('data-shape');
             this.updateLogoShape(shape);
-        });
+        };
     });
     
     // Preset-Buttons
-    document.querySelectorAll('.preset-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+    const presetBtns = document.querySelectorAll('.preset-btn');
+    presetBtns.forEach(btn => {
+        btn.onclick = (e) => {
+            e.preventDefault();
+            console.log('✨ Preset Button geklickt:', btn.getAttribute('data-preset'));
+            
             const preset = btn.getAttribute('data-preset');
             this.applyLogoPreset(preset);
-        });
+        };
     });
     
-    console.log('✅ Logo-Funktionalität vollständig initialisiert');
+    console.log('✅ Alle Logo Event-Listener erfolgreich gesetzt');
+}
+
+// BACKUP: Event-Delegation für den gesamten Logo-Bereich
+setupLogoEventDelegation() {
+    document.addEventListener('click', (e) => {
+        // Logo Upload Zone
+        if (e.target.closest('#logo-upload-zone')) {
+            e.preventDefault();
+            console.log('📁 Upload-Zone via Delegation geklickt');
+            const fileInput = document.getElementById('logo-upload');
+            if (fileInput) fileInput.click();
+            return;
+        }
+        
+        // Remove Logo Button
+        if (e.target.closest('#remove-logo')) {
+            e.preventDefault();
+            console.log('🗑️ Remove Logo via Delegation geklickt');
+            this.removeLogo();
+            return;
+        }
+        
+        // Position Buttons
+        const positionBtn = e.target.closest('.position-btn');
+        if (positionBtn) {
+            e.preventDefault();
+            console.log('📍 Position via Delegation geklickt:', positionBtn.dataset.position);
+            
+            document.querySelectorAll('.position-btn').forEach(b => b.classList.remove('active'));
+            positionBtn.classList.add('active');
+            
+            this.updateLogoPosition(positionBtn.dataset.position);
+            return;
+        }
+        
+        // Shape Buttons
+        const shapeBtn = e.target.closest('.shape-btn');
+        if (shapeBtn) {
+            e.preventDefault();
+            console.log('🔳 Shape via Delegation geklickt:', shapeBtn.dataset.shape);
+            
+            document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
+            shapeBtn.classList.add('active');
+            
+            this.updateLogoShape(shapeBtn.dataset.shape);
+            return;
+        }
+        
+        // Preset Buttons
+        const presetBtn = e.target.closest('.preset-btn');
+        if (presetBtn) {
+            e.preventDefault();
+            console.log('✨ Preset via Delegation geklickt:', presetBtn.dataset.preset);
+            
+            this.applyLogoPreset(presetBtn.dataset.preset);
+            return;
+        }
+    });
+    
+    // Change Events für Logo Toggle
+    document.addEventListener('change', (e) => {
+        if (e.target && e.target.id === 'logo-enabled') {
+            console.log('📷 Logo Toggle via Delegation geändert:', e.target.checked);
+            this.toggleLogoSection(e.target.checked);
+        }
+        
+        if (e.target && e.target.id === 'logo-upload') {
+            console.log('📁 File Upload via Delegation geändert');
+            this.handleLogoUpload(e);
+        }
+    });
+    
+    // Input Events für Slider
+    document.addEventListener('input', (e) => {
+        if (e.target && e.target.id === 'logo-size') {
+            const value = e.target.value;
+            const valueSpan = document.getElementById('logo-size-value');
+            if (valueSpan) valueSpan.textContent = `${value}%`;
+            
+            console.log('📏 Logo Size via Delegation geändert:', value);
+            this.updateLogoSize(parseInt(value));
+        }
+    });
+    
+    console.log('🛡️ Event-Delegation für Logo-Bereich eingerichtet');
 }
 
 // Toggle Logo-Sektion

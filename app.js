@@ -220,7 +220,11 @@ removeLogo() {
 updateLogoSize(size) {
     if (this.currentLogo) {
         this.currentLogo.size = parseInt(size);
+        
+        // Preview sofort aktualisieren
         this.updatePreview();
+        
+        this.showToast(`Logo-Größe auf ${size}% gesetzt`, 'info', 1500);
     }
 }
 
@@ -2049,31 +2053,40 @@ saveSettings() {
     const content = document.getElementById('qr-content')?.value.trim();
     
     if (!content) {
-        this.showToast('Bitte geben Sie Inhalt ein', 'warning');
+        this.showToast('Bitte geben Sie Inhalt für den QR Code ein', 'error');
         return;
     }
 
-    // Sicherstellen, dass QRCode verfügbar ist
+    // Tageslimit prüfen für Free-User
+    if (this.userTier === 'free' && this.dailyQRCount >= this.dailyLimit) {
+        this.showToast(`Tageslimit erreicht (${this.dailyLimit} QR Codes)`, 'error');
+        return;
+    }
+
+    // Sicherstellen, dass QRCode-Bibliothek verfügbar ist
     if (!window.QRCode) {
-        console.log('QRCode not available, attempting to load...');
+        console.log('QRCode nicht verfügbar, lade Bibliothek...');
         this.showToast('QR-Bibliothek wird geladen...', 'info');
         
         try {
             await this.loadLibraries();
         } catch (error) {
-            console.error('Failed to load QRCode library:', error);
+            console.error('Fehler beim Laden der QR-Bibliothek:', error);
             this.showToast('QR-Bibliothek konnte nicht geladen werden', 'error');
             return;
         }
     }
 
     try {
-        console.log('🔄 Generating QR Code...');
-        const preview = document.querySelector('.qr-preview');
+        console.log('🔄 Generiere QR Code...');
         
-        // Vorherigen QR Code löschen
-        preview.innerHTML = '';
-        
+        // Button in Loading-State setzen
+        const generateBtn = document.getElementById('generate-btn');
+        if (generateBtn) {
+            generateBtn.disabled = true;
+            generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generiere...';
+        }
+
         // QR Code Daten sammeln
         const qrData = {
             id: 'generated-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
@@ -2083,37 +2096,104 @@ saveSettings() {
             bgColor: document.getElementById('qr-bg-color')?.value || '#FFFFFF',
             size: parseInt(document.getElementById('qr-size')?.value) || 300,
             timestamp: Date.now(),
-            type: 'generated'
+            type: 'generated',
+            hasLogo: !!this.currentLogo
         };
-        
-        // Neuen QR Code generieren (qrcodejs API)
-        const qr = new QRCode(preview, {
-            text: content,
-            width: qrData.size,
-            height: qrData.size,
-            colorDark: qrData.color,
-            colorLight: qrData.bgColor,
-            correctLevel: QRCode.CorrectLevel.H
-        });
 
-        console.log('✅ QR Code generated successfully');
-        this.showToast('QR Code erfolgreich generiert', 'success');
+        // 1. Basis QR Code generieren
+        const qrCanvas = await this.generateBaseQRCode(content, qrData);
         
-        // Zu Historie hinzufügen
+        // 2. Logo hinzufügen falls vorhanden
+        let finalCanvas = qrCanvas;
+        if (this.currentLogo) {
+            console.log('📷 Füge Logo zum QR Code hinzu...');
+            finalCanvas = await this.addLogoToQRCode(qrCanvas);
+        }
+        
+        // 3. QR Code in Preview anzeigen
+        this.displayQRCode(finalCanvas);
+        
+        // 4. Download-Button aktivieren
+        this.showDownloadButton(finalCanvas);
+        
+        // 5. Zu Historie hinzufügen
         this.addToHistory(qrData);
-        console.log('📝 QR Code zu Historie hinzugefügt:', qrData);
+        console.log('📝 QR Code zu Historie hinzugefügt');
         
-        // Daily Count erhöhen
+        // 6. Statistiken aktualisieren
         this.dailyQRCount++;
         localStorage.setItem('qr-pro-daily-count', this.dailyQRCount.toString());
-        
-        // Dashboard aktualisieren
         this.updateDashboard();
         this.updateStatsCards();
         
+        // 7. Erfolgs-Toast anzeigen
+        const logoText = this.currentLogo ? ' mit Logo' : '';
+        this.showToast(`✅ QR Code${logoText} erfolgreich generiert!`, 'success');
+        
+        console.log('✅ QR Code erfolgreich generiert');
+
     } catch (error) {
-        console.error('❌ QR Generation error:', error);
+        console.error('❌ QR Code Generierung fehlgeschlagen:', error);
         this.showToast('QR Code Generierung fehlgeschlagen', 'error');
+        
+    } finally {
+        // Button zurücksetzen
+        const generateBtn = document.getElementById('generate-btn');
+        if (generateBtn) {
+            generateBtn.disabled = false;
+            generateBtn.innerHTML = '<i class="fas fa-qrcode"></i> QR Code generieren';
+        }
+    }
+}
+
+displayQRCode(canvas) {
+    const preview = document.querySelector('.qr-preview');
+    if (!preview) return;
+    
+    // Vorherigen Inhalt löschen
+    preview.innerHTML = '';
+    
+    // Neue Canvas-Größe für Preview
+    const previewCanvas = document.createElement('canvas');
+    const previewCtx = previewCanvas.getContext('2d');
+    previewCanvas.width = 300;
+    previewCanvas.height = 300;
+    previewCtx.drawImage(canvas, 0, 0, 300, 300);
+    
+    // Preview-Container stylen
+    previewCanvas.style.cssText = `
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        background: white;
+    `;
+    
+    preview.appendChild(previewCanvas);
+    
+    // Download-Info aktualisieren
+    const downloadSection = document.getElementById('download-section');
+    if (downloadSection) {
+        downloadSection.style.display = 'block';
+    }
+}
+
+showDownloadButton(canvas) {
+    // Download-Button verfügbar machen
+    const downloadBtn = document.getElementById('main-download-btn');
+    if (downloadBtn) {
+        downloadBtn.disabled = false;
+        downloadBtn.style.display = 'flex';
+        
+        // Canvas für Download speichern
+        this.currentQRCanvas = canvas;
+        
+        // Event-Listener für Download hinzufügen (falls nicht vorhanden)
+        if (!downloadBtn.hasAttribute('data-listener-added')) {
+            downloadBtn.addEventListener('click', () => {
+                const format = this.getSelectedFormat() || 'png';
+                this.downloadQRCode(format);
+            });
+            downloadBtn.setAttribute('data-listener-added', 'true');
+        }
     }
 }
 
@@ -2299,16 +2379,141 @@ detectContentType(content) {
     return 'Text';
 }
 
-updatePreview() {
-    // Preview-Timeout clearen um Performance zu verbessern
+async updatePreview() {
     if (this.previewTimeout) {
         clearTimeout(this.previewTimeout);
     }
-    
-    // Verzögerung für bessere Performance bei schnellem Tippen
-    this.previewTimeout = setTimeout(() => {
-        this.generateQRCodePreview();
+
+    this.previewTimeout = setTimeout(async () => {
+        const content = document.getElementById('qr-content')?.value.trim();
+        const preview = document.querySelector('.qr-preview');
+        
+        if (!content) {
+            if (preview) {
+                preview.innerHTML = `
+                    <div class="preview-placeholder">
+                        <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                            <rect x="7" y="7" width="3" height="3" fill="currentColor"/>
+                            <rect x="14" y="7" width="3" height="3" fill="currentColor"/>
+                            <rect x="7" y="14" width="3" height="3" fill="currentColor"/>
+                            <rect x="14" y="14" width="3" height="3" fill="currentColor"/>
+                        </svg>
+                        <p>QR Code Vorschau</p>
+                    </div>
+                `;
+            }
+            return;
+        }
+
+        try {
+            preview.innerHTML = '<div class="preview-loading"><i class="fas fa-spinner fa-spin"></i> Generiere Vorschau...</div>';
+            
+            // 1. Basis QR Code generieren
+            const qrCanvas = await this.generateBaseQRCode(content);
+            
+            // 2. Logo hinzufügen falls verfügbar
+            let finalCanvas = qrCanvas;
+            if (this.currentLogo) {
+                finalCanvas = await this.addLogoToQRCode(qrCanvas);
+            } 
+            // Alternativ: QRCustomization verwenden falls verfügbar
+            else if (this.qrCustomization && this.qrCustomization.logoEnabled && this.qrCustomization.logoFile) {
+                finalCanvas = await this.qrCustomization.addLogoToQR(preview, qrCanvas);
+            }
+            
+            // 3. Preview anzeigen
+            const previewCanvas = document.createElement('canvas');
+            const previewCtx = previewCanvas.getContext('2d');
+            previewCanvas.width = 200;
+            previewCanvas.height = 200;
+            previewCtx.drawImage(finalCanvas, 0, 0, 200, 200);
+            
+            preview.innerHTML = '';
+            preview.appendChild(previewCanvas);
+            
+        } catch (error) {
+            console.error('Preview Error:', error);
+            preview.innerHTML = '<div class="preview-error">⚠️ Vorschau fehlgeschlagen</div>';
+        }
     }, 300);
+}
+
+async generateBaseQRCode(content, qrData = {}) {
+    return new Promise((resolve, reject) => {
+        try {
+            const canvas = document.createElement('canvas');
+            // Höhere Auflösung für bessere Qualität
+            canvas.width = qrData.size || 400;
+            canvas.height = qrData.size || 400;
+
+            // QR Code mit qrcodejs API generieren
+            QRCode.toCanvas(canvas, content, {
+                width: canvas.width,
+                height: canvas.height,
+                color: {
+                    dark: qrData.color || '#000000',
+                    light: qrData.bgColor || '#ffffff'
+                },
+                correctLevel: QRCode.CorrectLevel.H // Hohe Fehlerkorrektur für Logo
+            }, (error) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(canvas);
+                }
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
+}
+
+async addLogoToQRCode(qrCanvas) {
+    return new Promise((resolve) => {
+        const finalCanvas = document.createElement('canvas');
+        const ctx = finalCanvas.getContext('2d');
+        
+        finalCanvas.width = qrCanvas.width;
+        finalCanvas.height = qrCanvas.height;
+        
+        // QR Code zeichnen
+        ctx.drawImage(qrCanvas, 0, 0);
+        
+        // Logo laden und zeichnen
+        const logoImg = new Image();
+        logoImg.onload = () => {
+            // Logo-Größe berechnen
+            const logoSizePercent = this.currentLogo.size || 20;
+            const logoSize = (logoSizePercent / 100) * finalCanvas.width;
+            const logoX = (finalCanvas.width - logoSize) / 2;
+            const logoY = (finalCanvas.height - logoSize) / 2;
+            
+            // Weißen Hintergrund für Logo erstellen
+            const bgColor = document.getElementById('qr-bg-color')?.value || '#ffffff';
+            const padding = logoSize * 0.1;
+            
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(
+                logoX - padding, 
+                logoY - padding, 
+                logoSize + (padding * 2), 
+                logoSize + (padding * 2)
+            );
+            
+            // Logo zeichnen
+            ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
+            
+            resolve(finalCanvas);
+        };
+        
+        logoImg.onerror = () => {
+            console.error('Logo konnte nicht geladen werden');
+            resolve(qrCanvas); // Fallback: QR Code ohne Logo
+        };
+        
+        logoImg.src = this.currentLogo.data;
+    });
 }
 
   async loadLibraries() {
@@ -4498,53 +4703,59 @@ if (downloadBtn) {
 }
 
 // Logo zum QR Code hinzufügen
-addLogoToQR(preview) {
-    const qrCanvas = preview.querySelector('canvas');
-    if (!qrCanvas || !this.logoFile) return;
+async addLogoToQR(preview, qrCanvas = null) {
+    // Falls kein Canvas übergeben wurde, aus Preview holen
+    if (!qrCanvas) {
+        qrCanvas = preview.querySelector('canvas');
+        if (!qrCanvas) return;
+    }
+    
+    if (!this.logoFile) return qrCanvas;
     
     const ctx = qrCanvas.getContext('2d');
     const img = new Image();
     
-    img.onload = () => {
-        const qrSize = parseInt(this.qrSize);
-        const logoSize = (qrSize * this.logoSize) / 100;
-        
-        // Position berechnen
-        const positions = {
-            'center': { x: (qrSize - logoSize) / 2, y: (qrSize - logoSize) / 2 },
-            'top-left': { x: this.logoPadding, y: this.logoPadding },
-            'top-right': { x: qrSize - logoSize - this.logoPadding, y: this.logoPadding },
-            'bottom-left': { x: this.logoPadding, y: qrSize - logoSize - this.logoPadding },
-            'bottom-right': { x: qrSize - logoSize - this.logoPadding, y: qrSize - logoSize - this.logoPadding }
+    return new Promise((resolve) => {
+        img.onload = () => {
+            const qrSize = qrCanvas.width;
+            const logoSize = (qrSize * this.logoSize) / 100;
+            
+            // Position berechnen
+            const positions = {
+                'center': { x: (qrSize - logoSize) / 2, y: (qrSize - logoSize) / 2 },
+                'top-left': { x: this.logoPadding, y: this.logoPadding },
+                'top-right': { x: qrSize - logoSize - this.logoPadding, y: this.logoPadding },
+                'bottom-left': { x: this.logoPadding, y: qrSize - logoSize - this.logoPadding },
+                'bottom-right': { x: qrSize - logoSize - this.logoPadding, y: qrSize - logoSize - this.logoPadding }
+            };
+            
+            const pos = positions[this.logoPosition] || positions.center;
+            
+            // Hintergrund für Logo erstellen
+            ctx.save();
+            
+            const bgColor = document.getElementById('qr-bg-color')?.value || '#ffffff';
+            const padding = 2;
+            
+            if (this.logoShape === 'circle') {
+                ctx.beginPath();
+                ctx.arc(pos.x + logoSize/2, pos.y + logoSize/2, logoSize/2 + padding, 0, 2 * Math.PI);
+                ctx.fillStyle = bgColor;
+                ctx.fill();
+                ctx.clip();
+            } else {
+                ctx.fillStyle = bgColor;
+                ctx.fillRect(pos.x - padding, pos.y - padding, logoSize + padding * 2, logoSize + padding * 2);
+            }
+            
+            // Logo zeichnen
+            ctx.drawImage(img, pos.x, pos.y, logoSize, logoSize);
+            ctx.restore();
+            
+            resolve(qrCanvas);
         };
-        
-        const pos = positions[this.logoPosition] || positions.center;
-        
-        // Hintergrund für Logo erstellen
-        ctx.save();
-        
-        if (this.logoShape === 'circle') {
-            ctx.beginPath();
-            ctx.arc(pos.x + logoSize/2, pos.y + logoSize/2, logoSize/2 + 2, 0, 2 * Math.PI);
-            ctx.fillStyle = this.qrBgColor;
-            ctx.fill();
-            ctx.clip();
-        } else if (this.logoShape === 'rounded') {
-            this.roundRect(ctx, pos.x - 2, pos.y - 2, logoSize + 4, logoSize + 4, 8);
-            ctx.fillStyle = this.qrBgColor;
-            ctx.fill();
-            ctx.clip();
-        } else {
-            ctx.fillStyle = this.qrBgColor;
-            ctx.fillRect(pos.x - 2, pos.y - 2, logoSize + 4, logoSize + 4);
-        }
-        
-        // Logo zeichnen
-        ctx.drawImage(img, pos.x, pos.y, logoSize, logoSize);
-        ctx.restore();
-    };
-    
-    img.src = this.logoFile;
+        img.src = this.logoFile;
+    });
 }
 
 // Hilfsfunktion für abgerundete Rechtecke
@@ -4914,30 +5125,43 @@ attachLogoEventListeners() {
 }
 
 // Logo-Upload verarbeiten
-handleLogoUpload(file) {
-    // Dateigröße prüfen (max 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-        this.showLogoError('Datei zu groß. Maximum: 2MB');
-        return;
-    }
-    
-    // Dateityp prüfen
+handleLogoUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Datei-Validierung
     if (!file.type.startsWith('image/')) {
-        this.showLogoError('Nur Bilddateien erlaubt (PNG, JPG, SVG)');
+        this.showToast('Bitte wählen Sie eine Bilddatei aus', 'error');
         return;
     }
-    
+
+    if (file.size > 5 * 1024 * 1024) { // 5MB Limit
+        this.showToast('Logo-Datei ist zu groß (max. 5MB)', 'error');
+        return;
+    }
+
     const reader = new FileReader();
     reader.onload = (e) => {
-        this.logoFile = e.target.result;
-        this.showLogoPreview(e.target.result);
-        this.updatePreview();
-        
-        if (window.qrApp && typeof window.qrApp.showToast === 'function') {
-            window.qrApp.showToast('Logo erfolgreich hinzugefügt!', 'success', 2000);
-        }
+        const img = new Image();
+        img.onload = () => {
+            this.currentLogo = {
+                data: e.target.result,
+                width: img.width,
+                height: img.height,
+                file: file,
+                size: 20 // Standard-Größe 20%
+            };
+            
+            this.displayLogoPreview(e.target.result);
+            this.showLogoControls();
+            
+            // WICHTIG: Preview sofort aktualisieren
+            this.updatePreview();
+            
+            this.showToast('Logo erfolgreich hinzugefügt!', 'success');
+        };
+        img.src = e.target.result;
     };
-    
     reader.readAsDataURL(file);
 }
 
@@ -4954,15 +5178,22 @@ showLogoPreview(imageSrc) {
 
 // Logo entfernen
 removeLogo() {
-    this.logoFile = null;
-    document.getElementById('upload-zone').style.display = 'block';
-    document.getElementById('logo-preview').style.display = 'none';
-    document.getElementById('logo-upload').value = '';
+    // Logo-Daten zurücksetzen
+    this.currentLogo = null;
+    
+    // UI zurücksetzen
+    const logoUpload = document.getElementById('logo-upload');
+    const logoPreview = document.getElementById('logo-preview');
+    const logoControls = document.querySelector('.logo-controls');
+    
+    if (logoUpload) logoUpload.value = '';
+    if (logoPreview) logoPreview.style.display = 'none';
+    if (logoControls) logoControls.style.display = 'none';
+    
+    // Preview aktualisieren um Logo zu entfernen
     this.updatePreview();
     
-    if (window.qrApp && typeof window.qrApp.showToast === 'function') {
-        window.qrApp.showToast('Logo entfernt', 'info', 1500);
-    }
+    this.showToast('Logo entfernt', 'success');
 }
 
 // Logo-Controls ein-/ausblenden

@@ -74,6 +74,7 @@ class QRProApp {
     this.initializeData();
     await this.loadLibraries();
     this.initializeQRCustomization();
+    this.initializeLogoFunctionality();
     this.registerServiceWorker();
     this.setupQRTypeHandler();
     this.setupDashboardActions();
@@ -109,6 +110,36 @@ class QRProApp {
         console.log('QRCustomization erfolgreich initialisiert');
     } catch (error) {
         console.error('Fehler bei QRCustomization-Initialisierung:', error);
+    }
+}
+
+initializeLogoFunctionality() {
+    console.log('🔄 Initialisiere Logo-Funktionalität...');
+    
+    // Event-Listener für Logo-Upload
+    const logoUpload = document.getElementById('logo-upload');
+    if (logoUpload) {
+        // Alte Listener entfernen
+        logoUpload.replaceWith(logoUpload.cloneNode(true));
+        const newLogoUpload = document.getElementById('logo-upload');
+        
+        newLogoUpload.addEventListener('change', (e) => {
+            this.handleLogoUpload(e);
+        });
+        
+        console.log('✅ Logo Event-Listener eingerichtet');
+    } else {
+        console.warn('❌ Logo-Upload Element nicht gefunden');
+    }
+    
+    // Logo-Feature Button
+    const logoFeatureBtn = document.querySelector('[data-feature="logo"]');
+    if (logoFeatureBtn && !logoFeatureBtn.hasAttribute('data-listener-added')) {
+        logoFeatureBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.toggleLogoFeature();
+        });
+        logoFeatureBtn.setAttribute('data-listener-added', 'true');
     }
 }
 

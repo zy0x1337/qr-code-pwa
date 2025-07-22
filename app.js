@@ -2143,10 +2143,15 @@ saveSettings() {
         console.log('📷 Current Logo Status:', !!this.currentLogo);
         
         const generateBtn = document.getElementById('generate-btn');
-        if (generateBtn) {
-            generateBtn.disabled = true;
-            generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generiere...';
-        }
+if (generateBtn) {
+    // Alte Event-Listener entfernen
+    generateBtn.replaceWith(generateBtn.cloneNode(true));
+    
+    // Neuen Event-Listener setzen
+    document.getElementById('generate-btn').addEventListener('click', () => {
+        this.generateQRCode();
+    });
+}
 
         // QR Code Daten sammeln
         const qrData = {
@@ -2469,16 +2474,14 @@ async updatePreview() {
             // 1. Basis QR Code generieren
             const qrCanvas = await this.generateBaseQRCode(content);
             
-            // 2. KRITISCH: Logo hinzufügen falls verfügbar
+            // 2. KRITISCH: Logo automatisch hinzufügen
             let finalCanvas = qrCanvas;
-            if (this.currentLogo) {
-                console.log('📷 Preview: Füge Logo hinzu');
+            if (this.currentLogo && this.currentLogo.data) {
+                console.log('📷 Preview: Logo wird hinzugefügt');
                 finalCanvas = await this.addLogoToQRCode(qrCanvas);
-            } else {
-                console.log('⚠️ Preview: Kein Logo verfügbar');
             }
             
-            // 3. Preview-Canvas erstellen
+            // 3. Preview anzeigen
             const previewCanvas = document.createElement('canvas');
             const previewCtx = previewCanvas.getContext('2d');
             previewCanvas.width = 200;
@@ -5059,16 +5062,15 @@ roundRect(ctx, x, y, width, height, radius) {
 
     // Integration mit der Hauptklasse sicherstellen
     integrateWithMainApp(qrApp) {
-        this.mainApp = qrApp;
-        
-        // QR Preview Update Funktion der Hauptklasse überschreiben
-        if (qrApp.updatePreview) {
-            const originalUpdatePreview = qrApp.updatePreview.bind(qrApp);
-            qrApp.updatePreview = () => {
-                this.updatePreview();
-            };
-        }
-    }
+    this.mainApp = qrApp;
+    
+    // Preview-Methode nicht überschreiben, sondern erweitern
+    const originalUpdate = qrApp.updatePreview.bind(qrApp);
+    qrApp.updatePreview = () => {
+        // Hauptapp Update aufrufen (inkl. Logo)
+        originalUpdate();
+    };
+}
 
     // Logo-Funktionalität einrichten
 setupLogoFunctionality() {

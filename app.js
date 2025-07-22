@@ -2498,28 +2498,35 @@ async updatePreview() {
 async generateBaseQRCode(content, qrData = {}) {
     return new Promise((resolve, reject) => {
         try {
+            // Canvas erstellen
             const canvas = document.createElement('canvas');
-            // Höhere Auflösung für bessere Qualität
             canvas.width = qrData.size || 400;
             canvas.height = qrData.size || 400;
 
-            // QR Code mit qrcodejs API generieren
-            QRCode.toCanvas(canvas, content, {
+            // QRCode.js API verwenden
+            const qr = new QRCode(canvas, {
+                text: content,
                 width: canvas.width,
                 height: canvas.height,
-                color: {
-                    dark: qrData.color || '#000000',
-                    light: qrData.bgColor || '#ffffff'
-                },
+                colorDark: qrData.color || '#000000',
+                colorLight: qrData.bgColor || '#ffffff',
                 correctLevel: QRCode.CorrectLevel.H // Hohe Fehlerkorrektur für Logo
-            }, (error) => {
-                if (error) {
-                    reject(error);
+            });
+
+            // Kurz warten bis QR Code gerendert ist
+            setTimeout(() => {
+                // Canvas aus dem QR Code Element extrahieren
+                const qrCanvas = canvas.querySelector('canvas');
+                if (qrCanvas) {
+                    resolve(qrCanvas);
                 } else {
+                    // Fallback: Direktes Canvas verwenden
                     resolve(canvas);
                 }
-            });
+            }, 100);
+
         } catch (error) {
+            console.error('QR Code Generierung fehlgeschlagen:', error);
             reject(error);
         }
     });
@@ -2590,36 +2597,110 @@ async addLogoToQRCode(qrCanvas) {
 
   async loadLibraries() {
     try {
-        // Verhindere mehrfaches Laden
-        if (window.QRCode && this.librariesLoaded) {
-            console.log('✅ Libraries already loaded');
+        console.log('🔄 Überprüfe QR Code Bibliotheken...');
+        
+        // QRCode.js prüfen (für Generierung)
+        if (typeof QRCode === 'undefined') {
+            throw new Error('QRCode.js nicht verfügbar');
+        }
+        console.log('✅ QRCode.js verfügbar');
+        
+        // jsQR prüfen (für Bild-Scanning)
+        if (typeof jsQR === 'undefined') {
+            console.warn('⚠️ jsQR nicht verfügbar - Bild-Scanning deaktiviert');
+        } else {
+            console.log('✅ jsQR verfügbar');
+        }
+        
+        // Html5Qrcode prüfen (für Webcam-Scanning)
+        if (typeof Html5Qrcode === 'undefined') {
+            console.warn('⚠️ Html5Qrcode nicht verfügbar - Webcam-Scanning deaktiviert');
+        } else {
+            console.log('✅ Html5Qrcode verfügbar');
+        }
+        
+        this.librariesLoaded = true;
+        console.log('✅ Bibliotheken-Check abgeschlossen');
+        
+    } catch (error) {
+        console.error('❌ Fehler beim Laden der Bibliotheken:', error);
+        this.showToast('QR Code Bibliotheken nicht verfügbar', 'error');
+        throw error;
+    }
+}
+
+// Bild-Upload QR Code scannen
+async scanUploadedImage(imageFile) {
+    return new Promise((resolve, reject) => {
+        if (typeof jsQR === 'undefined') {
+            reject(new Error('jsQR nicht verfügbar'));
             return;
         }
 
-        console.log('📚 Loading QRCode library...');
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
         
-        // QRCode.js für Generierung laden - KORREKTE URL
-        if (!window.QRCode) {
-            await this.loadScript('https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js');
+        img.onload = () => {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, canvas.width, canvas.height);
+            
+            if (code) {
+                resolve(code.data);
+            } else {
+                reject(new Error('Kein QR Code gefunden'));
+            }
+        };
+        
+        img.onerror = () => reject(new Error('Bild konnte nicht geladen werden'));
+        img.src = URL.createObjectURL(imageFile);
+    });
+}
+
+// Webcam QR Code Scanner initialisieren
+initWebcamScanner() {
+    if (typeof Html5Qrcode === 'undefined') {
+        console.warn('Html5Qrcode nicht verfügbar');
+        return;
+    }
+
+    const scannerDiv = document.getElementById('qr-scanner');
+    if (!scannerDiv) return;
+
+    this.html5QrCode = new Html5Qrcode("qr-scanner");
+    
+    const config = {
+        fps: 10,
+        qrbox: { width: 250, height: 250 }
+    };
+
+    this.html5QrCode.start(
+        { facingMode: "environment" }, // Rückkamera
+        config,
+        (decodedText, decodedResult) => {
+            console.log('📷 QR Code gescannt:', decodedText);
+            this.handleScannedQR(decodedText);
+        },
+        (errorMessage) => {
+            // Scanning-Fehler (normal bei kontinuierlichem Scan)
         }
-        
-        // Html5Qrcode für Scanning (bereits verfügbar)
-        if (!window.Html5Qrcode) {
-            await this.loadScript('https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js');
-        }
-        
-        // Prüfen ob QRCode verfügbar ist
-        if (typeof window.QRCode !== 'undefined') {
-            console.log('✅ QRCode library loaded successfully');
-            console.log('QRCode methods:', Object.keys(window.QRCode));
-            this.librariesLoaded = true;
-        } else {
-            throw new Error('QRCode library not available after loading');
-        }
-        
-    } catch (error) {
-        console.error('❌ Failed to load libraries:', error);
-        this.showToast('QR-Bibliotheken konnten nicht geladen werden', 'error');
+    ).catch(err => {
+        console.error('Webcam-Scanner Fehler:', err);
+        this.showToast('Kamera-Zugriff fehlgeschlagen', 'error');
+    });
+}
+
+stopWebcamScanner() {
+    if (this.html5QrCode) {
+        this.html5QrCode.stop().then(() => {
+            console.log('📷 Scanner gestoppt');
+        }).catch(err => {
+            console.error('Scanner-Stop Fehler:', err);
+        });
     }
 }
 

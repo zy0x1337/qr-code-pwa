@@ -4520,19 +4520,15 @@ class QRCustomization {
     }
 
     // Hintergrundfarben-Presets Setup
-setupBgColorPresets() {
-    // Container für Hintergrundfarbe-Presets erstellen falls nicht vorhanden
-    const bgColorGroup = document.querySelector('.form-group:has(#qr-bg-color)') ||
-                       document.querySelector('label[for="qr-bg-color"]')?.parentElement;
-    
-    if (!bgColorGroup) return;
+    setupBgColorPresets() {
+        // Container für Hintergrundfarbe-Presets erstellen falls nicht vorhanden
+        const bgColorGroup = document.querySelector('.form-group:has(#qr-bg-color)') ||
+                           document.querySelector('label[for="qr-bg-color"]')?.parentElement;
+        
+        if (!bgColorGroup) return;
 
-    // **WICHTIG: Prüfe ob Container bereits existiert**
-    let bgPresetsContainer = bgColorGroup.querySelector('.bg-color-presets-wrapper');
-    
-    if (!bgPresetsContainer) {
-        // Nur erstellen wenn noch nicht vorhanden
-        bgPresetsContainer = document.createElement('div');
+        // Hintergrundfarbe-Presets Container hinzufügen
+        const bgPresetsContainer = document.createElement('div');
         bgPresetsContainer.className = 'bg-color-presets-wrapper';
         bgPresetsContainer.innerHTML = `
             <div class="bg-category-selector">
@@ -4547,55 +4543,66 @@ setupBgColorPresets() {
             </div>
             <div class="bg-color-presets"></div>
         `;
-        
+
         bgColorGroup.appendChild(bgPresetsContainer);
-    }
-    
-    this.renderBgColorPresets();
-    
-    // Event Listeners für Hintergrund-Presets
-    const bgPresetsElement = bgPresetsContainer.querySelector('.bg-color-presets');
-    
-    // Entferne vorherigen Listener falls vorhanden
-    if (this.bgPresetsClickHandler) {
-        bgPresetsElement.removeEventListener('click', this.bgPresetsClickHandler);
-    }
-    
-    // Definiere Handler als Klassenmethode für wiederverwendbare Referenz
-    this.bgPresetsClickHandler = (e) => {
-        if (e.target.classList.contains('bg-color-preset')) {
-            const color = e.target.dataset.color;
-            this.selectBgColorPreset(e.target, color);
-        }
-    };
-    bgPresetsElement.addEventListener('click', this.bgPresetsClickHandler);
-
-    // Category Selector für Hintergrundfarben
-    const bgCategorySelect = bgPresetsContainer.querySelector('.bg-category-select');
-    
-    // Entferne vorherigen Listener
-    if (this.bgCategoryChangeHandler) {
-        bgCategorySelect.removeEventListener('change', this.bgCategoryChangeHandler);
-    }
-    
-    this.bgCategoryChangeHandler = (e) => {
-        this.currentBgCategory = e.target.value;
-        this.renderBgColorPresets();
-    };
-    bgCategorySelect.addEventListener('change', this.bgCategoryChangeHandler);
-
-    const qrBgColorInput = document.getElementById('qr-bg-color');
-    if (qrBgColorInput) {
-        if (this.bgColorInputHandler) {
-            qrBgColorInput.removeEventListener('input', this.bgColorInputHandler);
-        }
         
-        this.bgColorInputHandler = () => {
-            this.updateBgColorFromInput();
-        };
-        qrBgColorInput.addEventListener('input', this.bgColorInputHandler);
+        this.renderBgColorPresets();
+        
+        // Event Listeners für Hintergrund-Presets
+        const bgPresetsElement = bgPresetsContainer.querySelector('.bg-color-presets');
+        bgPresetsElement.addEventListener('click', (e) => {
+            if (e.target.classList.contains('bg-color-preset')) {
+                const color = e.target.dataset.color;
+                this.selectBgColorPreset(e.target, color);
+            }
+        });
+
+        // Category Selector für Hintergrundfarben
+        const bgCategorySelect = bgPresetsContainer.querySelector('.bg-category-select');
+        bgCategorySelect.addEventListener('change', (e) => {
+            this.currentBgCategory = e.target.value;
+            this.renderBgColorPresets();
+        });
+
+        const qrBgColorInput = document.getElementById('qr-bg-color');
+        if (qrBgColorInput) {
+            qrBgColorInput.addEventListener('input', () => {
+                this.updateBgColorFromInput();
+            });
+        }
     }
-}
+
+    // Kategorie-Selektoren Setup
+    setupCategorySelectors() {
+        // Kategorie-Selektor für Hauptfarben hinzufügen
+        const colorGroup = document.querySelector('.form-group:has(#qr-color)') ||
+                          document.querySelector('label[for="qr-color"]')?.parentElement;
+        
+        if (colorGroup && !colorGroup.querySelector('.color-category-select')) {
+            const categorySelector = document.createElement('div');
+            categorySelector.className = 'color-category-selector';
+            categorySelector.innerHTML = `
+                <label class="category-label">Farb-Stil:</label>
+                <select class="color-category-select form-control">
+                    <option value="classic">Klassisch</option>
+                    <option value="modern">Modern</option>
+                    <option value="premium">Premium</option>
+                </select>
+            `;
+            
+            const colorPicker = colorGroup.querySelector('.color-picker');
+            if (colorPicker) {
+                colorPicker.insertBefore(categorySelector, colorPicker.firstChild);
+            }
+
+            // Event Listener für Kategorie-Wechsel
+            const colorCategorySelect = categorySelector.querySelector('.color-category-select');
+            colorCategorySelect.addEventListener('change', (e) => {
+                this.currentColorCategory = e.target.value;
+                this.renderColorPresets();
+            });
+        }
+    }
 
     // Farb-Presets rendern
     renderColorPresets() {

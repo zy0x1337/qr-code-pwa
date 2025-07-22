@@ -151,7 +151,7 @@ showLogoSection() {
     // Logo-Sektion zum Generator hinzufügen
     const customizationSection = document.querySelector('.customization-section');
     if (customizationSection && !document.querySelector('.logo-section')) {
-        const logoSection = this.createLogoSectionHTML();
+        const logoSection = this.createLogoSection();
         customizationSection.appendChild(logoSection);
         
         // Event-Listener für Logo-Funktionen einrichten
@@ -287,41 +287,6 @@ updateLogoSize(size) {
         
         this.showToast(`Logo-Größe auf ${size}% gesetzt`, 'info', 1500);
     }
-}
-
-createLogoSectionHTML() {
-    const logoSection = document.createElement('div');
-    logoSection.className = 'logo-section';
-    logoSection.innerHTML = `
-        <div class="form-group">
-            <label class="form-label">Logo hinzufügen</label>
-            <div class="logo-upload-area">
-                <input type="file" id="logo-upload" accept="image/*" style="display: none;">
-                <button type="button" class="logo-upload-btn" onclick="document.getElementById('logo-upload').click();">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                        <polyline points="14,2 14,8 20,8"/>
-                        <path d="M12 18v-6"/>
-                        <path d="M9 15l3-3 3 3"/>
-                    </svg>
-                    Logo-Datei auswählen
-                </button>
-                <div class="logo-preview" id="logo-preview" style="display: none;">
-                    <img id="logo-preview-img" alt="Logo Vorschau">
-                    <button type="button" class="remove-logo" id="remove-logo">×</button>
-                </div>
-            </div>
-        </div>
-        <div class="logo-controls" style="display: none;">
-            <div class="form-group">
-                <label for="logo-size">Logo-Größe</label>
-                <input type="range" id="logo-size" min="10" max="40" value="20" class="range-input">
-                <span class="range-value">20%</span>
-            </div>
-        </div>
-    `;
-    
-    return logoSection;
 }
 
   async registerServiceWorker() {

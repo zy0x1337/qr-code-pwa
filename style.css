@@ -7817,3 +7817,35 @@ input:checked + .toggle-slider:before {
 .modal-body::-webkit-scrollbar-thumb:hover {
   background: var(--color-text-tertiary);
 }
+
+/* Modal Animation Verbesserungen */
+.modal-overlay {
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  visibility: hidden;
+}
+
+.modal-overlay.show {
+  visibility: visible;
+}
+
+.modal-container {
+  transform: translateY(-50px) scale(0.95);
+  transition: transform 0.3s ease;
+}
+
+.modal-overlay.show .modal-container {
+  transform: translateY(0) scale(1);
+}
+
+/* Legal Links Styling */
+.legal-links a {
+  color: #666;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.legal-links a:hover,
+.legal-links a:focus {
+  color: #007cba;
+  text-decoration: underline;
+}

@@ -31,12 +31,6 @@ class QRProApp {
     this.currentStream = null;
     this.html5QrCode = null;
     this.previewTimeout = null;
-    this.currentLogo = null;
-    this.logoSettings = {
-        size: 25,
-        background: 'transparent',
-        backgroundColor: '#ffffff'
-    };
 
     // Touch-Gesten Variablen
     this.touchStartX = 0;
@@ -71,8 +65,8 @@ class QRProApp {
     this.setupEventListeners();
     this.initializeData();
     await this.loadLibraries();
+    this.initializeQRCustomization();
     this.registerServiceWorker();
-    this.qrCustomization = new QRCustomization(this);
     this.setupQRTypeHandler();
     this.setupDashboardActions();
     await this.initializeTemplateManager();
@@ -86,276 +80,78 @@ class QRProApp {
     }
   }
 
-  setupLogoEventListeners() {
-    const logoFile = document.getElementById('logo-file');
-    const removeLogo = document.getElementById('remove-logo');
-    const logoSize = document.getElementById('logo-size');
-    const logoBackground = document.getElementById('logo-background');
-    const logoBgColor = document.getElementById('logo-bg-color');
-
-    if (logoFile) {
-        logoFile.addEventListener('change', (e) => this.handleLogoUpload(e));
-    }
-
-    if (removeLogo) {
-        removeLogo.addEventListener('click', () => this.removeLogo());
-    }
-
-    if (logoSize) {
-        logoSize.addEventListener('input', (e) => {
-            this.logoSettings.size = parseInt(e.target.value);
-            e.target.nextElementSibling.textContent = `${e.target.value}%`;
-            this.updatePreview();
-        });
-    }
-
-    if (logoBackground) {
-        logoBackground.addEventListener('change', (e) => {
-            this.logoSettings.background = e.target.value;
-            const bgColorGroup = document.getElementById('logo-bg-color-group');
-            if (bgColorGroup) {
-                bgColorGroup.style.display = e.target.value === 'custom' ? 'block' : 'none';
-            }
-            this.updatePreview();
-        });
-    }
-
-    if (logoBgColor) {
-        logoBgColor.addEventListener('change', (e) => {
-            this.logoSettings.backgroundColor = e.target.value;
-            this.updatePreview();
-        });
-    }
-}
-
-handleLogoUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    // Datei-Validierung
-    if (!file.type.startsWith('image/')) {
-        this.showToast('Bitte wählen Sie eine Bilddatei aus', 'error');
-        return;
-    }
-
-    // Dateigröße prüfen (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-        this.showToast('Logo-Datei ist zu groß (max. 5MB)', 'error');
-        return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-            this.currentLogo = {
-                data: e.target.result,
-                width: img.width,
-                height: img.height,
-                file: file
-            };
-            
-            this.showLogoPreview(e.target.result);
-            this.showLogoSettings();
-            this.updatePreview();
-        };
-        img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-}
-
-showLogoPreview(imageSrc) {
-    const previewContainer = document.getElementById('logo-preview-container');
-    const previewImg = document.getElementById('logo-preview');
-    
-    if (previewContainer && previewImg) {
-        previewImg.src = imageSrc;
-        previewContainer.style.display = 'block';
-    }
-}
-
-showLogoSettings() {
-    const logoSettings = document.getElementById('logo-settings');
-    if (logoSettings) {
-        logoSettings.style.display = 'block';
-    }
-}
-
-removeLogo() {
-    this.currentLogo = null;
-    
-    // UI zurücksetzen
-    const logoFile = document.getElementById('logo-file');
-    const previewContainer = document.getElementById('logo-preview-container');
-    const logoSettings = document.getElementById('logo-settings');
-    
-    if (logoFile) logoFile.value = '';
-    if (previewContainer) previewContainer.style.display = 'none';
-    if (logoSettings) logoSettings.style.display = 'none';
-    
-    this.updatePreview();
-    this.showToast('Logo entfernt', 'success');
-}
-
-// Erweiterte generateQRCode Methode
-async generateQRCode() {
-    const content = document.getElementById('qr-content')?.value.trim();
-    if (!content) {
-        this.showToast('Bitte geben Sie Inhalt für den QR Code ein', 'error');
-        return;
-    }
-
-    if (this.userTier === 'free' && this.dailyQRCount >= this.dailyLimit) {
-        this.showToast(`Tageslimit erreicht (${this.dailyLimit} QR Codes)`, 'error');
-        return;
-    }
-
+  initializeQRCustomization() {
     try {
-        const generateBtn = document.getElementById('generate-btn');
-        if (generateBtn) {
-            generateBtn.disabled = true;
-            generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generiere...';
-        }
-
-        // QR Code generieren
-        const qrCanvas = await this.generateBaseQRCode(content);
-        
-        // Logo hinzufügen falls vorhanden
-        let finalCanvas = qrCanvas;
-        if (this.currentLogo) {
-            finalCanvas = await this.addLogoToQRCode(qrCanvas);
-        }
-
-        this.displayQRCode(finalCanvas);
-        this.saveToHistory(content, finalCanvas);
-        this.showDownloadButton();
-        
-        this.dailyQRCount++;
-        this.updateDailyCount();
-        this.showToast('QR Code erfolgreich generiert!', 'success');
-
+        this.qrCustomization = new QRCustomization();
+        this.qrCustomization.integrateWithMainApp(this);
+        console.log('QRCustomization erfolgreich initialisiert');
     } catch (error) {
-        console.error('QR Code Generation Error:', error);
-        this.showToast('Fehler beim Generieren des QR Codes', 'error');
-    } finally {
-        const generateBtn = document.getElementById('generate-btn');
-        if (generateBtn) {
-            generateBtn.disabled = false;
-            generateBtn.innerHTML = '<i class="fas fa-qrcode"></i> QR Code generieren';
-        }
+        console.error('Fehler bei QRCustomization-Initialisierung:', error);
     }
 }
 
-async generateBaseQRCode(content) {
-    // Bibliothek verfügbarkeit prüfen
-    if (typeof QRCode === 'undefined') {
-        throw new Error('QR Code Bibliothek nicht verfügbar');
+  toggleLogoFeature() {
+    // Sicherstellen dass QRCustomization verfügbar ist
+    if (!this.qrCustomization) {
+        // QRCustomization initialisieren falls nicht vorhanden
+        this.qrCustomization = new QRCustomization();
+        this.qrCustomization.integrateWithMainApp(this);
     }
     
-    const qrColor = document.getElementById('qr-color')?.value || '#000000';
-    const qrBgColor = document.getElementById('qr-bg-color')?.value || '#ffffff';
-
-    return new Promise((resolve, reject) => {
-        try {
-            const canvas = document.createElement('canvas');
-            canvas.width = 400;
-            canvas.height = 400;
-
-            QRCode.toCanvas(canvas, content, {
-                width: 400,
-                color: {
-                    dark: qrColor,
-                    light: qrBgColor
-                },
-                errorCorrectionLevel: 'H'
-            }, (error) => {
-                if (error) {
-                    reject(error);
-                } else {
-                    resolve(canvas);
-                }
-            });
-        } catch (error) {
-            reject(error);
-        }
-    });
-}
-
-async addLogoToQRCode(qrCanvas) {
-    return new Promise((resolve) => {
-        const finalCanvas = document.createElement('canvas');
-        const ctx = finalCanvas.getContext('2d');
-        
-        finalCanvas.width = qrCanvas.width;
-        finalCanvas.height = qrCanvas.height;
-        
-        // QR Code zeichnen
-        ctx.drawImage(qrCanvas, 0, 0);
-        
-        // Logo laden und zeichnen
-        const logoImg = new Image();
-        logoImg.onload = () => {
-            const logoSize = (this.logoSettings.size / 100) * finalCanvas.width;
-            const logoX = (finalCanvas.width - logoSize) / 2;
-            const logoY = (finalCanvas.height - logoSize) / 2;
-            
-            // Logo-Hintergrund zeichnen
-            if (this.logoSettings.background !== 'transparent') {
-                const bgColor = this.logoSettings.background === 'custom' 
-                    ? this.logoSettings.backgroundColor 
-                    : '#ffffff';
-                
-                const padding = logoSize * 0.1;
-                ctx.fillStyle = bgColor;
-                ctx.fillRect(
-                    logoX - padding, 
-                    logoY - padding, 
-                    logoSize + (padding * 2), 
-                    logoSize + (padding * 2)
-                );
-            }
-            
-            // Logo zeichnen
-            ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
-            
-            resolve(finalCanvas);
-        };
-        logoImg.src = this.currentLogo.data;
-    });
-}
-
-setupDragAndDrop() {
-    const logoLabel = document.querySelector('.file-input-label');
-    
-    if (logoLabel) {
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            logoLabel.addEventListener(eventName, (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-            });
-        });
-
-        ['dragenter', 'dragover'].forEach(eventName => {
-            logoLabel.addEventListener(eventName, () => {
-                logoLabel.classList.add('drag-over');
-            });
-        });
-
-        ['dragleave', 'drop'].forEach(eventName => {
-            logoLabel.addEventListener(eventName, () => {
-                logoLabel.classList.remove('drag-over');
-            });
-        });
-
-        logoLabel.addEventListener('drop', (e) => {
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                const logoFile = document.getElementById('logo-file');
-                logoFile.files = files;
-                this.handleLogoUpload({ target: { files: files } });
-            }
-        });
+    // Logo-Sektion anzeigen/verstecken oder Modal öffnen
+    if (typeof this.qrCustomization.showLogoModal === 'function') {
+        this.qrCustomization.showLogoModal();
+    } else {
+        // Fallback: Logo-Sektion direkt anzeigen
+        this.showLogoSection();
     }
+}
+
+showLogoSection() {
+    // Logo-Sektion zum Generator hinzufügen
+    const customizationSection = document.querySelector('.customization-section');
+    if (customizationSection && !document.querySelector('.logo-section')) {
+        const logoSection = this.createLogoSectionHTML();
+        customizationSection.appendChild(logoSection);
+        
+        // Event-Listener für Logo-Funktionen einrichten
+        this.setupLogoEventListeners();
+    }
+}
+
+createLogoSectionHTML() {
+    const logoSection = document.createElement('div');
+    logoSection.className = 'logo-section';
+    logoSection.innerHTML = `
+        <div class="form-group">
+            <label class="form-label">Logo hinzufügen</label>
+            <div class="logo-upload-area">
+                <input type="file" id="logo-upload" accept="image/*" style="display: none;">
+                <button type="button" class="logo-upload-btn" onclick="document.getElementById('logo-upload').click();">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14,2 14,8 20,8"/>
+                        <path d="M12 18v-6"/>
+                        <path d="M9 15l3-3 3 3"/>
+                    </svg>
+                    Logo-Datei auswählen
+                </button>
+                <div class="logo-preview" id="logo-preview" style="display: none;">
+                    <img id="logo-preview-img" alt="Logo Vorschau">
+                    <button type="button" class="remove-logo" id="remove-logo">×</button>
+                </div>
+            </div>
+        </div>
+        <div class="logo-controls" style="display: none;">
+            <div class="form-group">
+                <label for="logo-size">Logo-Größe</label>
+                <input type="range" id="logo-size" min="10" max="40" value="20" class="range-input">
+                <span class="range-value">20%</span>
+            </div>
+        </div>
+    `;
+    
+    return logoSection;
 }
 
   async registerServiceWorker() {
@@ -811,7 +607,14 @@ setupDragAndDrop() {
     });
 });
 
-this.setupLogoEventListeners();
+// Logo-Feature Button Event Listener
+const logoFeatureBtn = document.getElementById('logo-feature-btn');
+if (logoFeatureBtn) {
+    logoFeatureBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.toggleLogoFeature();
+    });
+}
 
     // Resize Event für responsive Anpassungen
     window.addEventListener('resize', () => {
@@ -2391,94 +2194,51 @@ detectContentType(content) {
     return 'Text';
 }
 
-async updatePreview() {
+updatePreview() {
+    // Preview-Timeout clearen um Performance zu verbessern
     if (this.previewTimeout) {
         clearTimeout(this.previewTimeout);
     }
-
-    this.previewTimeout = setTimeout(async () => {
-        const content = document.getElementById('qr-content')?.value.trim();
-        const previewContainer = document.getElementById('qr-preview');
-        
-        if (!content) {
-            if (previewContainer) {
-                previewContainer.innerHTML = '<p class="preview-placeholder">Geben Sie Inhalt ein um die Vorschau zu sehen</p>';
-            }
-            return;
-        }
-
-        try {
-            previewContainer.innerHTML = '<div class="preview-loading"><i class="fas fa-spinner fa-spin"></i> Generiere Vorschau...</div>';
-            
-            // 1. Basis QR Code generieren
-            const qrCanvas = await this.generateBaseQRCode(content);
-            let finalCanvas = qrCanvas;
-            
-            // 2. Logo hinzufügen falls vorhanden
-            if (this.currentLogo) {
-                finalCanvas = await this.addLogoToQRCode(qrCanvas);
-            }
-            
-            // 3. QRCustomization Preview-Updates aufrufen
-            if (this.qrCustomization) {
-                await this.qrCustomization.updatePreview(finalCanvas);
-            }
-            
-            // 4. Finale Vorschau anzeigen
-            const previewCanvas = document.createElement('canvas');
-            const previewCtx = previewCanvas.getContext('2d');
-            previewCanvas.width = 200;
-            previewCanvas.height = 200;
-            previewCtx.drawImage(finalCanvas, 0, 0, 200, 200);
-            
-            previewContainer.innerHTML = '';
-            previewContainer.appendChild(previewCanvas);
-            
-        } catch (error) {
-            console.error('Preview Error:', error);
-            previewContainer.innerHTML = '<div class="preview-error">⚠️ Vorschau fehlgeschlagen</div>';
-        }
-    }, 500);
+    
+    // Verzögerung für bessere Performance bei schnellem Tippen
+    this.previewTimeout = setTimeout(() => {
+        this.generateQRCodePreview();
+    }, 300);
 }
 
   async loadLibraries() {
     try {
-        // QR Code Bibliothek prüfen
-        if (typeof QRCode === 'undefined') {
-            console.log('QR Code Bibliothek wird geladen...');
-            await this.loadQRCodeLibrary();
-        }
-        
-        // HTML5 QR Code Scanner prüfen
-        if (typeof Html5Qrcode === 'undefined') {
-            await this.loadScannerLibrary();
-        }
-        
-        this.librariesLoaded = true;
-        console.log('Alle Bibliotheken erfolgreich geladen');
-        
-    } catch (error) {
-        console.error('Fehler beim Laden der Bibliotheken:', error);
-        this.showToast('Fehler beim Laden der QR Code Bibliotheken', 'error');
-    }
-}
-
-async loadQRCodeLibrary() {
-    return new Promise((resolve, reject) => {
-        if (typeof QRCode !== 'undefined') {
-            resolve();
+        // Verhindere mehrfaches Laden
+        if (window.QRCode && this.librariesLoaded) {
+            console.log('✅ Libraries already loaded');
             return;
         }
+
+        console.log('📚 Loading QRCode library...');
         
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
-        script.onload = () => {
-            console.log('QR Code Bibliothek geladen');
-            resolve();
-        };
-        script.onerror = reject;
-        document.head.appendChild(script);
-    });
+        // QRCode.js für Generierung laden - KORREKTE URL
+        if (!window.QRCode) {
+            await this.loadScript('https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js');
+        }
+        
+        // Html5Qrcode für Scanning (bereits verfügbar)
+        if (!window.Html5Qrcode) {
+            await this.loadScript('https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js');
+        }
+        
+        // Prüfen ob QRCode verfügbar ist
+        if (typeof window.QRCode !== 'undefined') {
+            console.log('✅ QRCode library loaded successfully');
+            console.log('QRCode methods:', Object.keys(window.QRCode));
+            this.librariesLoaded = true;
+        } else {
+            throw new Error('QRCode library not available after loading');
+        }
+        
+    } catch (error) {
+        console.error('❌ Failed to load libraries:', error);
+        this.showToast('QR-Bibliotheken konnten nicht geladen werden', 'error');
+    }
 }
 
 loadScript(src) {
@@ -4134,7 +3894,7 @@ class QRCustomization {
         this.qrBgColor = '#ffffff';
         this.qrSize = '300';
 
-    // NEUE Logo-Eigenschaften
+    // Logo-Eigenschaften
     this.logoFile = null;
     this.logoSize = 20; // Prozent der QR-Code-Größe
     this.logoPosition = 'center';
@@ -4550,324 +4310,49 @@ showCustomColorFeedback(color) {
 }
 
 // Preview-Aktualisierung mit Logo-Support
-async updatePreview(canvas = null) {
-    // Timeout für vorherige Preview-Operationen löschen
-    if (this.previewTimeout) {
-        clearTimeout(this.previewTimeout);
-    }
+updatePreview() {
+    const content = document.getElementById('qr-content')?.value.trim();
+    if (!content || !window.QRCode) return;
 
-    this.previewTimeout = setTimeout(async () => {
-        try {
-            let workingCanvas;
-            
-            // Falls kein Canvas übergeben wurde, von QRPro-Instanz holen
-            if (!canvas) {
-                if (!this.qrProInstance) {
-                    console.warn('Keine QRPro-Instanz verfügbar für Preview');
-                    return;
-                }
-                
-                // Basis QR Code von QRPro generieren lassen
-                const content = document.getElementById('qr-content')?.value.trim();
-                if (!content) return;
-                
-                workingCanvas = await this.qrProInstance.generateBaseQRCode(content);
-            } else {
-                // Canvas kopieren um Original nicht zu verändern
-                workingCanvas = document.createElement('canvas');
-                const ctx = workingCanvas.getContext('2d');
-                workingCanvas.width = canvas.width;
-                workingCanvas.height = canvas.height;
-                ctx.drawImage(canvas, 0, 0);
-            }
+    const preview = document.querySelector('.qr-preview');
+    if (!preview) return;
 
-            // Customization-Einstellungen anwenden
-            await this.applyCustomizations(workingCanvas);
-            
-            // Preview anzeigen
-            this.displayCustomizationPreview(workingCanvas);
-            
-        } catch (error) {
-            console.error('Customization Preview Error:', error);
-            this.showPreviewError();
+    try {
+        preview.innerHTML = '';
+
+        const qr = new QRCode(preview, {
+            text: content,
+            width: parseInt(this.qrSize),
+            height: parseInt(this.qrSize),
+            colorDark: this.qrColor,
+            colorLight: this.qrBgColor,
+            correctLevel: QRCode.CorrectLevel.H
+        });
+
+        // Logo hinzufügen wenn aktiviert
+        if (this.logoEnabled && this.logoFile) {
+            setTimeout(() => {
+                this.addLogoToQR(preview);
+            }, 100);
         }
-    }, 300);
-}
 
-async applyCustomizations(canvas) {
-    const ctx = canvas.getContext('2d');
-    
-    // 1. Schatten anwenden (muss zuerst passieren)
-    if (this.customizationSettings.shadowEnabled) {
-        await this.applyShadow(ctx, canvas);
-    }
-    
-    // 2. Hintergrundmuster anwenden
-    if (this.customizationSettings.backgroundPattern) {
-        await this.applyBackgroundPattern(ctx, canvas);
-    }
-    
-    // 3. Farbverlauf anwenden
-    if (this.customizationSettings.gradientEnabled) {
-        await this.applyGradient(ctx, canvas);
-    }
-    
-    // 4. Muster auf QR Code anwenden
-    if (this.customizationSettings.patternEnabled) {
-        await this.applyPattern(ctx, canvas);
-    }
-    
-    // 5. Rahmen anwenden
-    if (this.customizationSettings.frameEnabled) {
-        await this.applyFrame(ctx, canvas);
-    }
-    
-    // 6. Eckenradius anwenden
-    if (this.customizationSettings.cornerRadius > 0) {
-        await this.applyCornerRadius(ctx, canvas);
-    }
-    
-    // 7. Text-Overlay anwenden
-    if (this.customizationSettings.textOverlay.enabled) {
-        await this.applyTextOverlay(ctx, canvas);
-    }
-}
-
-async applyShadow(ctx, canvas) {
-    // Canvas für Schatten-Effekt erweitern
-    const shadowCanvas = document.createElement('canvas');
-    const shadowCtx = shadowCanvas.getContext('2d');
-    
-    const shadowBlur = this.customizationSettings.shadowBlur;
-    const shadowOffsetX = this.customizationSettings.shadowOffsetX;
-    const shadowOffsetY = this.customizationSettings.shadowOffsetY;
-    
-    // Canvas-Größe anpassen für Schatten
-    shadowCanvas.width = canvas.width + shadowBlur * 2 + Math.abs(shadowOffsetX);
-    shadowCanvas.height = canvas.height + shadowBlur * 2 + Math.abs(shadowOffsetY);
-    
-    // Schatten-Einstellungen
-    shadowCtx.shadowColor = this.customizationSettings.shadowColor;
-    shadowCtx.shadowBlur = shadowBlur;
-    shadowCtx.shadowOffsetX = shadowOffsetX;
-    shadowCtx.shadowOffsetY = shadowOffsetY;
-    
-    // Original QR Code mit Schatten zeichnen
-    shadowCtx.drawImage(canvas, shadowBlur, shadowBlur);
-    
-    // Original Canvas updaten
-    canvas.width = shadowCanvas.width;
-    canvas.height = shadowCanvas.height;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(shadowCanvas, 0, 0);
-}
-
-async applyFrame(ctx, canvas) {
-    const frameWidth = this.customizationSettings.frameWidth;
-    const frameColor = this.customizationSettings.frameColor;
-    const frameType = this.customizationSettings.frameType;
-    
-    // Canvas erweitern für Rahmen
-    const framedCanvas = document.createElement('canvas');
-    const framedCtx = framedCanvas.getContext('2d');
-    
-    framedCanvas.width = canvas.width + (frameWidth * 2);
-    framedCanvas.height = canvas.height + (frameWidth * 2);
-    
-    // Rahmen zeichnen
-    framedCtx.fillStyle = frameColor;
-    
-    switch (frameType) {
-        case 'square':
-            framedCtx.fillRect(0, 0, framedCanvas.width, framedCanvas.height);
-            break;
-        case 'rounded':
-            this.drawRoundedRect(framedCtx, 0, 0, framedCanvas.width, framedCanvas.height, 20);
-            break;
-        case 'circle':
-            const radius = Math.min(framedCanvas.width, framedCanvas.height) / 2;
-            const centerX = framedCanvas.width / 2;
-            const centerY = framedCanvas.height / 2;
-            framedCtx.beginPath();
-            framedCtx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-            framedCtx.fill();
-            break;
-    }
-    
-    // Original QR Code auf Rahmen zeichnen
-    framedCtx.drawImage(canvas, frameWidth, frameWidth);
-    
-    // Original Canvas updaten
-    canvas.width = framedCanvas.width;
-    canvas.height = framedCanvas.height;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(framedCanvas, 0, 0);
-}
-
-async applyGradient(ctx, canvas) {
-    const gradientType = this.customizationSettings.gradientType;
-    const colors = this.customizationSettings.gradientColors;
-    
-    // Gradient erstellen
-    let gradient;
-    if (gradientType === 'linear') {
-        gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    } else {
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-        const radius = Math.max(canvas.width, canvas.height) / 2;
-        gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
-    }
-    
-    // Farben zum Gradient hinzufügen
-    colors.forEach((color, index) => {
-        gradient.addColorStop(index / (colors.length - 1), color);
-    });
-    
-    // Gradient anwenden (über Composite-Modi)
-    ctx.globalCompositeOperation = 'source-atop';
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.globalCompositeOperation = 'source-over';
-}
-
-async applyPattern(ctx, canvas) {
-    const patternType = this.customizationSettings.patternType;
-    
-    // Pattern Canvas erstellen
-    const patternCanvas = document.createElement('canvas');
-    const patternCtx = patternCanvas.getContext('2d');
-    
-    switch (patternType) {
-        case 'dots':
-            patternCanvas.width = 20;
-            patternCanvas.height = 20;
-            patternCtx.fillStyle = '#000';
-            patternCtx.beginPath();
-            patternCtx.arc(10, 10, 3, 0, Math.PI * 2);
-            patternCtx.fill();
-            break;
-            
-        case 'lines':
-            patternCanvas.width = 10;
-            patternCanvas.height = 10;
-            patternCtx.strokeStyle = '#000';
-            patternCtx.lineWidth = 1;
-            patternCtx.beginPath();
-            patternCtx.moveTo(0, 0);
-            patternCtx.lineTo(10, 10);
-            patternCtx.stroke();
-            break;
-            
-        case 'squares':
-            patternCanvas.width = 15;
-            patternCanvas.height = 15;
-            patternCtx.fillStyle = '#000';
-            patternCtx.fillRect(5, 5, 5, 5);
-            break;
-    }
-    
-    // Pattern anwenden
-    const pattern = ctx.createPattern(patternCanvas, 'repeat');
-    ctx.globalCompositeOperation = 'source-atop';
-    ctx.fillStyle = pattern;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.globalCompositeOperation = 'source-over';
-}
-
-async applyTextOverlay(ctx, canvas) {
-    const textSettings = this.customizationSettings.textOverlay;
-    
-    if (!textSettings.text.trim()) return;
-    
-    // Text-Einstellungen
-    ctx.font = `${textSettings.fontSize}px ${textSettings.fontFamily}`;
-    ctx.fillStyle = textSettings.color;
-    ctx.textAlign = 'center';
-    
-    // Position berechnen
-    let x = canvas.width / 2;
-    let y;
-    
-    switch (textSettings.position) {
-        case 'top':
-            y = textSettings.fontSize + 10;
-            break;
-        case 'bottom':
-            y = canvas.height - 10;
-            break;
-        case 'center':
-            y = canvas.height / 2;
-            break;
-        default:
-            y = canvas.height - 10;
-    }
-    
-    // Hintergrund für Text (falls gewünscht)
-    if (textSettings.backgroundColor !== 'transparent') {
-        const textMetrics = ctx.measureText(textSettings.text);
-        const textWidth = textMetrics.width;
-        const textHeight = textSettings.fontSize;
+        this.checkColorContrast();
         
-        ctx.fillStyle = textSettings.backgroundColor;
-        ctx.fillRect(
-            x - textWidth / 2 - 5,
-            y - textHeight - 5,
-            textWidth + 10,
-            textHeight + 10
-        );
-        ctx.fillStyle = textSettings.color;
+        // Download-Info aktualisieren
+        const downloadBtn = document.getElementById('download-btn');
+if (downloadBtn) {
+  downloadBtn.classList.remove('premium-locked');
+  downloadBtn.addEventListener('click', () => this.downloadQRCode());
+  if (document.querySelector('.download-section')) {
+        requestAnimationFrame(() => {
+            this.updateDownloadInfo();
+        });
+        }
+}
+
+    } catch (error) {
+        console.error('Fehler beim QR Preview Update:', error);
     }
-    
-    // Text zeichnen
-    ctx.fillText(textSettings.text, x, y);
-}
-
-displayCustomizationPreview(canvas) {
-    const previewContainer = document.getElementById('qr-preview');
-    if (!previewContainer) return;
-    
-    // Kleinere Version für Preview erstellen
-    const previewCanvas = document.createElement('canvas');
-    const previewCtx = previewCanvas.getContext('2d');
-    previewCanvas.width = 200;
-    previewCanvas.height = 200;
-    
-    // Canvas proportional skalieren
-    const scale = Math.min(200 / canvas.width, 200 / canvas.height);
-    const scaledWidth = canvas.width * scale;
-    const scaledHeight = canvas.height * scale;
-    const offsetX = (200 - scaledWidth) / 2;
-    const offsetY = (200 - scaledHeight) / 2;
-    
-    previewCtx.drawImage(canvas, offsetX, offsetY, scaledWidth, scaledHeight);
-    
-    // Preview anzeigen
-    previewContainer.innerHTML = '';
-    previewContainer.appendChild(previewCanvas);
-}
-
-showPreviewError() {
-    const previewContainer = document.getElementById('qr-preview');
-    if (previewContainer) {
-        previewContainer.innerHTML = '<div class="preview-error">⚠️ Customization-Vorschau fehlgeschlagen</div>';
-    }
-}
-
-// Hilfsmethode für abgerundete Rechtecke
-drawRoundedRect(ctx, x, y, width, height, radius) {
-    ctx.beginPath();
-    ctx.moveTo(x + radius, y);
-    ctx.lineTo(x + width - radius, y);
-    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-    ctx.lineTo(x + width, y + height - radius);
-    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-    ctx.lineTo(x + radius, y + height);
-    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-    ctx.lineTo(x, y + radius);
-    ctx.quadraticCurveTo(x, y, x + radius, y);
-    ctx.closePath();
-    ctx.fill();
 }
 
 // Logo zum QR Code hinzufügen

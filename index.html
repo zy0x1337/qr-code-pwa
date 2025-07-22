@@ -166,22 +166,20 @@
             <div class="stat-label">QR Codes erstellt</div>
         </div>
     </div>
-</div>
 
-    <div class="stat-card" data-stat="templates-count">
+    <div class="stat-card" data-stat="qr-scanned">
         <div class="stat-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="3" width="7" height="7"></rect>
-                <rect x="14" y="3" width="7" height="7"></rect>
-                <rect x="3" y="14" width="7" height="7"></rect>
-                <rect x="14" y="14" width="7" height="7"></rect>
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
             </svg>
         </div>
         <div class="stat-content">
-            <div class="stat-number">19</div>
-            <div class="stat-label">Templates</div>
-        </div>
+            <div class="stat-number">0</div>
+            <div class="stat-label">QR Codes gescannt</div>
+       </div>
     </div>
+  </div>
 </div>
 
                 <!-- Quick Actions Section -->
@@ -232,7 +230,7 @@
             <p>Nutzen Sie vorgefertigte QR Code Vorlagen für häufige Anwendungsfälle</p>
         </button>
 
-        <!-- History Card -->
+        <!-- History Card (Optional) -->
         <button class="action-card action-card--history" data-action="show-history">
             <div class="action-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -245,13 +243,23 @@
         </button>
     </div>
 </section>
-</div>
+
+                <div class="recent-activity">
+                    <h2>Letzte Aktivitäten</h2>
+                    <div id="recent-items" class="activity-list">
+                        <div class="empty-state">
+                            <div class="empty-icon">📋</div>
+                            <p>Noch keine QR Codes erstellt</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Generator Page -->
 <div id="generator-page" class="page">
     <div class="page-header">
         <h1>QR Code Generator</h1>
-        <p>Erstelle professionelle & personalisierte QR Codes</p>
+        <p>Erstelle professionelle QR Codes</p>
     </div>
 
     <div class="generator-container">
@@ -304,6 +312,8 @@
                             <select id="qr-size" class="form-control">
                                 <option value="200">Klein (200px)</option>
                                 <option value="300" selected>Mittel (300px)</option>
+                                <option value="500">Groß (500px)</option>
+                                <option value="800">Sehr groß (800px)</option>
                             </select>
                         </div>
                     </div>

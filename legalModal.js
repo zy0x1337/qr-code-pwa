@@ -1,510 +1,800 @@
-// Legal Modal System mit Event-Delegation und robuster Error-Behandlung
-(function() {
-  'use strict';
+/**
+ * Legal Modal System
+ * Optimized for modern web standards with enhanced UX
+ */
 
-  const LegalModal = {
-    // Modal-Elemente
-    overlay: null,
-    container: null,
-    title: null,
-    body: null,
-    isInitialized: false,
-
-    // Initialisierung mit Fehlerbehandlung
+class LegalModal {
+    constructor() {
+        this.currentModal = null;
+        this.isOpen = false;
+        this.scrollPosition = 0;
+        
+        // Enhanced content with better structure
+        this.content = {
+            privacy: {
+                title: '🔒 Datenschutzerklärung',
+                subtitle: 'Informationen zur Datenverarbeitung',
+                icon: '🔒',
+                sections: [
+                    {
+                        title: '1. Datenschutz auf einen Blick',
+                        content: `
+                            <div class="info-highlight">
+                                <h4>Allgemeine Hinweise</h4>
+                                <p>Die folgenden Hinweise geben einen einfachen Überblick darüber, was mit Ihren personenbezogenen Daten passiert, wenn Sie diese Website besuchen.</p>
+                            </div>
+                            
+                            <h5>Datenerfassung auf dieser Website</h5>
+                            <p><strong>Wer ist verantwortlich für die Datenerfassung auf dieser Website?</strong></p>
+                            <p>Die Datenverarbeitung auf dieser Website erfolgt durch den Websitebetreiber. Dessen Kontaktdaten können Sie dem Impressum dieser Website entnehmen.</p>
+                            
+                            <div class="data-collection-info">
+                                <h5>Wie erfassen wir Ihre Daten?</h5>
+                                <ul>
+                                    <li><strong>Direkte Eingabe:</strong> QR-Code Inhalte, die Sie erstellen</li>
+                                    <li><strong>Automatisch:</strong> Technische Daten beim Websitebesuch</li>
+                                    <li><strong>Lokal:</strong> Nutzungsdaten werden auf Ihrem Gerät gespeichert</li>
+                                </ul>
+                            </div>
+                        `
+                    },
+                    {
+                        title: '2. QR-Code Datenverarbeitung',
+                        content: `
+                            <div class="feature-highlight">
+                                <h4>🔐 Lokale Verarbeitung</h4>
+                                <p>Alle QR-Code Erstellungen finden lokal auf Ihrem Gerät statt. Ihre Daten verlassen Ihr Gerät nicht.</p>
+                            </div>
+                            
+                            <h5>Gespeicherte Daten</h5>
+                            <ul>
+                                <li>QR-Code Inhalte (lokal im Browser)</li>
+                                <li>Erstellungszeitpunkte</li>
+                                <li>Anpassungseinstellungen</li>
+                                <li>Nutzungshistorie</li>
+                            </ul>
+                            
+                            <div class="security-note">
+                                <p><strong>Wichtig:</strong> Sensible Daten wie Passwörter oder private Informationen sollten nicht in QR-Codes eingebettet werden.</p>
+                            </div>
+                        `
+                    },
+                    {
+                        title: '3. Ihre Rechte',
+                        content: `
+                            <div class="rights-grid">
+                                <div class="right-item">
+                                    <h5>📋 Auskunft</h5>
+                                    <p>Jederzeit über gespeicherte Daten</p>
+                                </div>
+                                <div class="right-item">
+                                    <h5>🗑️ Löschung</h5>
+                                    <p>Entfernung aller lokalen Daten</p>
+                                </div>
+                                <div class="right-item">
+                                    <h5>⚙️ Einstellungen</h5>
+                                    <p>Kontrolle über Datenverarbeitung</p>
+                                </div>
+                                <div class="right-item">
+                                    <h5>🔄 Übertragung</h5>
+                                    <p>Export Ihrer QR-Code Historie</p>
+                                </div>
+                            </div>
+                        `
+                    }
+                ]
+            },
+            
+            imprint: {
+                title: '📋 Impressum',
+                subtitle: 'Rechtliche Informationen',
+                icon: '📋',
+                sections: [
+                    {
+                        title: 'Angaben gemäß § 5 TMG',
+                        content: `
+                            <div class="contact-card">
+                                <h4>Verantwortlich für den Inhalt</h4>
+                                <div class="contact-info">
+                                    <p><strong>QR Generator Pro</strong><br>
+                                    Muster Entwickler<br>
+                                    Beispielstraße 123<br>
+                                    12345 Musterstadt</p>
+                                    
+                                    <div class="contact-methods">
+                                        <p><strong>📧 E-Mail:</strong> info@qr-generator.example</p>
+                                        <p><strong>📞 Telefon:</strong> +49 (0) 123 456789</p>
+                                        <p><strong>🌐 Website:</strong> www.qr-generator.example</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `
+                    },
+                    {
+                        title: 'Rechtliche Hinweise',
+                        content: `
+                            <div class="legal-grid">
+                                <div class="legal-item">
+                                    <h5>⚖️ Haftungsausschluss</h5>
+                                    <p>Inhalte werden nach bestem Wissen erstellt. Keine Haftung für externe Links.</p>
+                                </div>
+                                <div class="legal-item">
+                                    <h5>📄 Urheberrecht</h5>
+                                    <p>Alle Inhalte unterliegen dem deutschen Urheberrecht.</p>
+                                </div>
+                            </div>
+                        `
+                    }
+                ]
+            },
+            
+            terms: {
+                title: '📜 Nutzungsbedingungen',
+                subtitle: 'Bedingungen für die Nutzung',
+                icon: '📜',
+                sections: [
+                    {
+                        title: '1. Geltungsbereich',
+                        content: `
+                            <p>Diese Nutzungsbedingungen gelten für alle Nutzer des QR-Generator Services.</p>
+                            <div class="terms-highlight">
+                                <h4>Wichtige Punkte</h4>
+                                <ul>
+                                    <li>✅ Kostenlose Nutzung für private und gewerbliche Zwecke</li>
+                                    <li>✅ Unbegrenzte QR-Code Erstellung</li>
+                                    <li>✅ Lokale Datenverarbeitung</li>
+                                    <li>❌ Missbrauch für illegale Inhalte</li>
+                                </ul>
+                            </div>
+                        `
+                    },
+                    {
+                        title: '2. Nutzungsrechte',
+                        content: `
+                            <h5>Erlaubte Nutzung</h5>
+                            <ul>
+                                <li>Erstellung beliebiger QR-Codes</li>
+                                <li>Kommerzielle Nutzung erlaubt</li>
+                                <li>Download und Weitergabe der QR-Codes</li>
+                            </ul>
+                            
+                            <h5>Beschränkungen</h5>
+                            <ul>
+                                <li>Keine Verbreitung von schädlichen Inhalten</li>
+                                <li>Keine Umgehung der Sicherheitsmaßnahmen</li>
+                                <li>Respektierung der Server-Ressourcen</li>
+                            </ul>
+                        `
+                    }
+                ]
+            }
+        };
+        
+        this.init();
+    }
+    
     init() {
-      try {
-        console.log('🔧 LegalModal wird initialisiert...');
+        this.createModalStructure();
+        this.bindEvents();
+        this.setupKeyboardNavigation();
+        this.setupAccessibility();
+    }
+    
+    createModalStructure() {
+        // Prüfen ob Modal bereits existiert
+        if (document.querySelector('.legal-modal-overlay')) return;
         
-        // DOM-Elemente suchen
-        this.overlay = document.getElementById('legalModal');
-        this.container = this.overlay?.querySelector('.modal-container');
-        this.title = document.getElementById('modalTitle');
-        this.body = document.getElementById('modalBody');
-
-        if (!this.overlay) {
-          console.warn('⚠️ LegalModal HTML nicht gefunden - erstelle Fallback');
-          this.createFallbackModal();
-        }
-
-        // Event Listeners einrichten
-        this.setupEventListeners();
-        this.setupLegalLinksEventDelegation();
+        const modalHTML = `
+            <div class="modal-overlay legal-modal-overlay" aria-hidden="true" role="dialog" aria-modal="true">
+                <div class="modal-container legal-modal-container" role="document">
+                    <!-- Modal Header -->
+                    <header class="modal-header legal-modal-header">
+                        <div class="modal-title-section">
+                            <div class="modal-logo">
+                                <span class="modal-icon">⚖️</span>
+                            </div>
+                            <div class="modal-title-text">
+                                <h2 class="modal-title" id="legal-modal-title">Rechtliche Informationen</h2>
+                                <p class="modal-subtitle" id="legal-modal-subtitle">Datenschutz & Nutzungsbedingungen</p>
+                            </div>
+                        </div>
+                        <button 
+                            class="modal-close" 
+                            aria-label="Modal schließen"
+                            title="Modal schließen (ESC)"
+                            type="button"
+                        >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </header>
+                    
+                    <!-- Modal Body -->
+                    <main class="modal-body legal-modal-body">
+                        <!-- Navigation -->
+                        <nav class="legal-nav" role="tablist">
+                            <button 
+                                class="legal-nav-item active" 
+                                data-content="privacy"
+                                role="tab"
+                                aria-selected="true"
+                                aria-controls="privacy-panel"
+                                id="privacy-tab"
+                            >
+                                <span class="nav-icon">🔒</span>
+                                <span class="nav-text">Datenschutz</span>
+                            </button>
+                            <button 
+                                class="legal-nav-item" 
+                                data-content="imprint"
+                                role="tab"
+                                aria-selected="false"
+                                aria-controls="imprint-panel"
+                                id="imprint-tab"
+                            >
+                                <span class="nav-icon">📋</span>
+                                <span class="nav-text">Impressum</span>
+                            </button>
+                            <button 
+                                class="legal-nav-item" 
+                                data-content="terms"
+                                role="tab"
+                                aria-selected="false"
+                                aria-controls="terms-panel"
+                                id="terms-tab"
+                            >
+                                <span class="nav-icon">📜</span>
+                                <span class="nav-text">AGB</span>
+                            </button>
+                        </nav>
+                        
+                        <!-- Content Area -->
+                        <div class="legal-content-area">
+                            <div class="legal-content-wrapper">
+                                <!-- Content wird dynamisch geladen -->
+                            </div>
+                        </div>
+                    </main>
+                    
+                    <!-- Footer -->
+                    <footer class="legal-modal-footer">
+                        <div class="footer-info">
+                            <span class="last-updated">Letzte Aktualisierung: ${new Date().toLocaleDateString('de-DE')}</span>
+                        </div>
+                        <div class="footer-actions">
+                            <button class="btn btn--secondary print-btn" type="button">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6,9 6,2 18,2 18,9"></polyline>
+                                    <path d="M6,18H4a2,2,0,0,1-2-2V11a2,2,0,0,1,2-2H20a2,2,0,0,1,2,2v5a2,2,0,0,1-2,2H18"></path>
+                                    <rect x="6" y="14" width="12" height="8"></rect>
+                                </svg>
+                                Drucken
+                            </button>
+                            <button class="btn btn--primary understood-btn" type="button">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20,6 9,17 4,12"></polyline>
+                                </svg>
+                                Verstanden
+                            </button>
+                        </div>
+                    </footer>
+                </div>
+            </div>
+        `;
         
-        this.isInitialized = true;
-        console.log('✅ LegalModal erfolgreich initialisiert');
-        
-      } catch (error) {
-        console.error('❌ LegalModal Initialisierungsfehler:', error);
-        this.setupFallbackSystem();
-      }
-    },
-
-    // Event Listeners für Modal-Funktionen
-    setupEventListeners() {
-      if (!this.overlay) return;
-
-      // Overlay-Click zum Schließen
-      this.overlay.addEventListener('click', (e) => {
-        if (e.target === this.overlay) {
-          this.close();
-        }
-      });
-
-      // Escape-Taste zum Schließen
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && this.isOpen()) {
-          this.close();
-        }
-      });
-
-      // Close-Button
-      const closeBtn = this.overlay.querySelector('.modal-close');
-      if (closeBtn) {
-        closeBtn.addEventListener('click', () => this.close());
-      }
-    },
-
-    // Event-Delegation für Legal-Links (HAUPTFUNKTION)
-    setupLegalLinksEventDelegation() {
-      console.log('🔗 Event-Delegation für Legal-Links wird eingerichtet...');
-      
-      // Event-Delegation für das gesamte Dokument
-      document.addEventListener('click', (e) => {
-        // Prüfen ob geklicktes Element ein Legal-Link ist
-        const target = e.target;
-        const link = target.closest('a[data-legal]');
-        
-        if (link) {
-          e.preventDefault();
-          const type = link.dataset.legal;
-          console.log(`📋 Legal-Link geklickt: ${type}`);
-          this.show(type);
-          return;
-        }
-
-        // Fallback für alte onclick-Links
-        if (target.onclick && target.onclick.toString().includes('LegalModal.show')) {
-          e.preventDefault();
-          const onclickStr = target.onclick.toString();
-          const match = onclickStr.match(/LegalModal\.show\(['"]([^'"]+)['"]\)/);
-          if (match) {
-            const type = match[1];
-            console.log(`📋 Fallback Legal-Link: ${type}`);
-            this.show(type);
-          }
-        }
-      });
-
-      // Bestehende onclick-Links zu data-legal konvertieren
-      this.convertOldLinksToDataAttributes();
-      
-      console.log('✅ Event-Delegation erfolgreich eingerichtet');
-    },
-
-    // Alte onclick-Links konvertieren
-    convertOldLinksToDataAttributes() {
-      const links = document.querySelectorAll('a[onclick*="LegalModal.show"]');
-      
-      links.forEach(link => {
-        const onclickStr = link.getAttribute('onclick');
-        const match = onclickStr.match(/LegalModal\.show\(['"]([^'"]+)['"]\)/);
-        
-        if (match) {
-          const type = match[1];
-          link.setAttribute('data-legal', type);
-          link.removeAttribute('onclick');
-          console.log(`🔄 Link konvertiert: ${type}`);
-        }
-      });
-    },
-
-    // Modal öffnen mit Sicherheitschecks
-    show(type) {
-      if (!this.isInitialized) {
-        console.warn('⚠️ LegalModal nicht initialisiert - verwende Fallback');
-        this.showFallback(type);
-        return;
-      }
-
-      if (!this.overlay) {
-        console.error('❌ Modal-Overlay nicht verfügbar');
-        this.showFallback(type);
-        return;
-      }
-
-      try {
-        const content = this.getContent(type);
-        if (!content) {
-          console.error(`❌ Kein Content für Typ: ${type}`);
-          this.showFallback(type);
-          return;
-        }
-
-        // Content setzen
-        if (this.title) this.title.textContent = content.title;
-        if (this.body) this.body.innerHTML = content.body;
-
-        // Modal anzeigen
-        this.overlay.setAttribute('aria-hidden', 'false');
-        document.body.style.overflow = 'hidden';
-
-        // Animation starten
-        requestAnimationFrame(() => {
-          this.overlay.classList.add('show');
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        this.modal = document.querySelector('.legal-modal-overlay');
+        this.container = document.querySelector('.legal-modal-container');
+    }
+    
+    bindEvents() {
+        // Navigation Events
+        document.querySelectorAll('.legal-nav-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                const contentType = e.currentTarget.dataset.content;
+                this.switchContent(contentType);
+            });
         });
-
-        // Focus Management
-        if (this.container) {
-          this.container.focus();
+        
+        // Close Events
+        const closeBtn = document.querySelector('.legal-modal-overlay .modal-close');
+        const understoodBtn = document.querySelector('.understood-btn');
+        const overlay = document.querySelector('.legal-modal-overlay');
+        
+        if (closeBtn) closeBtn.addEventListener('click', () => this.close());
+        if (understoodBtn) understoodBtn.addEventListener('click', () => this.close());
+        
+        if (overlay) {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) this.close();
+            });
         }
-
-        console.log(`✅ Modal geöffnet: ${type}`);
-
-      } catch (error) {
-        console.error('❌ Fehler beim Öffnen des Modals:', error);
-        this.showFallback(type);
-      }
-    },
-
-    // Modal schließen
+        
+        // Print Event
+        const printBtn = document.querySelector('.print-btn');
+        if (printBtn) {
+            printBtn.addEventListener('click', () => this.print());
+        }
+        
+        // Legal Link Events (für Footer Links)
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('[data-legal-modal]')) {
+                e.preventDefault();
+                const contentType = e.target.dataset.legalModal;
+                this.open(contentType);
+            }
+        });
+    }
+    
+    setupKeyboardNavigation() {
+        document.addEventListener('keydown', (e) => {
+            if (!this.isOpen) return;
+            
+            switch (e.key) {
+                case 'Escape':
+                    e.preventDefault();
+                    this.close();
+                    break;
+                case 'Tab':
+                    this.handleTabNavigation(e);
+                    break;
+                case 'ArrowLeft':
+                case 'ArrowRight':
+                    if (e.target.classList.contains('legal-nav-item')) {
+                        e.preventDefault();
+                        this.navigateWithArrows(e.key === 'ArrowLeft' ? -1 : 1);
+                    }
+                    break;
+            }
+        });
+    }
+    
+    setupAccessibility() {
+        // ARIA live region für dynamische Inhalte
+        const liveRegion = document.createElement('div');
+        liveRegion.setAttribute('aria-live', 'polite');
+        liveRegion.setAttribute('aria-atomic', 'true');
+        liveRegion.className = 'sr-only';
+        liveRegion.id = 'legal-modal-live-region';
+        document.body.appendChild(liveRegion);
+    }
+    
+    open(contentType = 'privacy') {
+        if (this.isOpen) return;
+        
+        this.scrollPosition = window.pageYOffset;
+        document.body.style.overflow = 'hidden';
+        document.body.style.paddingRight = this.getScrollbarWidth() + 'px';
+        
+        this.modal.setAttribute('aria-hidden', 'false');
+        this.modal.classList.add('show');
+        this.isOpen = true;
+        
+        // Focus management
+        const firstFocusable = this.modal.querySelector('.modal-close');
+        if (firstFocusable) firstFocusable.focus();
+        
+        // Content laden
+        this.switchContent(contentType);
+        
+        // Analytics/Tracking (optional)
+        this.trackModalOpen(contentType);
+        
+        // Announce to screen readers
+        this.announceToScreenReader(`${this.content[contentType].title} Modal geöffnet`);
+    }
+    
     close() {
-      if (!this.overlay || !this.isOpen()) return;
-
-      try {
-        // Animation
-        this.overlay.classList.remove('show');
-
-        // Nach Animation verstecken
+        if (!this.isOpen) return;
+        
+        this.modal.classList.remove('show');
+        this.modal.setAttribute('aria-hidden', 'true');
+        
+        // Smooth closing animation
         setTimeout(() => {
-          if (this.overlay) {
-            this.overlay.setAttribute('aria-hidden', 'true');
             document.body.style.overflow = '';
-          }
+            document.body.style.paddingRight = '';
+            window.scrollTo(0, this.scrollPosition);
+            this.isOpen = false;
         }, 300);
-
-        console.log('✅ Modal geschlossen');
-
-      } catch (error) {
-        console.error('❌ Fehler beim Schließen des Modals:', error);
-      }
-    },
-
-    // Prüfen ob Modal offen ist
-    isOpen() {
-      return this.overlay?.classList.contains('show') || false;
-    },
-
-    // Content für verschiedene Typen
-    getContent(type) {
-      const contents = {
-        privacy: {
-          title: 'Datenschutzerklärung',
-          body: this.getPrivacyContent()
-        },
-        imprint: {
-          title: 'Impressum',
-          body: this.getImprintContent()
-        },
-        terms: {
-          title: 'Nutzungsbedingungen',
-          body: this.getTermsContent()
-        },
-        faq: {
-          title: 'Häufig gestellte Fragen',
-          body: this.getFAQContent()
-        }
-      };
-
-      return contents[type] || null;
-    },
-
-    // Fallback-Modal erstellen falls HTML fehlt
-    createFallbackModal() {
-      const modalHTML = `
-        <div id="legalModal" class="modal-overlay" aria-hidden="true" style="
-          display: none;
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: rgba(0,0,0,0.8);
-          z-index: 9999;
-          opacity: 0;
-          transition: opacity 0.3s ease;
-        ">
-          <div class="modal-container" role="dialog" aria-modal="true" aria-labelledby="modalTitle" style="
-            position: relative;
-            background: white;
-            margin: 2rem auto;
-            padding: 0;
-            max-width: 800px;
-            max-height: 90vh;
-            border-radius: 8px;
-            overflow: hidden;
-            transform: translateY(-50px);
-            transition: transform 0.3s ease;
-          ">
-            <div class="modal-header" style="
-              padding: 1.5rem;
-              border-bottom: 1px solid #eee;
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-            ">
-              <h2 id="modalTitle" class="modal-title" style="margin: 0; color: #333;"></h2>
-              <button class="modal-close" aria-label="Modal schließen" style="
-                background: none;
-                border: none;
-                font-size: 1.5rem;
-                cursor: pointer;
-                padding: 0.5rem;
-                border-radius: 4px;
-                color: #666;
-              ">&times;</button>
-            </div>
-            <div class="modal-content" style="
-              max-height: calc(90vh - 140px);
-              overflow-y: auto;
-            ">
-              <div id="modalBody" class="modal-body" style="
-                padding: 1.5rem;
-                line-height: 1.6;
-                color: #444;
-              "></div>
-            </div>
-            <div class="modal-footer" style="
-              padding: 1rem 1.5rem;
-              border-top: 1px solid #eee;
-              text-align: right;
-            ">
-              <button class="btn btn-primary modal-close-btn" style="
-                background: #007cba;
-                color: white;
-                border: none;
-                padding: 0.5rem 1rem;
-                border-radius: 4px;
-                cursor: pointer;
-              ">Verstanden</button>
-            </div>
-          </div>
-        </div>
-
-        <style>
-          .modal-overlay.show {
-            display: block !important;
-            opacity: 1 !important;
-          }
-          .modal-overlay.show .modal-container {
-            transform: translateY(0) !important;
-          }
-          .modal-close:hover, .modal-close-btn:hover {
-            background-color: rgba(0,0,0,0.1) !important;
-          }
-        </style>
-      `;
-
-      document.body.insertAdjacentHTML('beforeend', modalHTML);
-      
-      // Neue Referenzen setzen
-      this.overlay = document.getElementById('legalModal');
-      this.container = this.overlay.querySelector('.modal-container');
-      this.title = document.getElementById('modalTitle');
-      this.body = document.getElementById('modalBody');
-
-      console.log('✅ Fallback-Modal erstellt');
-    },
-
-    // Fallback-System für kritische Fehler
-    setupFallbackSystem() {
-      window.LegalModal = {
-        show: (type) => this.showFallback(type),
-        close: () => console.log('Fallback close called')
-      };
-    },
-
-    // Einfacher Alert-Fallback
-    showFallback(type) {
-      const titles = {
-        privacy: 'Datenschutzerklärung',
-        imprint: 'Impressum',
-        terms: 'Nutzungsbedingungen',
-        faq: 'FAQ'
-      };
-
-      const content = this.getContent(type);
-      if (content) {
-        // Einfaches Text-Modal
-        alert(`${content.title}\n\n${content.body.replace(/<[^>]*>/g, '\n').replace(/\n+/g, '\n').trim()}`);
-      } else {
-        alert(`${titles[type] || 'Information'}\n\nDie Informationen werden geladen. Bitte versuchen Sie es erneut.`);
-      }
-    },
-
-    // Content-Generierung bleibt gleich...
-    getPrivacyContent() {
-      return `
-        <h3>1. Datenverarbeitung</h3>
-        <p>Diese QR Code PWA verarbeitet Ihre Daten ausschließlich lokal in Ihrem Browser. Es werden keine personenbezogenen Daten an externe Server übertragen.</p>
         
-        <h3>2. Lokale Speicherung</h3>
-        <p>Folgende Daten werden lokal in Ihrem Browser gespeichert:</p>
-        <ul>
-          <li>QR Code-Verlauf und generierte Codes</li>
-          <li>Anwendungseinstellungen (Theme, Präferenzen)</li>
-          <li>Upload-Cache für offline Funktionalität</li>
-        </ul>
-        
-        <h3>3. Kamera-Zugriff</h3>
-        <p>Für das Scannen von QR Codes benötigen wir Zugriff auf Ihre Gerätekamera. Die Kamerabilder werden nicht gespeichert oder übertragen.</p>
-        
-        <h3>4. Externe Bibliotheken</h3>
-        <p>Diese App nutzt folgende externe Bibliotheken:</p>
-        <ul>
-          <li>QRCode.js - für die QR Code-Generierung</li>
-          <li>html5-qrcode - für das Scannen von QR Codes</li>
-        </ul>
-        
-        <h3>5. Ihre Rechte</h3>
-        <p>Sie können jederzeit:</p>
-        <ul>
-          <li>Den Verlauf in den Einstellungen löschen</li>
-          <li>Den Browser-Cache leeren</li>
-          <li>Die App deinstallieren</li>
-        </ul>
-        
-        <p><strong>Stand:</strong> Juli 2025</p>
-      `;
-    },
-
-    getImprintContent() {
-      return `
-        <h3>Angaben gemäß § 5 TMG</h3>
-        <p>
-          <strong>[Ihr Name]</strong><br>
-          [Ihre Adresse]<br>
-          [PLZ Ort]<br>
-          Deutschland
-        </p>
-        
-        <h3>Kontakt</h3>
-        <p>
-          E-Mail: [ihre-email@domain.de]<br>
-          Telefon: [Telefonnummer] (optional)
-        </p>
-        
-        <h3>Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV</h3>
-        <p>
-          [Ihr Name]<br>
-          [Ihre Adresse]<br>
-          [PLZ Ort]
-        </p>
-        
-        <h3>Haftungsausschluss</h3>
-        <p>Die Inhalte unserer Seiten wurden mit größter Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte können wir jedoch keine Gewähr übernehmen.</p>
-        
-        <p><strong>Stand:</strong> Juli 2025</p>
-      `;
-    },
-
-    getTermsContent() {
-      return `
-        <h3>1. Geltungsbereich</h3>
-        <p>Diese Nutzungsbedingungen gelten für die Verwendung der QR Pro PWA.</p>
-        
-        <h3>2. Nutzungsrechte</h3>
-        <p>Die Nutzung dieser Anwendung ist kostenlos. Sie erhalten ein nicht-übertragbares Recht zur persönlichen Nutzung.</p>
-        
-        <h3>3. Einschränkungen</h3>
-        <p>Es ist untersagt:</p>
-        <ul>
-          <li>Die App für illegale Zwecke zu nutzen</li>
-          <li>Den Quellcode zu dekompilieren oder zu reverse-engineeren</li>
-          <li>Die App kommerziell weiterzuvertreiben ohne Lizenz</li>
-        </ul>
-        
-        <h3>4. Haftungsbeschränkung</h3>
-        <p>Die Nutzung erfolgt auf eigene Verantwortung. Wir übernehmen keine Haftung für Schäden, die durch die Nutzung entstehen.</p>
-        
-        <h3>5. Verfügbarkeit</h3>
-        <p>Wir bemühen uns um eine hohe Verfügbarkeit, können diese jedoch nicht garantieren.</p>
-        
-        <p><strong>Stand:</strong> Juli 2025</p>
-      `;
-    },
-
-    getFAQContent() {
-      return `
-        <h3>Allgemeine Fragen</h3>
-        <p><strong>Ist die App kostenfrei?</strong><br>
-        Ja, QR Pro ist komplett kostenfrei nutzbar.</p>
-        
-        <p><strong>Funktioniert die App offline?</strong><br>
-        Ja, dank PWA-Technologie können Sie QR Codes auch ohne Internetverbindung generieren.</p>
-        
-        <h3>QR Code-Generierung</h3>
-        <p><strong>Welche QR Code-Typen werden unterstützt?</strong><br>
-        Text, URLs, E-Mail, Telefon, WLAN, vCard und mehr.</p>
-        
-        <p><strong>Kann ich Logos hinzufügen?</strong><br>
-        Ja, Sie können Logos per Drag & Drop hinzufügen und die Größe anpassen.</p>
-        
-        <h3>Scanning</h3>
-        <p><strong>Warum funktioniert der Scanner nicht?</strong><br>
-        Stellen Sie sicher, dass Sie Kamera-Zugriff gewährt haben und der QR Code gut beleuchtet ist.</p>
-        
-        <h3>Daten & Privatsphäre</h3>
-        <p><strong>Werden meine QR Codes gespeichert?</strong><br>
-        Nur lokal in Ihrem Browser. Keine Daten werden an externe Server gesendet.</p>
-        
-        <p><strong>Wie lösche ich den Verlauf?</strong><br>
-        In den Einstellungen finden Sie die Option "Verlauf löschen".</p>
-        
-        <h3>Installation</h3>
-        <p><strong>Wie installiere ich die PWA?</strong><br>
-        Klicken Sie auf "Zur Startseite hinzufügen" in Ihrem Browser oder das Installations-Icon.</p>
-      `;
+        this.announceToScreenReader('Modal geschlossen');
     }
-  };
-
-  // Auto-Initialisierung mit verschiedenen Strategien
-  function initializeLegalModal() {
-    try {
-      LegalModal.init();
-    } catch (error) {
-      console.error('❌ LegalModal Auto-Init Fehler:', error);
-      // Retry nach kurzer Verzögerung
-      setTimeout(() => {
-        try {
-          LegalModal.init();
-        } catch (retryError) {
-          console.error('❌ LegalModal Retry-Init Fehler:', retryError);
-          LegalModal.setupFallbackSystem();
-        }
-      }, 1000);
+    
+    switchContent(contentType) {
+        const content = this.content[contentType];
+        if (!content) return;
+        
+        // Navigation aktualisieren
+        document.querySelectorAll('.legal-nav-item').forEach(item => {
+            const isActive = item.dataset.content === contentType;
+            item.classList.toggle('active', isActive);
+            item.setAttribute('aria-selected', isActive.toString());
+        });
+        
+        // Header aktualisieren
+        const title = document.getElementById('legal-modal-title');
+        const subtitle = document.getElementById('legal-modal-subtitle');
+        const icon = document.querySelector('.modal-icon');
+        
+        if (title) title.textContent = content.title;
+        if (subtitle) subtitle.textContent = content.subtitle;
+        if (icon) icon.textContent = content.icon;
+        
+        // Content rendern
+        this.renderContent(content, contentType);
+        
+        // Scroll to top
+        const contentWrapper = document.querySelector('.legal-content-wrapper');
+        if (contentWrapper) contentWrapper.scrollTop = 0;
+        
+        this.announceToScreenReader(`${content.title} Inhalte geladen`);
     }
-  }
+    
+    renderContent(content, contentType) {
+        const wrapper = document.querySelector('.legal-content-wrapper');
+        if (!wrapper) return;
+        
+        const sectionsHTML = content.sections.map((section, index) => `
+            <section class="legal-section" id="section-${contentType}-${index}">
+                <header class="section-header">
+                    <h3 class="section-title">${section.title}</h3>
+                </header>
+                <div class="section-content">
+                    ${section.content}
+                </div>
+            </section>
+        `).join('');
+        
+        const contentHTML = `
+            <div class="legal-content" 
+                 role="tabpanel" 
+                 aria-labelledby="${contentType}-tab"
+                 id="${contentType}-panel">
+                <div class="content-header">
+                    <div class="content-icon">${content.icon}</div>
+                    <div class="content-title-section">
+                        <h2 class="content-title">${content.title}</h2>
+                        <p class="content-subtitle">${content.subtitle}</p>
+                    </div>
+                </div>
+                
+                <div class="sections-container">
+                    ${sectionsHTML}
+                </div>
+            </div>
+        `;
+        
+        wrapper.innerHTML = contentHTML;
+        
+        // Animationen für Sections starten
+        this.animateSections();
+    }
+    
+    animateSections() {
+        const sections = document.querySelectorAll('.legal-section');
+        sections.forEach((section, index) => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                section.style.transition = 'all 0.3s ease';
+                section.style.opacity = '1';
+                section.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+    }
+    
+    handleTabNavigation(e) {
+        const focusableElements = this.modal.querySelectorAll(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+        
+        if (e.shiftKey) {
+            if (document.activeElement === firstElement) {
+                e.preventDefault();
+                lastElement.focus();
+            }
+        } else {
+            if (document.activeElement === lastElement) {
+                e.preventDefault();
+                firstElement.focus();
+            }
+        }
+    }
+    
+    navigateWithArrows(direction) {
+        const navItems = Array.from(document.querySelectorAll('.legal-nav-item'));
+        const currentIndex = navItems.findIndex(item => item.classList.contains('active'));
+        let newIndex = currentIndex + direction;
+        
+        if (newIndex < 0) newIndex = navItems.length - 1;
+        if (newIndex >= navItems.length) newIndex = 0;
+        
+        navItems[newIndex].click();
+        navItems[newIndex].focus();
+    }
+    
+    print() {
+        const content = document.querySelector('.legal-content-wrapper').innerHTML;
+        const printWindow = window.open('', '_blank');
+        
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>QR Generator - Rechtliche Informationen</title>
+                <style>
+                    body { font-family: system-ui, -apple-system, sans-serif; margin: 2rem; line-height: 1.6; }
+                    .legal-section { margin-bottom: 2rem; page-break-inside: avoid; }
+                    .section-title { color: #1f2937; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; }
+                    .info-highlight, .feature-highlight, .terms-highlight { 
+                        background: #f3f4f6; padding: 1rem; border-radius: 8px; margin: 1rem 0; 
+                    }
+                    .rights-grid, .legal-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+                    @media print { body { margin: 1rem; font-size: 12pt; } }
+                </style>
+            </head>
+            <body>
+                <h1>QR Generator - Rechtliche Informationen</h1>
+                ${content}
+            </body>
+            </html>
+        `);
+        
+        printWindow.document.close();
+        printWindow.print();
+    }
+    
+    getScrollbarWidth() {
+        const outer = document.createElement('div');
+        outer.style.visibility = 'hidden';
+        outer.style.overflow = 'scroll';
+        document.body.appendChild(outer);
+        
+        const inner = document.createElement('div');
+        outer.appendChild(inner);
+        
+        const scrollbarWidth = outer.offsetWidth - inner.offsetWidth;
+        outer.parentNode.removeChild(outer);
+        
+        return scrollbarWidth;
+    }
+    
+    announceToScreenReader(message) {
+        const liveRegion = document.getElementById('legal-modal-live-region');
+        if (liveRegion) {
+            liveRegion.textContent = message;
+        }
+    }
+    
+    trackModalOpen(contentType) {
+        // Optional: Analytics tracking
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'legal_modal_open', {
+                'content_type': contentType,
+                'timestamp': new Date().toISOString()
+            });
+        }
+    }
+    
+    // Public API Methods
+    showPrivacy() { this.open('privacy'); }
+    showImprint() { this.open('imprint'); }
+    showTerms() { this.open('terms'); }
+    
+    // Cleanup method
+    destroy() {
+        const modal = document.querySelector('.legal-modal-overlay');
+        const liveRegion = document.getElementById('legal-modal-live-region');
+        
+        if (modal) modal.remove();
+        if (liveRegion) liveRegion.remove();
+        
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+    }
+}
 
-  // DOM Ready Event-Handling
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeLegalModal);
-  } else {
-    // DOM bereits geladen
-    initializeLegalModal();
-  }
+// CSS für die optimierte Darstellung
+const additionalCSS = `
+/* Legal Modal Specific Styles */
+.legal-modal-overlay .modal-container {
+    max-width: 1200px;
+    min-height: 600px;
+}
 
-  // Globaler Zugriff mit Fallback
-  window.LegalModal = window.LegalModal || LegalModal;
+.legal-modal-header {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
+    padding: var(--space-24) var(--space-32);
+}
 
-  // Debugging-Funktion
-  window.debugLegalModal = () => {
-    console.log('=== LEGAL MODAL DEBUG ===');
-    console.log('Initialisiert:', LegalModal.isInitialized);
-    console.log('Overlay:', !!LegalModal.overlay);
-    console.log('Container:', !!LegalModal.container);
-    console.log('Title:', !!LegalModal.title);
-    console.log('Body:', !!LegalModal.body);
-    console.log('=========================');
-  };
+.legal-modal-body {
+    display: flex;
+    min-height: 500px;
+}
 
-})();
+.legal-nav {
+    width: 240px;
+    background: var(--color-surface);
+    border-right: 1px solid var(--color-card-border);
+    padding: var(--space-20);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.legal-nav-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-12);
+    padding: var(--space-16);
+    border: none;
+    background: none;
+    border-radius: var(--radius-base);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-standard);
+    text-align: left;
+    color: var(--color-text-secondary);
+}
+
+.legal-nav-item:hover {
+    background: var(--color-secondary);
+    color: var(--color-text);
+}
+
+.legal-nav-item.active {
+    background: var(--color-primary);
+    color: white;
+    font-weight: var(--font-weight-semibold);
+}
+
+.nav-icon {
+    font-size: var(--font-size-lg);
+}
+
+.legal-content-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-24);
+}
+
+.content-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-16);
+    margin-bottom: var(--space-32);
+    padding-bottom: var(--space-20);
+    border-bottom: 1px solid var(--color-card-border);
+}
+
+.content-icon {
+    font-size: var(--font-size-4xl);
+    opacity: 0.8;
+}
+
+.legal-section {
+    margin-bottom: var(--space-32);
+    padding: var(--space-20);
+    background: var(--color-surface);
+    border: 1px solid var(--color-card-border);
+    border-radius: var(--radius-lg);
+}
+
+.section-title {
+    color: var(--color-text);
+    margin-bottom: var(--space-16);
+    padding-bottom: var(--space-8);
+    border-bottom: 2px solid var(--color-primary);
+}
+
+.info-highlight, .feature-highlight, .terms-highlight {
+    background: linear-gradient(135deg, 
+        rgba(var(--color-primary-rgb), 0.1) 0%, 
+        rgba(var(--color-primary-rgb), 0.05) 100%);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.2);
+    border-radius: var(--radius-base);
+    padding: var(--space-16);
+    margin: var(--space-16) 0;
+}
+
+.rights-grid, .legal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-16);
+    margin: var(--space-16) 0;
+}
+
+.right-item, .legal-item {
+    padding: var(--space-16);
+    background: var(--color-background);
+    border: 1px solid var(--color-card-border);
+    border-radius: var(--radius-base);
+}
+
+.contact-card {
+    background: var(--color-background);
+    border: 1px solid var(--color-card-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-20);
+}
+
+.legal-modal-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-16) var(--space-24);
+    background: var(--color-background);
+    border-top: 1px solid var(--color-card-border);
+}
+
+.footer-actions {
+    display: flex;
+    gap: var(--space-12);
+}
+
+.last-updated {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .legal-modal-body {
+        flex-direction: column;
+    }
+    
+    .legal-nav {
+        width: 100%;
+        flex-direction: row;
+        overflow-x: auto;
+        padding: var(--space-16);
+    }
+    
+    .legal-nav-item {
+        min-width: 120px;
+        justify-content: center;
+    }
+    
+    .rights-grid, .legal-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .legal-modal-footer {
+        flex-direction: column;
+        gap: var(--space-12);
+    }
+}
+
+@media (max-width: 480px) {
+    .legal-content-area {
+        padding: var(--space-16);
+    }
+    
+    .content-header {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+`;
+
+// CSS dynamisch hinzufügen
+if (!document.querySelector('#legal-modal-styles')) {
+    const style = document.createElement('style');
+    style.id = 'legal-modal-styles';
+    style.textContent = additionalCSS;
+    document.head.appendChild(style);
+}
+
+// Global Instance
+window.LegalModal = new LegalModal();
+
+// Export für Module
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = LegalModal;
+}

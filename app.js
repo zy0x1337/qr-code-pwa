@@ -762,10 +762,10 @@ document.addEventListener('change', (e) => {
 });
 
 // Logo-Bereich Toggle-Funktionalität
-document.addEventListener('DOMContentLoaded', function() {
-    const logoToggle = document.getElementById('logo-enabled');
-    const logoContent = document.getElementById('logo-content');
-    
+const logoToggle = document.getElementById('logo-enabled');
+const logoContent = document.getElementById('logo-content');
+
+if (logoToggle && logoContent) {
     logoToggle.addEventListener('change', function() {
         if (this.checked) {
             logoContent.classList.add('active');
@@ -773,6 +773,7 @@ document.addEventListener('DOMContentLoaded', function() {
             logoContent.classList.remove('active');
         }
     });
+}
     
     // Range Slider Value Update
     const logoSizeSlider = document.getElementById('logo-size');
@@ -781,7 +782,6 @@ document.addEventListener('DOMContentLoaded', function() {
     logoSizeSlider.addEventListener('input', function() {
         logoSizeValue.textContent = this.value + '%';
     });
-});
 
     // Resize Event für responsive Anpassungen
     window.addEventListener('resize', () => {

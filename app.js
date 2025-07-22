@@ -38,9 +38,6 @@ class QRProApp {
         backgroundColor: '#ffffff'
     };
 
-    // QRCustomization-Instanz erstellen
-    this.qrCustomization = new QRCustomization(this);
-
     // Touch-Gesten Variablen
     this.touchStartX = 0;
   this.touchEndX = 0;
@@ -75,6 +72,7 @@ class QRProApp {
     this.initializeData();
     await this.loadLibraries();
     this.registerServiceWorker();
+    this.qrCustomization = new QRCustomization(this);
     this.setupQRTypeHandler();
     this.setupDashboardActions();
     await this.initializeTemplateManager();
@@ -249,24 +247,27 @@ async generateQRCode() {
 }
 
 async generateBaseQRCode(content) {
+    // Bibliothek verfügbarkeit prüfen
+    if (typeof QRCode === 'undefined') {
+        throw new Error('QR Code Bibliothek nicht verfügbar');
+    }
+    
     const qrColor = document.getElementById('qr-color')?.value || '#000000';
     const qrBgColor = document.getElementById('qr-bg-color')?.value || '#ffffff';
 
     return new Promise((resolve, reject) => {
         try {
             const canvas = document.createElement('canvas');
-            // Höhere Auflösung für bessere Qualität
             canvas.width = 400;
             canvas.height = 400;
 
-            // QR Code mit qrcode library generieren
             QRCode.toCanvas(canvas, content, {
                 width: 400,
                 color: {
                     dark: qrColor,
                     light: qrBgColor
                 },
-                errorCorrectionLevel: 'H' // Hohe Fehlerkorrektur für Logo
+                errorCorrectionLevel: 'H'
             }, (error) => {
                 if (error) {
                     reject(error);
@@ -2442,37 +2443,42 @@ async updatePreview() {
 
   async loadLibraries() {
     try {
-        // Verhindere mehrfaches Laden
-        if (window.QRCode && this.librariesLoaded) {
-            console.log('✅ Libraries already loaded');
-            return;
-        }
-
-        console.log('📚 Loading QRCode library...');
-        
-        // QRCode.js für Generierung laden - KORREKTE URL
-        if (!window.QRCode) {
-            await this.loadScript('https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js');
+        // QR Code Bibliothek prüfen
+        if (typeof QRCode === 'undefined') {
+            console.log('QR Code Bibliothek wird geladen...');
+            await this.loadQRCodeLibrary();
         }
         
-        // Html5Qrcode für Scanning (bereits verfügbar)
-        if (!window.Html5Qrcode) {
-            await this.loadScript('https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js');
+        // HTML5 QR Code Scanner prüfen
+        if (typeof Html5Qrcode === 'undefined') {
+            await this.loadScannerLibrary();
         }
         
-        // Prüfen ob QRCode verfügbar ist
-        if (typeof window.QRCode !== 'undefined') {
-            console.log('✅ QRCode library loaded successfully');
-            console.log('QRCode methods:', Object.keys(window.QRCode));
-            this.librariesLoaded = true;
-        } else {
-            throw new Error('QRCode library not available after loading');
-        }
+        this.librariesLoaded = true;
+        console.log('Alle Bibliotheken erfolgreich geladen');
         
     } catch (error) {
-        console.error('❌ Failed to load libraries:', error);
-        this.showToast('QR-Bibliotheken konnten nicht geladen werden', 'error');
+        console.error('Fehler beim Laden der Bibliotheken:', error);
+        this.showToast('Fehler beim Laden der QR Code Bibliotheken', 'error');
     }
+}
+
+async loadQRCodeLibrary() {
+    return new Promise((resolve, reject) => {
+        if (typeof QRCode !== 'undefined') {
+            resolve();
+            return;
+        }
+        
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+        script.onload = () => {
+            console.log('QR Code Bibliothek geladen');
+            resolve();
+        };
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
 }
 
 loadScript(src) {

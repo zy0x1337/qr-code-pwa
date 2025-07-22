@@ -243,7 +243,7 @@ setupLogoEventListenersSecure() {
     console.log('✅ Alle Logo Event-Listener erfolgreich gesetzt');
 }
 
-// BACKUP: Event-Delegation für den gesamten Logo-Bereich
+// Event-Delegation für den gesamten Logo-Bereich
 setupLogoEventDelegation() {
     document.addEventListener('click', (e) => {
         // Logo Upload Zone
@@ -506,7 +506,7 @@ removeLogo() {
 
 // Logo-Größe aktualisieren
 updateLogoSize(size) {
-    if (this.currentLogo) {
+    if (this.currentLogo && size >= 10 && size <= 30) {
         this.currentLogo.size = size;
         this.updatePreview();
         
@@ -524,8 +524,11 @@ updateLogoSize(size) {
 updateLogoPosition(position) {
     if (this.currentLogo) {
         this.currentLogo.position = position;
-        this.updatePreview();
-        this.showToast(`📍 Position: ${this.getPositionLabel(position)}`, 'info', 1500);
+        // Verzögertes Update für bessere Performance
+        clearTimeout(this.previewTimeout);
+        this.previewTimeout = setTimeout(() => {
+            this.updatePreview();
+        }, 100);
     }
 }
 

@@ -6842,9 +6842,10 @@ input:checked + .toggle-slider:before {
 }
 
 .logo-content.active {
-  max-height: 800px; /* Ausreichend hoch für alle Inhalte */
+  max-height: 400px;
   opacity: 1;
-  padding: var(--space-24);
+  overflow-y: auto;
+  padding: var(--space-20);
 }
 
 /* Enhanced Upload Area */

@@ -340,12 +340,12 @@
         alert(`${titles[type] || 'Information'}\n\nDie Informationen werden geladen. Bitte versuchen Sie es erneut.`);
       }
     },
-    
+
     getPrivacyContent() {
     return `
         <div class="legal-content">
             <div class="legal-header">
-                <p class="legal-date"><strong>Stand:</strong> ${new Date().toLocaleDateString('de-DE')} | <strong>Version:</strong> 2.0</p>
+                <p class="legal-date"><strong>Stand:</strong> ${new Date().toLocaleDateString('de-DE')} | <strong>Version:</strong> 1.0</p>
             </div>
 
             <div class="legal-section">
@@ -356,10 +356,10 @@
             <div class="legal-section">
                 <h3>🛡️ Datenschutz-Prinzipien</h3>
                 <ul class="legal-list">
-                    <li><strong>Privacy by Design:</strong> Datenschutz ist von Anfang an eingebaut</li>
-                    <li><strong>Lokale Verarbeitung:</strong> Alle Operationen erfolgen in Ihrem Browser</li>
-                    <li><strong>Keine Tracking:</strong> Wir verfolgen Sie nicht und erstellen keine Profile</li>
-                    <li><strong>Minimale Datenerhebung:</strong> Nur notwendige Daten werden verarbeitet</li>
+                    <strong>Privacy by Design:</strong> Datenschutz ist von Anfang an eingebaut
+                    <strong>Lokale Verarbeitung:</strong> Alle Operationen erfolgen in Ihrem Browser
+                    <strong>Keine Tracking:</strong> Wir verfolgen Sie nicht und erstellen keine Profile
+                    <strong>Minimale Datenerhebung:</strong> Nur notwendige Daten werden verarbeitet
                 </ul>
             </div>
 
@@ -367,11 +367,11 @@
                 <h3>💾 Lokale Datenspeicherung</h3>
                 <p>Folgende Daten werden <strong>ausschließlich lokal</strong> in Ihrem Browser gespeichert:</p>
                 <ul class="legal-list">
-                    <li><strong>QR Code Verlauf:</strong> Von Ihnen generierte QR Codes</li>
-                    <li><strong>Scan-Verlauf:</strong> Gescannte QR Code Inhalte</li>
-                    <li><strong>App-Einstellungen:</strong> Design-Präferenzen, Benachrichtigungseinstellungen</li>
-                    <li><strong>Temporäre Daten:</strong> QR Code Vorschaubilder, Upload-Cache</li>
-                    <li><strong>Service Worker Cache:</strong> App-Dateien für Offline-Funktionalität</li>
+                    <strong>QR Code Verlauf:</strong> Von Ihnen generierte QR Codes
+                    <strong>Scan-Verlauf:</strong> Gescannte QR Code Inhalte
+                    <strong>App-Einstellungen:</strong> Design-Präferenzen, Benachrichtigungseinstellungen
+                    <strong>Temporäre Daten:</strong> QR Code Vorschaubilder, Upload-Cache
+                    <strong>Service Worker Cache:</strong> App-Dateien für Offline-Funktionalität
                 </ul>
                 <div class="legal-note">
                     <strong>💡 Hinweis:</strong> Diese Daten bleiben auf Ihrem Gerät und können jederzeit über die App-Einstellungen oder Browser-Einstellungen gelöscht werden.
@@ -382,10 +382,10 @@
                 <h3>📷 Kamera-Zugriff</h3>
                 <p>Für die QR Code Scanner-Funktionalität benötigen wir Zugriff auf Ihre Gerätekamera:</p>
                 <ul class="legal-list">
-                    <li><strong>Zweck:</strong> Ausschließlich zum Scannen von QR Codes</li>
-                    <li><strong>Verarbeitung:</strong> Live-Stream für Echtzeit-Erkennung</li>
-                    <li><strong>Speicherung:</strong> Kamerabilder werden <strong>niemals gespeichert</strong></li>
-                    <li><strong>Kontrolle:</strong> Sie können den Kamera-Zugriff jederzeit widerrufen</li>
+                    <strong>Zweck:</strong> Ausschließlich zum Scannen von QR Codes
+                    <strong>Verarbeitung:</strong> Live-Stream für Echtzeit-Erkennung
+                    <strong>Speicherung:</strong> Kamerabilder werden <strong>niemals gespeichert</strong>
+                    <strong>Kontrolle:</strong> Sie können den Kamera-Zugriff jederzeit widerrufen
                 </ul>
                 <div class="legal-warning">
                     ⚠️ <strong>Wichtig:</strong> Ohne Kamera-Berechtigung kann die Scanner-Funktion nicht verwendet werden.
@@ -434,10 +434,10 @@
                 <h3>🌐 Progressive Web App (PWA) Funktionen</h3>
                 <p>Als PWA nutzt diese App erweiterte Browser-Funktionen:</p>
                 <ul class="legal-list">
-                    <li><strong>Service Worker:</strong> Für Offline-Funktionalität und Caching</li>
-                    <li><strong>Web App Manifest:</strong> Für Installation auf dem Startbildschirm</li>
-                    <li><strong>LocalStorage/IndexedDB:</strong> Für lokale Datenspeicherung</li>
-                    <li><strong>Push Notifications:</strong> Nur bei expliziter Zustimmung</li>
+                    <strong>Service Worker:</strong> Für Offline-Funktionalität und Caching
+                    <strong>Web App Manifest:</strong> Für Installation auf dem Startbildschirm
+                    <strong>LocalStorage/IndexedDB:</strong> Für lokale Datenspeicherung
+                    <strong>Push Notifications:</strong> Nur bei expliziter Zustimmung
                 </ul>
             </div>
 
@@ -468,10 +468,10 @@
                 <h3>🔒 Sicherheit</h3>
                 <p>Wir setzen folgende Sicherheitsmaßnahmen ein:</p>
                 <ul class="legal-list">
-                    <li><strong>HTTPS-Verschlüsselung:</strong> Sichere Datenübertragung</li>
-                    <li><strong>Content Security Policy:</strong> Schutz vor Code-Injection</li>
-                    <li><strong>Same-Origin Policy:</strong> Isolierung der App-Daten</li>
-                    <li><strong>Sichere Storage APIs:</strong> Verschlüsselte lokale Speicherung</li>
+                    <strong>HTTPS-Verschlüsselung:</strong> Sichere Datenübertragung
+                    <strong>Content Security Policy:</strong> Schutz vor Code-Injection
+                    <strong>Same-Origin Policy:</strong> Isolierung der App-Daten
+                    <strong>Sichere Storage APIs:</strong> Verschlüsselte lokale Speicherung
                 </ul>
             </div>
 
@@ -510,34 +510,183 @@
 },
 
     getImprintContent() {
-      return `
-        <h3>Angaben gemäß § 5 TMG</h3>
-        <p>
-          <strong>[Ihr Name]</strong><br>
-          [Ihre Adresse]<br>
-          [PLZ Ort]<br>
-          Deutschland
-        </p>
-        
-        <h3>Kontakt</h3>
-        <p>
-          E-Mail: [ihre-email@domain.de]<br>
-          Telefon: [Telefonnummer] (optional)
-        </p>
-        
-        <h3>Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV</h3>
-        <p>
-          [Ihr Name]<br>
-          [Ihre Adresse]<br>
-          [PLZ Ort]
-        </p>
-        
-        <h3>Haftungsausschluss</h3>
-        <p>Die Inhalte unserer Seiten wurden mit größter Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte können wir jedoch keine Gewähr übernehmen.</p>
-        
-        <p><strong>Stand:</strong> Juli 2025</p>
-      `;
-    },
+    return `
+        <div class="legal-content">
+            <div class="legal-header">
+                <p class="legal-date"><strong>Stand:</strong> ${new Date().toLocaleDateString('de-DE')} | <strong>Gültig ab:</strong> Juli 2025</p>
+            </div>
+
+            <div class="legal-section">
+                <h3>📍 Anbieter</h3>
+                <div class="contact-card">
+                    <div class="contact-info">
+                        <p class="company-name"><strong>QR Pro Development</strong></p>
+                        <p class="contact-line">Max Mustermann</p>
+                        <p class="contact-line">Musterstraße 123</p>
+                        <p class="contact-line">12345 Musterstadt</p>
+                        <p class="contact-line">Deutschland</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="legal-section">
+                <h3>📞 Kontaktdaten</h3>
+                <div class="contact-grid">
+                    <div class="contact-item">
+                        <span class="contact-icon">📧</span>
+                        <div class="contact-details">
+                            <p><strong>E-Mail:</strong></p>
+                            <p><a href="mailto:kontakt@qr-pro.app">kontakt@qr-pro.app</a></p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-icon">🌐</span>
+                        <div class="contact-details">
+                            <p><strong>Website:</strong></p>
+                            <p>qr-pro.app</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-icon">⏰</span>
+                        <div class="contact-details">
+                            <p><strong>Erreichbarkeit:</strong></p>
+                            <p>Montag - Freitag, 9:00 - 17:00 Uhr</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="legal-section">
+                <h3>⚖️ Rechtliche Hinweise</h3>
+                <div class="legal-disclaimer">
+                    <div class="disclaimer-item">
+                        <h4>🔍 Inhaltliche Verantwortung</h4>
+                        <p>Die Inhalte unserer Anwendung wurden mit größter Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte können wir jedoch keine Gewähr übernehmen. Als Diensteanbieter sind wir gemäß § 7 Abs.1 TMG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich.</p>
+                    </div>
+                    
+                    <div class="disclaimer-item">
+                        <h4>🔗 Externe Links</h4>
+                        <p>Diese App kann Links zu externen Websites Dritter enthalten, auf deren Inhalte wir keinen Einfluss haben. Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber der Seiten verantwortlich.</p>
+                    </div>
+                    
+                    <div class="disclaimer-item">
+                        <h4>📱 App-Funktionalität</h4>
+                        <p>Wir bemühen uns um eine kontinuierliche Verfügbarkeit der App, können jedoch keine hundertprozentige Verfügbarkeit garantieren. Die Nutzung erfolgt auf eigene Verantwortung. Für durch die Nutzung entstehende Schäden übernehmen wir keine Haftung.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="legal-section">
+                <h3>🏛️ Rechtlicher Rahmen</h3>
+                <div class="legal-framework">
+                    <div class="framework-grid">
+                        <div class="framework-item">
+                            <strong>🇩🇪 Geltendes Recht</strong>
+                            <p>Es gilt das Recht der Bundesrepublik Deutschland</p>
+                        </div>
+                        <div class="framework-item">
+                            <strong>🏢 Gerichtsstand</strong>
+                            <p>Gerichtsstand ist Musterstadt, Deutschland</p>
+                        </div>
+                        <div class="framework-item">
+                            <strong>📋 Rechtsgrundlage</strong>
+                            <p>Dieses Impressum entspricht den Anforderungen nach § 5 TMG und § 55 RStV</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="legal-section">
+                <h3>🛡️ Urheberrecht</h3>
+                <div class="copyright-notice">
+                    <p>Die durch die App-Betreiber erstellten Inhalte und Werke unterliegen dem deutschen Urheberrecht. Die Vervielfältigung, Bearbeitung, Verbreitung und jede Art der Verwertung außerhalb der Grenzen des Urheberrechtes bedürfen der schriftlichen Zustimmung des jeweiligen Autors bzw. Erstellers.</p>
+                    
+                    <div class="copyright-details">
+                        <div class="copyright-item">
+                            <strong>©️ App-Design & Code:</strong>
+                            <span>QR Pro Development ${new Date().getFullYear()}</span>
+                        </div>
+                        <div class="copyright-item">
+                            <strong>📦 Externe Bibliotheken:</strong>
+                            <span>Unterliegen den jeweiligen Open-Source-Lizenzen</span>
+                        </div>
+                        <div class="copyright-item">
+                            <strong>🎨 Icons & Grafiken:</strong>
+                            <span>Lizenzfrei oder mit entsprechender Lizenz verwendet</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="legal-section">
+                <h3>🔧 Technische Informationen</h3>
+                <div class="tech-info">
+                    <div class="tech-grid">
+                        <div class="tech-item">
+                            <strong>💻 Technologie:</strong>
+                            <p>Progressive Web App (PWA)</p>
+                        </div>
+                        <div class="tech-item">
+                            <strong>🌍 Hosting:</strong>
+                            <p>GitHub Pages / CDN</p>
+                        </div>
+                        <div class="tech-item">
+                            <strong>📊 Analytics:</strong>
+                            <p>Keine Tracking-Tools verwendet</p>
+                        </div>
+                        <div class="tech-item">
+                            <strong>🔒 Sicherheit:</strong>
+                            <p>HTTPS-Verschlüsselung</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="legal-section">
+                <h3>📝 Streitbeilegung</h3>
+                <div class="dispute-resolution">
+                    <p>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit:</p>
+                    <p class="os-link"><a href="https://ec.europa.eu/consumers/odr/" target="_blank" rel="noopener">https://ec.europa.eu/consumers/odr/</a></p>
+                    
+                    <div class="dispute-notice">
+                        <p><strong>📋 Hinweis:</strong> Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="legal-section">
+                <h3>🆔 Identifikation</h3>
+                <div class="identification-info">
+                    <p><strong>Umsatzsteuer-Identifikationsnummer:</strong> DE123456789 <em>(falls zutreffend)</em></p>
+                    <p><strong>Registergericht:</strong> Amtsgericht Musterstadt <em>(falls zutreffend)</em></p>
+                    <p><strong>Registernummer:</strong> HRB 12345 <em>(falls zutreffend)</em></p>
+                    
+                    <div class="legal-note">
+                        <strong>💡 Hinweis:</strong> Falls Sie Privatperson sind, entfernen Sie die Angaben zu Umsatzsteuer-ID und Registereintragung.
+                    </div>
+                </div>
+            </div>
+
+            <div class="legal-footer">
+                <div class="footer-summary">
+                    <strong>📋 Zusammenfassung:</strong>
+                    Dieses Impressum erfüllt die deutschen Rechtsvorgaben nach TMG und RStV. Alle Angaben sind wahrheitsgemäß und vollständig. Bei Fragen kontaktieren Sie uns über die angegebenen Kontaktdaten.
+                </div>
+                
+                <div class="footer-update">
+                    <p class="legal-timestamp">Letzte Aktualisierung: ${new Date().toLocaleDateString('de-DE', { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })}</p>
+                    <p class="legal-version">Version: 2.0 | Gültigkeitsdauer: Unbegrenzt bis zur nächsten Änderung</p>
+                </div>
+            </div>
+        </div>
+    `;
+},
 
     getTermsContent() {
       return `

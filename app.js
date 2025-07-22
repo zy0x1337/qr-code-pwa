@@ -4549,26 +4549,35 @@ class QRCustomization {
         this.renderBgColorPresets();
         
         // Event Listeners für Hintergrund-Presets
-        const bgPresetsElement = bgPresetsContainer.querySelector('.bg-color-presets');
-        bgPresetsElement.addEventListener('click', (e) => {
-            if (e.target.classList.contains('bg-color-preset')) {
-                const color = e.target.dataset.color;
-                this.selectBgColorPreset(e.target, color);
-            }
-        });
+const bgPresetsElement = bgPresetsContainer.querySelector('.bg-color-presets');
+// Entferne vorherigen Listener falls vorhanden
+bgPresetsElement.removeEventListener('click', this.bgPresetsClickHandler);
+// Definiere Handler als Klassenmethode für wiederverwendbare Referenz
+this.bgPresetsClickHandler = (e) => {
+    if (e.target.classList.contains('bg-color-preset')) {
+        const color = e.target.dataset.color;
+        this.selectBgColorPreset(e.target, color);
+    }
+};
+bgPresetsElement.addEventListener('click', this.bgPresetsClickHandler);
 
-        // Category Selector für Hintergrundfarben
-        const bgCategorySelect = bgPresetsContainer.querySelector('.bg-category-select');
-        bgCategorySelect.addEventListener('change', (e) => {
-            this.currentBgCategory = e.target.value;
-            this.renderBgColorPresets();
-        });
+// Category Selector für Hintergrundfarben
+const bgCategorySelect = bgPresetsContainer.querySelector('.bg-category-select');
+// Entferne vorherigen Listener
+bgCategorySelect.removeEventListener('change', this.bgCategoryChangeHandler);
+this.bgCategoryChangeHandler = (e) => {
+    this.currentBgCategory = e.target.value;
+    this.renderBgColorPresets();
+};
+bgCategorySelect.addEventListener('change', this.bgCategoryChangeHandler);
 
-        const qrBgColorInput = document.getElementById('qr-bg-color');
-        if (qrBgColorInput) {
-            qrBgColorInput.addEventListener('input', () => {
-                this.updateBgColorFromInput();
-            });
+const qrBgColorInput = document.getElementById('qr-bg-color');
+if (qrBgColorInput) {
+    qrBgColorInput.removeEventListener('input', this.bgColorInputHandler);
+    this.bgColorInputHandler = () => {
+        this.updateBgColorFromInput();
+    };
+    qrBgColorInput.addEventListener('input', this.bgColorInputHandler);
         }
     }
 
@@ -6028,18 +6037,6 @@ document.addEventListener('DOMContentLoaded', () => {
             window.qrCustomization.integrateWithMainApp(window.qrApp);
         }
     }, 500);
-});
-
-// Sofortige Bereinigung beim Laden der Seite
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(() => {
-        const duplicates = document.querySelectorAll('.background-section');
-        if (duplicates.length > 1) {
-            for (let i = 1; i < duplicates.length; i++) {
-                duplicates[i].style.display = 'none';
-            }
-        }
-    }, 100);
 });
 
 /**

@@ -330,15 +330,16 @@ setupLogoEventDelegation() {
 
 // Toggle Logo-Sektion
 toggleLogoSection(enabled) {
+    this.logoEnabled = enabled;
     const logoContent = document.getElementById('logo-content');
     if (logoContent) {
         if (enabled) {
-            logoContent.style.maxHeight = logoContent.scrollHeight + 'px';
-            logoContent.style.opacity = '1';
+            logoContent.style.display = 'block';
             logoContent.classList.add('active');
+            // Event-Listener neu setzen für dynamisch angezeigte Elemente
+            setTimeout(() => this.setupLogoEventListenersSecure(), 100);
         } else {
-            logoContent.style.maxHeight = '0px';
-            logoContent.style.opacity = '0';
+            logoContent.style.display = 'none';
             logoContent.classList.remove('active');
             this.removeLogo();
         }

@@ -159,27 +159,56 @@ handleLogoUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Datei-Validierung
+    console.log('📁 Logo-Datei ausgewählt:', file.name, file.type, file.size);
+
+    // Validierung
     if (!file.type.startsWith('image/')) {
         this.showToast('Bitte wählen Sie eine Bilddatei aus', 'error');
         return;
     }
 
-    if (file.size > 5 * 1024 * 1024) { // 5MB Limit
+    if (file.size > 5 * 1024 * 1024) {
         this.showToast('Logo-Datei ist zu groß (max. 5MB)', 'error');
         return;
     }
 
     const reader = new FileReader();
     reader.onload = (e) => {
-        this.displayLogoPreview(e.target.result);
-        this.currentLogo = {
-            data: e.target.result,
-            file: file
+        const img = new Image();
+        img.onload = () => {
+            // WICHTIG: currentLogo korrekt setzen
+            this.currentLogo = {
+                data: e.target.result,
+                width: img.width,
+                height: img.height,
+                file: file,
+                size: 20 // Standard-Größe 20%
+            };
+            
+            console.log('✅ Logo erfolgreich geladen:', this.currentLogo);
+            
+            this.displayLogoPreview(e.target.result);
+            this.showLogoControls();
+            
+            // SOFORTIGER Preview-Update
+            this.updatePreview();
+            
+            this.showToast('📷 Logo erfolgreich hinzugefügt!', 'success');
         };
-        this.showLogoControls();
-        this.updatePreview();
+        
+        img.onerror = () => {
+            console.error('❌ Logo-Image konnte nicht geladen werden');
+            this.showToast('Logo-Bild konnte nicht geladen werden', 'error');
+        };
+        
+        img.src = e.target.result;
     };
+    
+    reader.onerror = () => {
+        console.error('❌ Datei konnte nicht gelesen werden');
+        this.showToast('Datei konnte nicht gelesen werden', 'error');
+    };
+    
     reader.readAsDataURL(file);
 }
 
@@ -2057,21 +2086,11 @@ saveSettings() {
         return;
     }
 
-    // Tageslimit prüfen für Free-User
-    if (this.userTier === 'free' && this.dailyQRCount >= this.dailyLimit) {
-        this.showToast(`Tageslimit erreicht (${this.dailyLimit} QR Codes)`, 'error');
-        return;
-    }
-
-    // Sicherstellen, dass QRCode-Bibliothek verfügbar ist
     if (!window.QRCode) {
         console.log('QRCode nicht verfügbar, lade Bibliothek...');
-        this.showToast('QR-Bibliothek wird geladen...', 'info');
-        
         try {
             await this.loadLibraries();
         } catch (error) {
-            console.error('Fehler beim Laden der QR-Bibliothek:', error);
             this.showToast('QR-Bibliothek konnte nicht geladen werden', 'error');
             return;
         }
@@ -2079,8 +2098,8 @@ saveSettings() {
 
     try {
         console.log('🔄 Generiere QR Code...');
+        console.log('📷 Current Logo Status:', !!this.currentLogo);
         
-        // Button in Loading-State setzen
         const generateBtn = document.getElementById('generate-btn');
         if (generateBtn) {
             generateBtn.disabled = true;
@@ -2094,7 +2113,7 @@ saveSettings() {
             qrType: document.getElementById('qr-type')?.value || 'text',
             color: document.getElementById('qr-color')?.value || '#000000',
             bgColor: document.getElementById('qr-bg-color')?.value || '#FFFFFF',
-            size: parseInt(document.getElementById('qr-size')?.value) || 300,
+            size: parseInt(document.getElementById('qr-size')?.value) || 400,
             timestamp: Date.now(),
             type: 'generated',
             hasLogo: !!this.currentLogo
@@ -2102,42 +2121,38 @@ saveSettings() {
 
         // 1. Basis QR Code generieren
         const qrCanvas = await this.generateBaseQRCode(content, qrData);
+        console.log('✅ Basis QR Code generiert');
         
-        // 2. Logo hinzufügen falls vorhanden
+        // 2. Logo hinzufügen falls vorhanden - KRITISCHER PUNKT
         let finalCanvas = qrCanvas;
         if (this.currentLogo) {
-            console.log('📷 Füge Logo zum QR Code hinzu...');
+            console.log('📷 Füge Logo hinzu - Logo-Daten:', this.currentLogo);
             finalCanvas = await this.addLogoToQRCode(qrCanvas);
+            console.log('✅ Logo erfolgreich hinzugefügt');
+        } else {
+            console.log('⚠️ Kein Logo verfügbar - currentLogo:', this.currentLogo);
         }
         
-        // 3. QR Code in Preview anzeigen
+        // 3. QR Code anzeigen
         this.displayQRCode(finalCanvas);
         
-        // 4. Download-Button aktivieren
+        // 4. Für Download verfügbar machen
+        this.currentQRCanvas = finalCanvas;
         this.showDownloadButton(finalCanvas);
         
-        // 5. Zu Historie hinzufügen
+        // 5. Historie aktualisieren
         this.addToHistory(qrData);
-        console.log('📝 QR Code zu Historie hinzugefügt');
-        
-        // 6. Statistiken aktualisieren
         this.dailyQRCount++;
-        localStorage.setItem('qr-pro-daily-count', this.dailyQRCount.toString());
         this.updateDashboard();
-        this.updateStatsCards();
         
-        // 7. Erfolgs-Toast anzeigen
         const logoText = this.currentLogo ? ' mit Logo' : '';
         this.showToast(`✅ QR Code${logoText} erfolgreich generiert!`, 'success');
-        
-        console.log('✅ QR Code erfolgreich generiert');
 
     } catch (error) {
         console.error('❌ QR Code Generierung fehlgeschlagen:', error);
         this.showToast('QR Code Generierung fehlgeschlagen', 'error');
         
     } finally {
-        // Button zurücksetzen
         const generateBtn = document.getElementById('generate-btn');
         if (generateBtn) {
             generateBtn.disabled = false;
@@ -2412,17 +2427,16 @@ async updatePreview() {
             // 1. Basis QR Code generieren
             const qrCanvas = await this.generateBaseQRCode(content);
             
-            // 2. Logo hinzufügen falls verfügbar
+            // 2. KRITISCH: Logo hinzufügen falls verfügbar
             let finalCanvas = qrCanvas;
             if (this.currentLogo) {
+                console.log('📷 Preview: Füge Logo hinzu');
                 finalCanvas = await this.addLogoToQRCode(qrCanvas);
-            } 
-            // Alternativ: QRCustomization verwenden falls verfügbar
-            else if (this.qrCustomization && this.qrCustomization.logoEnabled && this.qrCustomization.logoFile) {
-                finalCanvas = await this.qrCustomization.addLogoToQR(preview, qrCanvas);
+            } else {
+                console.log('⚠️ Preview: Kein Logo verfügbar');
             }
             
-            // 3. Preview anzeigen
+            // 3. Preview-Canvas erstellen
             const previewCanvas = document.createElement('canvas');
             const previewCtx = previewCanvas.getContext('2d');
             previewCanvas.width = 200;
@@ -2433,7 +2447,7 @@ async updatePreview() {
             preview.appendChild(previewCanvas);
             
         } catch (error) {
-            console.error('Preview Error:', error);
+            console.error('❌ Preview Error:', error);
             preview.innerHTML = '<div class="preview-error">⚠️ Vorschau fehlgeschlagen</div>';
         }
     }, 300);
@@ -2470,6 +2484,11 @@ async generateBaseQRCode(content, qrData = {}) {
 }
 
 async addLogoToQRCode(qrCanvas) {
+    if (!this.currentLogo || !this.currentLogo.data) {
+        console.log('⚠️ Kein Logo-Data verfügbar');
+        return qrCanvas;
+    }
+
     return new Promise((resolve) => {
         const finalCanvas = document.createElement('canvas');
         const ctx = finalCanvas.getContext('2d');
@@ -2479,39 +2498,50 @@ async addLogoToQRCode(qrCanvas) {
         
         // QR Code zeichnen
         ctx.drawImage(qrCanvas, 0, 0);
+        console.log('✅ QR Code auf neues Canvas gezeichnet');
         
         // Logo laden und zeichnen
         const logoImg = new Image();
         logoImg.onload = () => {
-            // Logo-Größe berechnen
-            const logoSizePercent = this.currentLogo.size || 20;
-            const logoSize = (logoSizePercent / 100) * finalCanvas.width;
-            const logoX = (finalCanvas.width - logoSize) / 2;
-            const logoY = (finalCanvas.height - logoSize) / 2;
-            
-            // Weißen Hintergrund für Logo erstellen
-            const bgColor = document.getElementById('qr-bg-color')?.value || '#ffffff';
-            const padding = logoSize * 0.1;
-            
-            ctx.fillStyle = bgColor;
-            ctx.fillRect(
-                logoX - padding, 
-                logoY - padding, 
-                logoSize + (padding * 2), 
-                logoSize + (padding * 2)
-            );
-            
-            // Logo zeichnen
-            ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
-            
-            resolve(finalCanvas);
+            try {
+                // Logo-Größe berechnen
+                const logoSizePercent = this.currentLogo.size || 20;
+                const logoSize = (logoSizePercent / 100) * finalCanvas.width;
+                const logoX = (finalCanvas.width - logoSize) / 2;
+                const logoY = (finalCanvas.height - logoSize) / 2;
+                
+                console.log(`📏 Logo-Parameter: Größe=${logoSize}px, Position=(${logoX}, ${logoY})`);
+                
+                // Hintergrund für Logo (wichtig für Lesbarkeit)
+                const bgColor = document.getElementById('qr-bg-color')?.value || '#ffffff';
+                const padding = logoSize * 0.1;
+                
+                ctx.fillStyle = bgColor;
+                ctx.fillRect(
+                    logoX - padding, 
+                    logoY - padding, 
+                    logoSize + (padding * 2), 
+                    logoSize + (padding * 2)
+                );
+                
+                // Logo zeichnen
+                ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
+                
+                console.log('✅ Logo erfolgreich auf QR Code gezeichnet');
+                resolve(finalCanvas);
+                
+            } catch (error) {
+                console.error('❌ Fehler beim Logo-Zeichnen:', error);
+                resolve(qrCanvas); // Fallback ohne Logo
+            }
         };
         
-        logoImg.onerror = () => {
-            console.error('Logo konnte nicht geladen werden');
-            resolve(qrCanvas); // Fallback: QR Code ohne Logo
+        logoImg.onerror = (error) => {
+            console.error('❌ Logo konnte nicht geladen werden:', error);
+            resolve(qrCanvas); // Fallback ohne Logo
         };
         
+        console.log('🔄 Lade Logo-Image:', this.currentLogo.data.substring(0, 50) + '...');
         logoImg.src = this.currentLogo.data;
     });
 }
@@ -5129,13 +5159,15 @@ handleLogoUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Datei-Validierung
+    console.log('📁 Logo-Datei ausgewählt:', file.name, file.type, file.size);
+
+    // Validierung
     if (!file.type.startsWith('image/')) {
         this.showToast('Bitte wählen Sie eine Bilddatei aus', 'error');
         return;
     }
 
-    if (file.size > 5 * 1024 * 1024) { // 5MB Limit
+    if (file.size > 5 * 1024 * 1024) {
         this.showToast('Logo-Datei ist zu groß (max. 5MB)', 'error');
         return;
     }
@@ -5144,6 +5176,7 @@ handleLogoUpload(event) {
     reader.onload = (e) => {
         const img = new Image();
         img.onload = () => {
+            // currentLogo korrekt setzen
             this.currentLogo = {
                 data: e.target.result,
                 width: img.width,
@@ -5152,16 +5185,30 @@ handleLogoUpload(event) {
                 size: 20 // Standard-Größe 20%
             };
             
+            console.log('✅ Logo erfolgreich geladen:', this.currentLogo);
+            
             this.displayLogoPreview(e.target.result);
             this.showLogoControls();
             
-            // WICHTIG: Preview sofort aktualisieren
+            // SOFORTIGER Preview-Update
             this.updatePreview();
             
-            this.showToast('Logo erfolgreich hinzugefügt!', 'success');
+            this.showToast('📷 Logo erfolgreich hinzugefügt!', 'success');
         };
+        
+        img.onerror = () => {
+            console.error('❌ Logo-Image konnte nicht geladen werden');
+            this.showToast('Logo-Bild konnte nicht geladen werden', 'error');
+        };
+        
         img.src = e.target.result;
     };
+    
+    reader.onerror = () => {
+        console.error('❌ Datei konnte nicht gelesen werden');
+        this.showToast('Datei konnte nicht gelesen werden', 'error');
+    };
+    
     reader.readAsDataURL(file);
 }
 

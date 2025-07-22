@@ -56,6 +56,14 @@ class QRProApp {
                 </svg>
             `
         };
+
+        // Logo-bezogene Eigenschaften
+    this.currentLogo = null;
+    this.logoSettings = {
+        size: 20,
+        position: 'center',
+        background: 'transparent'
+    };
     
     this.init();
   }
@@ -116,6 +124,103 @@ showLogoSection() {
         
         // Event-Listener für Logo-Funktionen einrichten
         this.setupLogoEventListeners();
+    }
+}
+
+setupLogoEventListeners() {
+    const logoUpload = document.getElementById('logo-upload');
+    const removeLogo = document.getElementById('remove-logo');
+    const logoSize = document.getElementById('logo-size');
+
+    // Logo-Upload Handler
+    if (logoUpload) {
+        logoUpload.addEventListener('change', (e) => this.handleLogoUpload(e));
+    }
+
+    // Logo entfernen Handler
+    if (removeLogo) {
+        removeLogo.addEventListener('click', () => this.removeLogo());
+    }
+
+    // Logo-Größe Handler
+    if (logoSize) {
+        logoSize.addEventListener('input', (e) => {
+            const value = e.target.value;
+            const rangeValue = e.target.parentElement.querySelector('.range-value');
+            if (rangeValue) {
+                rangeValue.textContent = `${value}%`;
+            }
+            this.updateLogoSize(value);
+        });
+    }
+}
+
+handleLogoUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Datei-Validierung
+    if (!file.type.startsWith('image/')) {
+        this.showToast('Bitte wählen Sie eine Bilddatei aus', 'error');
+        return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) { // 5MB Limit
+        this.showToast('Logo-Datei ist zu groß (max. 5MB)', 'error');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        this.displayLogoPreview(e.target.result);
+        this.currentLogo = {
+            data: e.target.result,
+            file: file
+        };
+        this.showLogoControls();
+        this.updatePreview();
+    };
+    reader.readAsDataURL(file);
+}
+
+displayLogoPreview(imageSrc) {
+    const logoPreview = document.getElementById('logo-preview');
+    const logoPreviewImg = document.getElementById('logo-preview-img');
+    
+    if (logoPreview && logoPreviewImg) {
+        logoPreviewImg.src = imageSrc;
+        logoPreview.style.display = 'block';
+    }
+}
+
+showLogoControls() {
+    const logoControls = document.querySelector('.logo-controls');
+    if (logoControls) {
+        logoControls.style.display = 'block';
+    }
+}
+
+removeLogo() {
+    // Logo-Daten zurücksetzen
+    this.currentLogo = null;
+    
+    // UI zurücksetzen
+    const logoUpload = document.getElementById('logo-upload');
+    const logoPreview = document.getElementById('logo-preview');
+    const logoControls = document.querySelector('.logo-controls');
+    
+    if (logoUpload) logoUpload.value = '';
+    if (logoPreview) logoPreview.style.display = 'none';
+    if (logoControls) logoControls.style.display = 'none';
+    
+    this.updatePreview();
+    this.showToast('Logo entfernt', 'success');
+}
+
+updateLogoSize(size) {
+    if (this.currentLogo) {
+        this.currentLogo.size = parseInt(size);
+        this.updatePreview();
     }
 }
 
@@ -3044,48 +3149,94 @@ getTemplatesCount() {
 
   // Navigation
   navigateToPage(page) {
-    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-    document.querySelector(`[data-page="${page}"]`)?.classList.add('active');
-    
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(`${page}-page`)?.classList.add('active');
-    
+    // Aktuelle Seite speichern
     this.currentPage = page;
-
-    // Alle Seiten ausblenden
-    document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.remove('active');
-    });
-
-    // Zielseite anzeigen
-    const targetPage = document.getElementById(`${page}-page`);
-    const navItem = document.querySelector(`[data-page="${page}"]`);
     
-    if (targetPage) targetPage.classList.remove('hidden');
-    if (navItem) navItem.classList.add('active');
-    
-    // Spezifische Seitenaktionen
-    switch(page) {
-        case 'dashboard':
-            this.updateDashboard();
-            break;
-        case 'history':
-            // KORRIGIERT: Sofortige Initialisierung der Verlaufsseite
-            setTimeout(() => this.initializeHistoryPage(), 100);
-            break;
+    // Navigation-Aktionen je nach Seite
+    switch (page) {
         case 'generator':
+            this.showGeneratorPage();
             this.focusGenerator();
             break;
         case 'scanner':
-            this.initScanner();
+            this.showScannerPage();
+            break;
+        case 'history':
+            this.showHistoryPage();
+            break;
+        case 'templates':
+            this.showTemplatesPage();
+            break;
+        default:
+            this.showGeneratorPage();
             break;
     }
     
-    if (page === 'dashboard') {
-      this.updateDashboard();
+    // Navigation-UI updaten
+    this.updateNavigationUI(page);
+}
+
+showGeneratorPage() {
+    // Alle Seiten ausblenden
+    document.querySelectorAll('.page-section').forEach(section => {
+        section.style.display = 'none';
+    });
+    
+    // Generator-Seite anzeigen
+    const generatorPage = document.querySelector('.generator-page, .generator-section');
+    if (generatorPage) {
+        generatorPage.style.display = 'block';
     }
-  }
+}
+
+updateNavigationUI(activePage) {
+    // Navigation-Links updaten
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('nav-link--active');
+    });
+    
+    const activeLink = document.querySelector(`[data-page="${activePage}"]`);
+    if (activeLink) {
+        activeLink.classList.add('nav-link--active');
+    }
+}
+
+  focusGenerator() {
+    // Generator-Seite fokussieren und UI anpassen
+    const generatorSection = document.querySelector('.generator-section');
+    const qrContentInput = document.getElementById('qr-content');
+    
+    if (generatorSection) {
+        generatorSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    
+    // Input-Feld fokussieren
+    if (qrContentInput) {
+        setTimeout(() => {
+            qrContentInput.focus();
+        }, 300);
+    }
+    
+    // Generator-spezifische UI-Elemente aktivieren
+    this.activateGeneratorMode();
+}
+
+activateGeneratorMode() {
+    // Generator-Modus aktivieren
+    document.body.classList.add('generator-active');
+    
+    // Sidebar schließen falls auf mobilen Geräten
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar && window.innerWidth <= 768) {
+        sidebar.classList.remove('sidebar--open');
+    }
+    
+    // Generator-Tools anzeigen
+    const generatorTools = document.querySelector('.generator-tools');
+    if (generatorTools) {
+        generatorTools.style.display = 'block';
+    }
+}
 
   initializeHistoryPage() {
     console.log('🔄 Initialisiere Verlaufsseite...');
@@ -3993,7 +4144,7 @@ class QRCustomization {
         }
     }
 
-    // NEUE FUNKTION: Hintergrundfarben-Presets Setup
+    // Hintergrundfarben-Presets Setup
     setupBgColorPresets() {
         // Container für Hintergrundfarbe-Presets erstellen falls nicht vorhanden
         const bgColorGroup = document.querySelector('.form-group:has(#qr-bg-color)') ||

@@ -330,18 +330,27 @@ setupLogoEventDelegation() {
 
 // Toggle Logo-Sektion
 toggleLogoSection(enabled) {
-    this.logoEnabled = enabled;
     const logoContent = document.getElementById('logo-content');
     if (logoContent) {
         if (enabled) {
-            logoContent.style.display = 'block';
+            logoContent.style.maxHeight = logoContent.scrollHeight + 'px';
+            logoContent.style.opacity = '1';
             logoContent.classList.add('active');
-            // Event-Listener neu setzen für dynamisch angezeigte Elemente
-            setTimeout(() => this.setupLogoEventListenersSecure(), 100);
+            
+            // Event-Listener nach dem Einblenden neu setzen
+            setTimeout(() => {
+                this.setupLogoEventListenersSecure();
+            }, 100);
         } else {
-            logoContent.style.display = 'none';
+            // Sanftes Ausblenden ohne Upload-Funktionalität zu zerstören
+            logoContent.style.maxHeight = '0px';
+            logoContent.style.opacity = '0';
             logoContent.classList.remove('active');
-            this.removeLogo();
+            
+            // Logo entfernen, aber Upload-Handler behalten
+            if (this.currentLogo) {
+                this.removeLogo();
+            }
         }
     }
 }

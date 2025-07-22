@@ -197,37 +197,6 @@ setupLogoEventListenersSecure() {
         console.log('✅ Logo Size Slider Event-Listener gesetzt');
     }
     
-    // Position-Grid Buttons
-    const positionBtns = document.querySelectorAll('.position-btn');
-    positionBtns.forEach(btn => {
-        btn.onclick = (e) => {
-            e.preventDefault();
-            console.log('📍 Position Button geklickt:', btn.getAttribute('data-position'));
-            
-            // Aktive Position ändern
-            document.querySelectorAll('.position-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            
-            const position = btn.getAttribute('data-position');
-            this.updateLogoPosition(position);
-        };
-    });
-    
-    // Form-Buttons
-    const shapeBtns = document.querySelectorAll('.shape-btn');
-    shapeBtns.forEach(btn => {
-        btn.onclick = (e) => {
-            e.preventDefault();
-            console.log('🔳 Shape Button geklickt:', btn.getAttribute('data-shape'));
-            
-            document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            
-            const shape = btn.getAttribute('data-shape');
-            this.updateLogoShape(shape);
-        };
-    });
-    
     // Preset-Buttons
     const presetBtns = document.querySelectorAll('.preset-btn');
     presetBtns.forEach(btn => {
@@ -260,32 +229,6 @@ setupLogoEventDelegation() {
             e.preventDefault();
             console.log('🗑️ Remove Logo via Delegation geklickt');
             this.removeLogo();
-            return;
-        }
-        
-        // Position Buttons
-        const positionBtn = e.target.closest('.position-btn');
-        if (positionBtn) {
-            e.preventDefault();
-            console.log('📍 Position via Delegation geklickt:', positionBtn.dataset.position);
-            
-            document.querySelectorAll('.position-btn').forEach(b => b.classList.remove('active'));
-            positionBtn.classList.add('active');
-            
-            this.updateLogoPosition(positionBtn.dataset.position);
-            return;
-        }
-        
-        // Shape Buttons
-        const shapeBtn = e.target.closest('.shape-btn');
-        if (shapeBtn) {
-            e.preventDefault();
-            console.log('🔳 Shape via Delegation geklickt:', shapeBtn.dataset.shape);
-            
-            document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
-            shapeBtn.classList.add('active');
-            
-            this.updateLogoShape(shapeBtn.dataset.shape);
             return;
         }
         
@@ -398,7 +341,6 @@ handleLogoFile(file) {
         this.showToast('❌ Bitte wählen Sie eine Bilddatei aus', 'error');
         return;
     }
-    
     if (file.size > 5 * 1024 * 1024) {
         this.showToast('❌ Datei zu groß (max. 5MB)', 'error');
         return;
@@ -414,9 +356,8 @@ handleLogoFile(file) {
                 width: img.width,
                 height: img.height,
                 file: file,
-                size: parseInt(document.getElementById('logo-size').value) || 20,
-                position: document.querySelector('.position-btn.active')?.getAttribute('data-position') || 'center',
-                shape: document.querySelector('.shape-btn.active')?.getAttribute('data-shape') || 'square'
+                size: parseInt(document.getElementById('logo-size').value) || 20
+                // position und shape entfernt
             };
             
             console.log('✅ Logo erfolgreich geladen:', this.currentLogo);
@@ -425,7 +366,6 @@ handleLogoFile(file) {
             this.displayLogoPreview(e.target.result, file);
             this.showLogoSettings();
             this.updatePreview();
-            
             this.showToast('📷 Logo erfolgreich hinzugefügt!', 'success');
         };
         
@@ -506,7 +446,7 @@ removeLogo() {
 
 // Logo-Größe aktualisieren
 updateLogoSize(size) {
-    if (this.currentLogo && size >= 10 && size <= 30) {
+    if (this.currentLogo) {
         this.currentLogo.size = size;
         this.updatePreview();
         
@@ -517,27 +457,6 @@ updateLogoSize(size) {
             const progress = ((size - rangeSlider.min) / (rangeSlider.max - rangeSlider.min)) * 100;
             rangeProgress.style.width = `${progress}%`;
         }
-    }
-}
-
-// Logo-Position aktualisieren
-updateLogoPosition(position) {
-    if (this.currentLogo) {
-        this.currentLogo.position = position;
-        // Verzögertes Update für bessere Performance
-        clearTimeout(this.previewTimeout);
-        this.previewTimeout = setTimeout(() => {
-            this.updatePreview();
-        }, 100);
-    }
-}
-
-// Logo-Form aktualisieren
-updateLogoShape(shape) {
-    if (this.currentLogo) {
-        this.currentLogo.shape = shape;
-        this.updatePreview();
-        this.showToast(`🔳 Form: ${this.getShapeLabel(shape)}`, 'info', 1500);
     }
 }
 
@@ -579,31 +498,6 @@ applyLogoPreset(preset) {
         this.updatePreview();
         this.showToast(`✨ Preset "${this.getPresetLabel(preset)}" angewendet`, 'success');
     }
-}
-
-// Hilfsmethoden für Labels
-getPositionLabel(position) {
-    const labels = {
-        'top-left': 'Oben Links',
-        'top-center': 'Oben Mitte',
-        'top-right': 'Oben Rechts',
-        'center-left': 'Mitte Links',
-        'center': 'Zentrum',
-        'center-right': 'Mitte Rechts',
-        'bottom-left': 'Unten Links',
-        'bottom-center': 'Unten Mitte',
-        'bottom-right': 'Unten Rechts'
-    };
-    return labels[position] || position;
-}
-
-getShapeLabel(shape) {
-    const labels = {
-        'square': 'Quadrat',
-        'circle': 'Kreis',
-        'rounded': 'Abgerundet'
-    };
-    return labels[shape] || shape;
 }
 
 getPresetLabel(preset) {
@@ -707,7 +601,7 @@ handleLogoUpload(event) {
             this.displayLogoPreview(e.target.result);
             this.showLogoControls();
             
-            // SOFORTIGER Preview-Update
+            // Preview-Update
             this.updatePreview();
             
             this.showToast('📷 Logo erfolgreich hinzugefügt!', 'success');
@@ -2969,7 +2863,7 @@ async updatePreview() {
             // 1. Basis QR Code generieren
             const qrCanvas = await this.generateBaseQRCode(content);
             
-            // 2. KRITISCH: Logo automatisch hinzufügen
+            // 2. Logo automatisch hinzufügen
             let finalCanvas = qrCanvas;
             if (this.currentLogo && this.currentLogo.data) {
                 console.log('📷 Preview: Logo wird hinzugefügt');
@@ -5835,7 +5729,7 @@ handleLogoUpload(event) {
             this.displayLogoPreview(e.target.result);
             this.showLogoControls();
             
-            // SOFORTIGER Preview-Update
+            // Preview-Update
             this.updatePreview();
             
             this.showToast('📷 Logo erfolgreich hinzugefügt!', 'success');

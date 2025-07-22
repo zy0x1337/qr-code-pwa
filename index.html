@@ -347,47 +347,14 @@
                     <div class="advanced-features">
                         <h4>Erweiterte Funktionen</h4>
                         <div class="feature-options">
-                            <!-- Logo Upload Section -->
-<div class="form-group logo-section">
-    <label for="logo-file-input" class="form-label">
-        <i class="fas fa-image"></i> Logo hinzufügen
-    </label>
-    <div class="logo-upload-container">
-        <button type="button" id="add-logo-btn" class="btn btn-secondary">
-            <i class="fas fa-upload"></i> Logo auswählen
-        </button>
-        <button type="button" id="remove-logo-btn" class="btn btn-outline-secondary" style="display: none;">
-            <i class="fas fa-trash"></i> Logo entfernen
-        </button>
-        <input type="file" id="logo-file-input" accept="image/png,image/jpeg,image/jpg,image/gif,image/svg+xml" style="display: none;">
-    </div>
-    
-    <!-- Logo Vorschau -->
-    <div id="logo-preview" class="logo-preview" style="display: none;">
-        <div class="logo-preview-header">
-            <span class="logo-preview-title">Logo Vorschau:</span>
-            <small class="logo-info" id="logo-info"></small>
-        </div>
-        <img id="logo-preview-img" alt="Logo Vorschau" class="logo-preview-image">
-    </div>
-    
-    <!-- Logo Einstellungen (optional, erweitert) -->
-    <div id="logo-settings" class="logo-settings" style="display: none;">
-        <div class="form-group-inline">
-            <label for="logo-size-slider" class="form-label-small">Logo Größe:</label>
-            <input type="range" id="logo-size-slider" min="10" max="30" value="20" class="form-range">
-            <span id="logo-size-value" class="range-value">20%</span>
-        </div>
-    </div>
-    
-    <!-- Upload Hinweise -->
-    <div class="upload-hints">
-        <small class="text-muted">
-            <i class="fas fa-info-circle"></i> 
-            Unterstützte Formate: PNG, JPG, GIF, SVG (max. 2MB)
-        </small>
-    </div>
-</div>
+                            <button class="btn btn--sm btn--outline" data-feature="logo">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="11" width="18" height="10" rx="2" ry="2"/>
+                                    <circle cx="12" cy="16" r="1"/>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                </svg>
+                                Logo hinzufügen
+                            </button>
                             <button class="btn btn--sm btn--outline" data-action="show-templates" id="generator-templates-btn">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <rect x="3" y="3" width="7" height="7"/>

@@ -74,6 +74,7 @@ class QRProApp {
     this.initializeData();
     await this.loadLibraries();
     this.initializeQRCustomization();
+    this.initializeLogoFunctionality();
     this.registerServiceWorker();
     this.setupQRTypeHandler();
     this.setupDashboardActions();
@@ -112,22 +113,367 @@ class QRProApp {
     }
 }
 
+// Vollständige Logo-Funktionalität initialisieren
 initializeLogoFunctionality() {
-    console.log('🔄 Initialisiere Logo-Funktionalität...');
+    console.log('🔄 Initialisiere vollständige Logo-Funktionalität...');
     
+    // Toggle-Handler für Logo aktivieren/deaktivieren
+    const logoToggle = document.getElementById('logo-enabled');
+    if (logoToggle) {
+        logoToggle.addEventListener('change', (e) => {
+            this.toggleLogoSection(e.target.checked);
+        });
+    }
+    
+    // Upload-Zone Drag & Drop
+    const uploadZone = document.getElementById('logo-upload-zone');
+    if (uploadZone) {
+        this.setupLogoDropZone(uploadZone);
+    }
+    
+    // File Input Handler
     const logoUpload = document.getElementById('logo-upload');
     if (logoUpload) {
-        // Prüfen ob bereits Event-Listener vorhanden
-        if (!logoUpload.hasAttribute('data-logo-initialized')) {
-            logoUpload.addEventListener('change', (e) => {
-                this.handleLogoUpload(e);
-            });
-            logoUpload.setAttribute('data-logo-initialized', 'true');
-            console.log('✅ Logo Event-Listener eingerichtet');
+        logoUpload.addEventListener('change', (e) => {
+            this.handleLogoUpload(e);
+        });
+    }
+    
+    // Logo entfernen
+    const removeLogo = document.getElementById('remove-logo');
+    if (removeLogo) {
+        removeLogo.addEventListener('click', () => {
+            this.removeLogo();
+        });
+    }
+    
+    // Größe-Slider
+    const logoSize = document.getElementById('logo-size');
+    const logoSizeValue = document.getElementById('logo-size-value');
+    if (logoSize && logoSizeValue) {
+        logoSize.addEventListener('input', (e) => {
+            const value = e.target.value;
+            logoSizeValue.textContent = `${value}%`;
+            this.updateLogoSize(parseInt(value));
+        });
+    }
+    
+    // Position-Grid Buttons
+    document.querySelectorAll('.position-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            // Aktive Position ändern
+            document.querySelectorAll('.position-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            const position = btn.getAttribute('data-position');
+            this.updateLogoPosition(position);
+        });
+    });
+    
+    // Form-Buttons
+    document.querySelectorAll('.shape-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            const shape = btn.getAttribute('data-shape');
+            this.updateLogoShape(shape);
+        });
+    });
+    
+    // Preset-Buttons
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const preset = btn.getAttribute('data-preset');
+            this.applyLogoPreset(preset);
+        });
+    });
+    
+    console.log('✅ Logo-Funktionalität vollständig initialisiert');
+}
+
+// Toggle Logo-Sektion
+toggleLogoSection(enabled) {
+    const logoContent = document.getElementById('logo-content');
+    if (logoContent) {
+        if (enabled) {
+            logoContent.style.maxHeight = logoContent.scrollHeight + 'px';
+            logoContent.style.opacity = '1';
+            logoContent.classList.add('active');
         } else {
-            console.log('ℹ️ Logo bereits initialisiert - überspringe');
+            logoContent.style.maxHeight = '0px';
+            logoContent.style.opacity = '0';
+            logoContent.classList.remove('active');
+            this.removeLogo();
         }
     }
+}
+
+// Drag & Drop Setup
+setupLogoDropZone(uploadZone) {
+    const fileInput = document.getElementById('logo-upload');
+    
+    // Click zum Öffnen
+    uploadZone.addEventListener('click', () => {
+        fileInput.click();
+    });
+    
+    // Drag & Drop Events
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+    });
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadZone.addEventListener(eventName, () => {
+            uploadZone.classList.add('drag-active');
+        });
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadZone.addEventListener(eventName, () => {
+            uploadZone.classList.remove('drag-active');
+        });
+    });
+    
+    uploadZone.addEventListener('drop', (e) => {
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            this.handleLogoFile(files[0]);
+        }
+    });
+}
+
+// Logo-Upload verarbeiten
+handleLogoUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+        this.handleLogoFile(file);
+    }
+}
+
+handleLogoFile(file) {
+    console.log('📁 Logo-Datei verarbeiten:', file.name);
+    
+    // Validierung
+    if (!file.type.startsWith('image/')) {
+        this.showToast('❌ Bitte wählen Sie eine Bilddatei aus', 'error');
+        return;
+    }
+    
+    if (file.size > 5 * 1024 * 1024) {
+        this.showToast('❌ Datei zu groß (max. 5MB)', 'error');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+            // Logo-Daten speichern
+            this.currentLogo = {
+                data: e.target.result,
+                width: img.width,
+                height: img.height,
+                file: file,
+                size: parseInt(document.getElementById('logo-size').value) || 20,
+                position: document.querySelector('.position-btn.active')?.getAttribute('data-position') || 'center',
+                shape: document.querySelector('.shape-btn.active')?.getAttribute('data-shape') || 'square'
+            };
+            
+            console.log('✅ Logo erfolgreich geladen:', this.currentLogo);
+            
+            // UI aktualisieren
+            this.displayLogoPreview(e.target.result, file);
+            this.showLogoSettings();
+            this.updatePreview();
+            
+            this.showToast('📷 Logo erfolgreich hinzugefügt!', 'success');
+        };
+        
+        img.onerror = () => {
+            console.error('❌ Logo konnte nicht geladen werden');
+            this.showToast('❌ Logo-Bild konnte nicht geladen werden', 'error');
+        };
+        
+        img.src = e.target.result;
+    };
+    
+    reader.onerror = () => {
+        console.error('❌ Datei konnte nicht gelesen werden');
+        this.showToast('❌ Datei konnte nicht gelesen werden', 'error');
+    };
+    
+    reader.readAsDataURL(file);
+}
+
+// Logo-Vorschau anzeigen
+displayLogoPreview(imageSrc, file) {
+    // Upload-Zone ausblenden
+    const uploadZone = document.getElementById('logo-upload-zone');
+    if (uploadZone) {
+        uploadZone.style.display = 'none';
+    }
+    
+    // Preview anzeigen
+    const logoPreview = document.getElementById('logo-preview');
+    const logoPreviewImg = document.getElementById('logo-preview-img');
+    const previewFilename = document.getElementById('preview-filename');
+    const previewSize = document.getElementById('preview-size');
+    
+    if (logoPreview && logoPreviewImg) {
+        logoPreviewImg.src = imageSrc;
+        logoPreview.style.display = 'block';
+        
+        if (previewFilename) {
+            previewFilename.textContent = file.name;
+        }
+        
+        if (previewSize) {
+            const sizeKB = (file.size / 1024).toFixed(1);
+            previewSize.textContent = `${sizeKB} KB`;
+        }
+    }
+}
+
+// Logo-Einstellungen anzeigen
+showLogoSettings() {
+    const logoSettings = document.querySelector('.logo-settings');
+    if (logoSettings) {
+        logoSettings.style.display = 'block';
+        logoSettings.style.opacity = '1';
+        logoSettings.style.transform = 'translateY(0)';
+    }
+}
+
+// Logo entfernen
+removeLogo() {
+    this.currentLogo = null;
+    
+    // UI zurücksetzen
+    const logoUpload = document.getElementById('logo-upload');
+    const logoPreview = document.getElementById('logo-preview');
+    const uploadZone = document.getElementById('logo-upload-zone');
+    const logoSettings = document.querySelector('.logo-settings');
+    
+    if (logoUpload) logoUpload.value = '';
+    if (logoPreview) logoPreview.style.display = 'none';
+    if (uploadZone) uploadZone.style.display = 'block';
+    if (logoSettings) logoSettings.style.display = 'none';
+    
+    // Preview aktualisieren
+    this.updatePreview();
+    this.showToast('🗑️ Logo entfernt', 'success');
+}
+
+// Logo-Größe aktualisieren
+updateLogoSize(size) {
+    if (this.currentLogo) {
+        this.currentLogo.size = size;
+        this.updatePreview();
+        
+        // Range-Progress aktualisieren
+        const rangeSlider = document.getElementById('logo-size');
+        const rangeProgress = document.querySelector('.range-progress');
+        if (rangeSlider && rangeProgress) {
+            const progress = ((size - rangeSlider.min) / (rangeSlider.max - rangeSlider.min)) * 100;
+            rangeProgress.style.width = `${progress}%`;
+        }
+    }
+}
+
+// Logo-Position aktualisieren
+updateLogoPosition(position) {
+    if (this.currentLogo) {
+        this.currentLogo.position = position;
+        this.updatePreview();
+        this.showToast(`📍 Position: ${this.getPositionLabel(position)}`, 'info', 1500);
+    }
+}
+
+// Logo-Form aktualisieren
+updateLogoShape(shape) {
+    if (this.currentLogo) {
+        this.currentLogo.shape = shape;
+        this.updatePreview();
+        this.showToast(`🔳 Form: ${this.getShapeLabel(shape)}`, 'info', 1500);
+    }
+}
+
+// Preset anwenden
+applyLogoPreset(preset) {
+    if (!this.currentLogo) {
+        this.showToast('❌ Bitte zuerst ein Logo hochladen', 'error');
+        return;
+    }
+    
+    const presets = {
+        'small-corner': { size: 15, position: 'top-right', shape: 'square' },
+        'medium-center': { size: 25, position: 'center', shape: 'circle' },
+        'large-center': { size: 35, position: 'center', shape: 'rounded' }
+    };
+    
+    const presetData = presets[preset];
+    if (presetData) {
+        // Werte setzen
+        this.currentLogo.size = presetData.size;
+        this.currentLogo.position = presetData.position;
+        this.currentLogo.shape = presetData.shape;
+        
+        // UI aktualisieren
+        document.getElementById('logo-size').value = presetData.size;
+        document.getElementById('logo-size-value').textContent = `${presetData.size}%`;
+        
+        // Position-Button aktivieren
+        document.querySelectorAll('.position-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-position') === presetData.position);
+        });
+        
+        // Shape-Button aktivieren
+        document.querySelectorAll('.shape-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-shape') === presetData.shape);
+        });
+        
+        // Preview aktualisieren
+        this.updatePreview();
+        this.showToast(`✨ Preset "${this.getPresetLabel(preset)}" angewendet`, 'success');
+    }
+}
+
+// Hilfsmethoden für Labels
+getPositionLabel(position) {
+    const labels = {
+        'top-left': 'Oben Links',
+        'top-center': 'Oben Mitte',
+        'top-right': 'Oben Rechts',
+        'center-left': 'Mitte Links',
+        'center': 'Zentrum',
+        'center-right': 'Mitte Rechts',
+        'bottom-left': 'Unten Links',
+        'bottom-center': 'Unten Mitte',
+        'bottom-right': 'Unten Rechts'
+    };
+    return labels[position] || position;
+}
+
+getShapeLabel(shape) {
+    const labels = {
+        'square': 'Quadrat',
+        'circle': 'Kreis',
+        'rounded': 'Abgerundet'
+    };
+    return labels[shape] || shape;
+}
+
+getPresetLabel(preset) {
+    const labels = {
+        'small-corner': 'Klein & Ecke',
+        'medium-center': 'Mittel & Zentrum',
+        'large-center': 'Groß & Zentrum'
+    };
+    return labels[preset] || preset;
 }
 
   toggleLogoFeature() {

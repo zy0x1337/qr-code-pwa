@@ -62,6 +62,7 @@ class QRProApp {
         // Event Handler Bindings
     this.updateContentBasedPreview = this.updateContentBasedPreview.bind(this);
     this.updatePreview = this.updatePreview.bind(this);
+    this.focusGenerator = this.focusGenerator.bind(this);
     
     this.init();
   }
@@ -3805,63 +3806,26 @@ removeLogo() {
     this.showToast('Logo entfernt', 'info');
 }
 
-async generateQRCodeWithLogo(canvas, qrText) {
-    return new Promise((resolve, reject) => {
-        try {
-            // Canvas validieren
-            this.validateCanvas(canvas);
-            
-            const qrColor = document.getElementById('qr-color')?.value || '#000000';
-            const qrBgColor = document.getElementById('qr-bg-color')?.value || '#ffffff';
-            const size = this.getPreviewSize();
-
-            const qrOptions = {
-                width: size,
-                height: size,
-                margin: 2,
-                color: {
-                    dark: qrColor,
-                    light: qrBgColor
-                },
-                errorCorrectionLevel: 'M'
-            };
-
-            QRCode.toCanvas(canvas, qrText, qrOptions, (error) => {
-                if (error) {
-                    reject(error);
-                    return;
-                }
-
-                // Logo hinzufügen falls vorhanden
-                if (this.logoImage) {
-                    try {
-                        this.addLogoToCanvas(canvas);
-                    } catch (logoError) {
-                        console.warn('Logo konnte nicht hinzugefügt werden:', logoError);
-                    }
-                }
-                
-                resolve();
-            });
-        } catch (error) {
-            reject(error);
+focusGenerator() {
+    // QR-Content Input fokussieren
+    const qrContentInput = document.getElementById('qr-content');
+    if (qrContentInput) {
+        qrContentInput.focus();
+        // Optional: Cursor ans Ende setzen
+        if (qrContentInput.setSelectionRange) {
+            const len = qrContentInput.value.length;
+            qrContentInput.setSelectionRange(len, len);
         }
-    });
-}
-
-addLogoToCanvas(canvas) {
-    const ctx = canvas.getContext('2d');
-    const canvasSize = canvas.width;
-    const logoSize = canvasSize * this.logoSize;
-    const x = (canvasSize - logoSize) / 2;
-    const y = (canvasSize - logoSize) / 2;
-
-    // Weißen Hintergrund für Logo erstellen
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(x - 5, y - 5, logoSize + 10, logoSize + 10);
-
-    // Logo zeichnen
-    ctx.drawImage(this.logoImage, x, y, logoSize, logoSize);
+    }
+    
+    // Generator-Bereich scrollen falls nötig
+    const generatorSection = document.querySelector('.qr-generator-section');
+    if (generatorSection) {
+        generatorSection.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+        });
+    }
 }
 }
 
@@ -4477,6 +4441,50 @@ async updatePreview() {
             }
         }
     }, 300);
+}
+
+async generateQRCodeWithLogo(canvas, qrText) {
+    return new Promise((resolve, reject) => {
+        try {
+            // Canvas validieren
+            this.validateCanvas(canvas);
+            
+            const qrColor = document.getElementById('qr-color')?.value || '#000000';
+            const qrBgColor = document.getElementById('qr-bg-color')?.value || '#ffffff';
+            const size = this.getPreviewSize();
+
+            const qrOptions = {
+                width: size,
+                height: size,
+                margin: 2,
+                color: {
+                    dark: qrColor,
+                    light: qrBgColor
+                },
+                errorCorrectionLevel: 'M'
+            };
+
+            QRCode.toCanvas(canvas, qrText, qrOptions, (error) => {
+                if (error) {
+                    reject(error);
+                    return;
+                }
+
+                // Logo hinzufügen falls vorhanden
+                if (this.logoImage) {
+                    try {
+                        this.addLogoToCanvas(canvas);
+                    } catch (logoError) {
+                        console.warn('Logo konnte nicht hinzugefügt werden:', logoError);
+                    }
+                }
+                
+                resolve();
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
 }
 
 // Erweiterte Preview-Update für verschiedene QR-Typen

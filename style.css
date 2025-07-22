@@ -4793,8 +4793,8 @@ input:checked + .toggle-slider:before {
 
 .template-icon {
     font-size: var(--font-size-2xl);
-    width: 48px;
-    height: 48px;
+    width: 1px;
+    height: 1px;
     display: flex;
     align-items: center;
     justify-content: center;

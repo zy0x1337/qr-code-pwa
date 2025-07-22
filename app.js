@@ -2259,6 +2259,29 @@ showDownloadButton(canvas) {
     }
 }
 
+getSelectedFormat() {
+    // Format aus UI-Element holen
+    const formatSelect = document.getElementById('download-format');
+    if (formatSelect) {
+        return formatSelect.value;
+    }
+    
+    // Format aus Radio-Buttons holen
+    const selectedRadio = document.querySelector('input[name="download-format"]:checked');
+    if (selectedRadio) {
+        return selectedRadio.value;
+    }
+    
+    // Format aus Data-Attribut holen
+    const activeFormatBtn = document.querySelector('.format-btn--active');
+    if (activeFormatBtn) {
+        return activeFormatBtn.dataset.format;
+    }
+    
+    // Fallback: PNG als Standard
+    return 'png';
+}
+
 addToHistory(entry) {
     console.log('📝 Füge zu History hinzu:', entry);
     
@@ -6963,6 +6986,39 @@ class TemplateManager {
             console.log(message);
         }
     }
+
+    showToast(message, type = 'info', duration = 3000) {
+    // Falls Hauptklasse verfügbar, deren showToast verwenden
+    if (this.mainApp && typeof this.mainApp.showToast === 'function') {
+        this.mainApp.showToast(message, type, duration);
+        return;
+    }
+    
+    // Fallback: Einfache Toast-Implementation
+    const toast = document.createElement('div');
+    toast.className = `toast toast--${type}`;
+    toast.textContent = message;
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        background: ${type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : '#3b82f6'};
+        color: white;
+        border-radius: 8px;
+        z-index: 10000;
+        font-size: 14px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, duration);
+}
 
     /**
      * Cleanup beim Zerstören

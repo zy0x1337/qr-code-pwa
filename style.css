@@ -6654,11 +6654,11 @@ input:checked + .toggle-slider:before {
 }
 
 /* ==========================================
-   COMPACT LOGO SECTION - DEZENTE 2025 VERSION
+   KOMPAKTE LOGO SECTION - KORRIGIERTE VERSION
    ========================================== */
 
 :root {
-  /* Kompakte Design Tokens */
+  /* Light Mode als Standard - Kompakte Design Tokens */
   --logo-primary: #6366f1;
   --logo-primary-rgb: 99, 102, 241;
   --logo-surface: #ffffff;
@@ -6693,7 +6693,11 @@ input:checked + .toggle-slider:before {
   --logo-transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Dark Mode Variables */
+/* ==========================================
+   DARK MODE - NUR WENN AKTIV
+   ========================================== */
+
+/* Automatische Dark Mode Erkennung */
 @media (prefers-color-scheme: dark) {
   :root {
     --logo-surface: #1f2937;
@@ -6708,6 +6712,7 @@ input:checked + .toggle-slider:before {
   }
 }
 
+/* Manuelle Dark Mode Steuerung */
 [data-color-scheme="dark"] {
   --logo-surface: #1f2937;
   --logo-surface-subtle: #111827;
@@ -6718,6 +6723,19 @@ input:checked + .toggle-slider:before {
   --logo-text-light: #9ca3af;
   --logo-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.2);
   --logo-shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.1);
+}
+
+/* Light Mode explizit sicherstellen */
+[data-color-scheme="light"] {
+  --logo-surface: #ffffff;
+  --logo-surface-subtle: #fefefe;
+  --logo-border: #e5e7eb;
+  --logo-border-subtle: #f3f4f6;
+  --logo-text: #111827;
+  --logo-text-muted: #6b7280;
+  --logo-text-light: #9ca3af;
+  --logo-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --logo-shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.02);
 }
 
 /* ==========================================
@@ -6778,6 +6796,13 @@ input:checked + .toggle-slider:before {
   color: var(--logo-text);
   margin: 0;
   line-height: 1.2;
+}
+
+.logo-subtitle {
+  font-size: 12px;
+  color: var(--logo-text-muted);
+  margin: var(--logo-space-4) 0 0 0;
+  font-weight: 400;
 }
 
 /* ==========================================
@@ -6843,7 +6868,7 @@ input:checked + .toggle-slider:before {
 }
 
 /* ==========================================
-   KOMPAKTER UPLOAD BEREICH
+   KOMPAKTER UPLOAD BEREICH MIT FILE INPUT STYLING
    ========================================== */
 
 .logo-content {
@@ -6862,6 +6887,12 @@ input:checked + .toggle-slider:before {
   margin-bottom: var(--logo-space-16);
 }
 
+/* File Input komplett verstecken */
+.logo-file-input {
+  display: none;
+}
+
+/* Upload Zone als Label */
 .logo-upload-zone {
   border: 1px dashed var(--logo-border);
   border-radius: var(--logo-radius-sm);
@@ -6885,6 +6916,84 @@ input:checked + .toggle-slider:before {
   border-color: var(--logo-primary);
   background: rgba(var(--logo-primary-rgb), 0.05);
 }
+
+/* Alternative: Wenn ein sichtbarer File Input gewünscht ist */
+.logo-file-input-visible {
+  width: 100%;
+  padding: var(--logo-space-8);
+  border: 1px solid var(--logo-border);
+  border-radius: var(--logo-radius-sm);
+  background: var(--logo-surface);
+  color: var(--logo-text);
+  font-size: 13px;
+  cursor: pointer;
+  transition: var(--logo-transition);
+}
+
+.logo-file-input-visible:hover {
+  border-color: var(--logo-primary);
+  background: var(--logo-surface-subtle);
+}
+
+/* ==========================================
+   FILE INPUT BUTTON STYLING
+   ========================================== */
+
+/* Moderner File Selector Button */
+.logo-file-input-visible::file-selector-button {
+  background: var(--logo-primary);
+  color: white;
+  border: none;
+  padding: var(--logo-space-6) var(--logo-space-12);
+  border-radius: var(--logo-radius-xs);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-right: var(--logo-space-8);
+  transition: var(--logo-transition);
+}
+
+.logo-file-input-visible::file-selector-button:hover {
+  background: rgba(var(--logo-primary-rgb), 0.9);
+  transform: translateY(-1px);
+}
+
+/* Webkit Fallback für ältere Browser */
+.logo-file-input-visible::-webkit-file-upload-button {
+  background: var(--logo-primary);
+  color: white;
+  border: none;
+  padding: var(--logo-space-6) var(--logo-space-12);
+  border-radius: var(--logo-radius-xs);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-right: var(--logo-space-8);
+  transition: var(--logo-transition);
+}
+
+.logo-file-input-visible::-webkit-file-upload-button:hover {
+  background: rgba(var(--logo-primary-rgb), 0.9);
+  transform: translateY(-1px);
+}
+
+/* Firefox Fallback */
+.logo-file-input-visible::-moz-file-upload-button {
+  background: var(--logo-primary);
+  color: white;
+  border: none;
+  padding: var(--logo-space-6) var(--logo-space-12);
+  border-radius: var(--logo-radius-xs);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-right: var(--logo-space-8);
+  transition: var(--logo-transition);
+}
+
+/* ==========================================
+   UPLOAD ZONE CONTENT
+   ========================================== */
 
 .upload-zone-content {
   display: flex;
@@ -7040,6 +7149,10 @@ input:checked + .toggle-slider:before {
   color: var(--logo-text-muted);
 }
 
+.label-text {
+  color: var(--logo-text);
+}
+
 .label-value {
   font-family: ui-monospace, monospace;
   font-size: 11px;
@@ -7095,6 +7208,29 @@ input:checked + .toggle-slider:before {
   border: none;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   transition: var(--logo-transition);
+}
+
+/* ==========================================
+   DARK MODE TOGGLE ANPASSUNGEN
+   ========================================== */
+
+/* Dark Mode Toggle Slider */
+@media (prefers-color-scheme: dark) {
+  .logo-toggle-slider::before {
+    background: var(--logo-surface);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+}
+
+[data-color-scheme="dark"] .logo-toggle-slider::before {
+  background: var(--logo-surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Light Mode Toggle explizit */
+[data-color-scheme="light"] .logo-toggle-slider::before {
+  background: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* ==========================================
@@ -7182,6 +7318,7 @@ input:checked + .toggle-slider:before {
 /* Focus-Styles für Keyboard Navigation */
 .logo-toggle-input:focus-visible + .logo-toggle-slider,
 .logo-upload-zone:focus-visible,
+.logo-file-input-visible:focus-visible,
 .remove-logo-btn:focus-visible,
 .range-slider:focus-visible {
   outline: 2px solid var(--logo-primary);
@@ -7200,19 +7337,6 @@ input:checked + .toggle-slider:before {
   .logo-toggle-slider {
     border: 1px solid var(--logo-border);
   }
-}
-
-/* Dark Mode Toggle-Optimierungen */
-@media (prefers-color-scheme: dark) {
-  .logo-toggle-slider::before {
-    background: var(--logo-surface);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  }
-}
-
-[data-color-scheme="dark"] .logo-toggle-slider::before {
-  background: var(--logo-surface);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 /* Hardware-Beschleunigung für smooth Animationen */

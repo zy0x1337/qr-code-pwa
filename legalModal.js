@@ -340,42 +340,174 @@
         alert(`${titles[type] || 'Information'}\n\nDie Informationen werden geladen. Bitte versuchen Sie es erneut.`);
       }
     },
-
-    // Content-Generierung bleibt gleich...
+    
     getPrivacyContent() {
-      return `
-        <h3>1. Datenverarbeitung</h3>
-        <p>Diese QR Code PWA verarbeitet Ihre Daten ausschließlich lokal in Ihrem Browser. Es werden keine personenbezogenen Daten an externe Server übertragen.</p>
-        
-        <h3>2. Lokale Speicherung</h3>
-        <p>Folgende Daten werden lokal in Ihrem Browser gespeichert:</p>
-        <ul>
-          <li>QR Code-Verlauf und generierte Codes</li>
-          <li>Anwendungseinstellungen (Theme, Präferenzen)</li>
-          <li>Upload-Cache für offline Funktionalität</li>
-        </ul>
-        
-        <h3>3. Kamera-Zugriff</h3>
-        <p>Für das Scannen von QR Codes benötigen wir Zugriff auf Ihre Gerätekamera. Die Kamerabilder werden nicht gespeichert oder übertragen.</p>
-        
-        <h3>4. Externe Bibliotheken</h3>
-        <p>Diese App nutzt folgende externe Bibliotheken:</p>
-        <ul>
-          <li>QRCode.js - für die QR Code-Generierung</li>
-          <li>html5-qrcode - für das Scannen von QR Codes</li>
-        </ul>
-        
-        <h3>5. Ihre Rechte</h3>
-        <p>Sie können jederzeit:</p>
-        <ul>
-          <li>Den Verlauf in den Einstellungen löschen</li>
-          <li>Den Browser-Cache leeren</li>
-          <li>Die App deinstallieren</li>
-        </ul>
-        
-        <p><strong>Stand:</strong> Juli 2025</p>
-      `;
-    },
+    return `
+        <div class="legal-content">
+            <div class="legal-header">
+                <p class="legal-date"><strong>Stand:</strong> ${new Date().toLocaleDateString('de-DE')} | <strong>Version:</strong> 2.0</p>
+            </div>
+
+            <div class="legal-section">
+                <h3>📱 Übersicht</h3>
+                <p>Diese QR Code Progressive Web App (PWA) wurde entwickelt, um Ihre <strong>Privatsphäre zu respektieren</strong>. Alle Daten werden ausschließlich lokal in Ihrem Browser verarbeitet und gespeichert. Es erfolgt <strong>keine Übertragung</strong> personenbezogener Daten an externe Server.</p>
+            </div>
+
+            <div class="legal-section">
+                <h3>🛡️ Datenschutz-Prinzipien</h3>
+                <ul class="legal-list">
+                    <li><strong>Privacy by Design:</strong> Datenschutz ist von Anfang an eingebaut</li>
+                    <li><strong>Lokale Verarbeitung:</strong> Alle Operationen erfolgen in Ihrem Browser</li>
+                    <li><strong>Keine Tracking:</strong> Wir verfolgen Sie nicht und erstellen keine Profile</li>
+                    <li><strong>Minimale Datenerhebung:</strong> Nur notwendige Daten werden verarbeitet</li>
+                </ul>
+            </div>
+
+            <div class="legal-section">
+                <h3>💾 Lokale Datenspeicherung</h3>
+                <p>Folgende Daten werden <strong>ausschließlich lokal</strong> in Ihrem Browser gespeichert:</p>
+                <ul class="legal-list">
+                    <li><strong>QR Code Verlauf:</strong> Von Ihnen generierte QR Codes</li>
+                    <li><strong>Scan-Verlauf:</strong> Gescannte QR Code Inhalte</li>
+                    <li><strong>App-Einstellungen:</strong> Design-Präferenzen, Benachrichtigungseinstellungen</li>
+                    <li><strong>Temporäre Daten:</strong> QR Code Vorschaubilder, Upload-Cache</li>
+                    <li><strong>Service Worker Cache:</strong> App-Dateien für Offline-Funktionalität</li>
+                </ul>
+                <div class="legal-note">
+                    <strong>💡 Hinweis:</strong> Diese Daten bleiben auf Ihrem Gerät und können jederzeit über die App-Einstellungen oder Browser-Einstellungen gelöscht werden.
+                </div>
+            </div>
+
+            <div class="legal-section">
+                <h3>📷 Kamera-Zugriff</h3>
+                <p>Für die QR Code Scanner-Funktionalität benötigen wir Zugriff auf Ihre Gerätekamera:</p>
+                <ul class="legal-list">
+                    <li><strong>Zweck:</strong> Ausschließlich zum Scannen von QR Codes</li>
+                    <li><strong>Verarbeitung:</strong> Live-Stream für Echtzeit-Erkennung</li>
+                    <li><strong>Speicherung:</strong> Kamerabilder werden <strong>niemals gespeichert</strong></li>
+                    <li><strong>Kontrolle:</strong> Sie können den Kamera-Zugriff jederzeit widerrufen</li>
+                </ul>
+                <div class="legal-warning">
+                    ⚠️ <strong>Wichtig:</strong> Ohne Kamera-Berechtigung kann die Scanner-Funktion nicht verwendet werden.
+                </div>
+            </div>
+
+            <div class="legal-section">
+                <h3>🔗 Externe Bibliotheken & CDN</h3>
+                <p>Diese App nutzt folgende externe Ressourcen für erweiterte Funktionalität:</p>
+                <div class="legal-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Bibliothek</th>
+                                <th>Zweck</th>
+                                <th>Anbieter</th>
+                                <th>Datenschutz</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>QRCode.js</strong></td>
+                                <td>QR Code Generierung</td>
+                                <td>cdnjs.cloudflare.com</td>
+                                <td>Keine Datensammlung</td>
+                            </tr>
+                            <tr>
+                                <td><strong>html5-qrcode</strong></td>
+                                <td>QR Code Scanner</td>
+                                <td>unpkg.com</td>
+                                <td>Keine Datensammlung</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Web Fonts</strong></td>
+                                <td>Schriftarten</td>
+                                <td>r2cdn.perplexity.ai</td>
+                                <td>Anonyme Anfragen</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="legal-note">Diese Bibliotheken werden über Content Delivery Networks (CDN) geladen. Es werden keine personenbezogenen Daten übermittelt.</p>
+            </div>
+
+            <div class="legal-section">
+                <h3>🌐 Progressive Web App (PWA) Funktionen</h3>
+                <p>Als PWA nutzt diese App erweiterte Browser-Funktionen:</p>
+                <ul class="legal-list">
+                    <li><strong>Service Worker:</strong> Für Offline-Funktionalität und Caching</li>
+                    <li><strong>Web App Manifest:</strong> Für Installation auf dem Startbildschirm</li>
+                    <li><strong>LocalStorage/IndexedDB:</strong> Für lokale Datenspeicherung</li>
+                    <li><strong>Push Notifications:</strong> Nur bei expliziter Zustimmung</li>
+                </ul>
+            </div>
+
+            <div class="legal-section">
+                <h3>⚖️ Ihre Rechte (DSGVO)</h3>
+                <p>Sie haben folgende Rechte bezüglich Ihrer Daten:</p>
+                <div class="legal-rights-grid">
+                    <div class="right-item">
+                        <strong>🔍 Auskunft</strong>
+                        <p>Einsicht in gespeicherte Daten über Browser-Entwicklertools</p>
+                    </div>
+                    <div class="right-item">
+                        <strong>🗑️ Löschung</strong>
+                        <p>Daten jederzeit über App-Einstellungen löschbar</p>
+                    </div>
+                    <div class="right-item">
+                        <strong>📤 Übertragung</strong>
+                        <p>Export-Funktion für Ihren QR Code Verlauf</p>
+                    </div>
+                    <div class="right-item">
+                        <strong>🛑 Widerspruch</strong>
+                        <p>Berechtigungen jederzeit in Browser-Einstellungen widerrufbar</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="legal-section">
+                <h3>🔒 Sicherheit</h3>
+                <p>Wir setzen folgende Sicherheitsmaßnahmen ein:</p>
+                <ul class="legal-list">
+                    <li><strong>HTTPS-Verschlüsselung:</strong> Sichere Datenübertragung</li>
+                    <li><strong>Content Security Policy:</strong> Schutz vor Code-Injection</li>
+                    <li><strong>Same-Origin Policy:</strong> Isolierung der App-Daten</li>
+                    <li><strong>Sichere Storage APIs:</strong> Verschlüsselte lokale Speicherung</li>
+                </ul>
+            </div>
+
+            <div class="legal-section">
+                <h3>📧 Kontakt & Fragen</h3>
+                <div class="legal-contact">
+                    <p>Bei Fragen zum Datenschutz erreichen Sie uns unter:</p>
+                    <div class="contact-info">
+                        <strong>📧 E-Mail:</strong> <a href="mailto:privacy@qr-pro.app">privacy@qr-pro.app</a><br>
+                        <strong>📝 Formular:</strong> <a href="#" data-legal="faq">Häufige Fragen</a><br>
+                        <strong>🕒 Response:</strong> Innerhalb von 48 Stunden
+                    </div>
+                </div>
+            </div>
+
+            <div class="legal-section">
+                <h3>📝 Änderungen</h3>
+                <p>Wir behalten uns vor, diese Datenschutzerklärung zu aktualisieren, um Änderungen in der App oder rechtlichen Anforderungen Rechnung zu tragen. Sie werden über wesentliche Änderungen durch eine Benachrichtigung in der App informiert.</p>
+            </div>
+
+            <div class="legal-footer">
+                <div class="legal-summary">
+                    <strong>📋 Zusammenfassung:</strong> 
+                    Diese QR Code PWA respektiert Ihre Privatsphäre vollständig. Alle Daten bleiben auf Ihrem Gerät, es erfolgt keine Überwachung oder Datensammlung. Sie haben jederzeit die vollständige Kontrolle über Ihre Daten.
+                </div>
+                <p class="legal-timestamp">Letzte Aktualisierung: ${new Date().toLocaleDateString('de-DE', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })}</p>
+            </div>
+        </div>
+    `;
+},
 
     getImprintContent() {
       return `

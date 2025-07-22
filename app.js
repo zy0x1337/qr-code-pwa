@@ -3840,6 +3840,76 @@ removeLogo() {
     this.showToast('Logo entfernt', 'info');
 }
 
+// Preview-Aktualisierung mit Logo-Support
+async updatePreview() {
+    if (this.previewTimeout) {
+        clearTimeout(this.previewTimeout);
+    }
+
+    this.previewTimeout = setTimeout(async () => {
+        const qrType = document.getElementById('qr-type')?.value || 'text';
+        const content = this.getFormattedContent(qrType);
+        const previewContainer = document.getElementById('qr-preview');
+        let previewCanvas = document.getElementById('qr-preview-canvas');
+
+        // Inhalt validieren
+        if (!content || !content.trim()) {
+            if (previewContainer) {
+                previewContainer.innerHTML = '<p class="preview-placeholder">Geben Sie Inhalt ein um die Vorschau zu sehen</p>';
+            }
+            return;
+        }
+
+        // Loading anzeigen
+        if (previewContainer) {
+            previewContainer.innerHTML = '<div class="preview-loading">Generiere Vorschau...</div>';
+        }
+
+        try {
+            // Canvas erstellen oder größe anpassen
+            if (!previewCanvas) {
+                const canvas = document.createElement('canvas');
+                canvas.id = 'qr-preview-canvas';
+                previewContainer.appendChild(canvas);
+                previewCanvas = canvas;
+            }
+
+            // Responsive Größe setzen
+            const size = this.getPreviewSize();
+            previewCanvas.width = size;
+            previewCanvas.height = size;
+
+            // Canvas validieren
+            this.validateCanvas(previewCanvas);
+
+            // QR-Code generieren
+            await this.generateQRCodeWithLogo(previewCanvas, content.trim());
+
+        } catch (error) {
+            console.error('Preview generation error:', error);
+            if (previewContainer) {
+                previewContainer.innerHTML = `
+                    <div class="preview-error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Vorschau fehlgeschlagen</p>
+                        <small>${error.message}</small>
+                    </div>
+                `;
+            }
+        }
+    }, 300);
+}
+
+// Erweiterte Preview-Update für verschiedene QR-Typen
+updateContentBasedPreview() {
+    const qrType = document.getElementById('qr-type')?.value || 'text';
+    const content = this.getFormattedContent(qrType);
+    
+    if (content) {
+        this.updatePreview();
+    }
+}
+
 async generateQRCodeWithLogo(canvas, qrText) {
     return new Promise((resolve, reject) => {
         try {

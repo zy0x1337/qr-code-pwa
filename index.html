@@ -963,9 +963,57 @@
     <!-- Toast Notifications -->
     <div id="toast-container" class="toast-container"></div>
 
+    <!-- Modal Container -->
+<div id="legalModal" class="modal-overlay" aria-hidden="true">
+  <div class="modal-container" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-header">
+      <h2 id="modalTitle" class="modal-title"></h2>
+      <button class="modal-close" aria-label="Modal schließen" onclick="LegalModal.close()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-content">
+      <div id="modalBody" class="modal-body"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="LegalModal.close()">Verstanden</button>
+    </div>
+  </div>
+</div>
+
+<!-- Footer mit rechtlichen Links -->
+<footer class="app-footer">
+  <div class="footer-content">
+    <div class="legal-links">
+      <a href="#" onclick="LegalModal.show('privacy')" aria-label="Datenschutzerklärung anzeigen">
+        Datenschutz
+      </a>
+      <span class="separator">•</span>
+      <a href="#" onclick="LegalModal.show('imprint')" aria-label="Impressum anzeigen">
+        Impressum
+      </a>
+      <span class="separator">•</span>
+      <a href="#" onclick="LegalModal.show('terms')" aria-label="Nutzungsbedingungen anzeigen">
+        AGB
+      </a>
+      <span class="separator">•</span>
+      <a href="#" onclick="LegalModal.show('faq')" aria-label="Häufige Fragen anzeigen">
+        FAQ
+      </a>
+    </div>
+    <div class="app-version">
+      QR Pro v1.0.9 - © 2025
+    </div>
+  </div>
+</footer>
+
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="modal.js"></script>
     <script src="app.js"></script>
     <script>
     // App-Initialisierung

@@ -34,14 +34,14 @@ class QRProApp {
 
     // Touch-Gesten Variablen
     this.touchStartX = 0;
-  this.touchEndX = 0;
-  this.resizeTimeout = null;
-  this.deferredPrompt = null;
-  this.scannerPaused = false;
-  this.librariesLoaded = false;
-  this.isOnline = navigator.onLine;
+    this.touchEndX = 0;
+    this.resizeTimeout = null;
+    this.deferredPrompt = null;
+    this.scannerPaused = false;
+    this.librariesLoaded = false;
+    this.isOnline = navigator.onLine;
 
-  // SVG Icons hinzufügen
+    // SVG Icons hinzufügen
         this.SVG_ICONS = {
             qr_generated: `
                 <svg viewBox="0 0 24 24" fill="currentColor">

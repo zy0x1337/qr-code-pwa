@@ -6686,21 +6686,6 @@ input:checked + .toggle-slider:before {
   border-color: var(--logo-border-hover);
 }
 
-/* Dark Mode Variables */
-[data-color-scheme="dark"] .logo-section,
-@media (prefers-color-scheme: dark) {
-  html:not([data-color-scheme="light"]) .logo-section {
-    --logo-surface: #1e293b;
-    --logo-surface-secondary: #334155;
-    --logo-border: #475569;
-    --logo-border-hover: #64748b;
-    --logo-text: #f1f5f9;
-    --logo-text-secondary: #94a3b8;
-    --logo-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
-    --logo-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.2);
-  }
-}
-
 /* Header Section */
 .logo-header {
   display: flex;

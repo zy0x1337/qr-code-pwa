@@ -3073,6 +3073,25 @@ getTemplatesCount() {
     }
   }
 
+  focusGenerator() {
+        const qrContentInput = document.getElementById('qr-content');
+        if (qrContentInput) {
+            qrContentInput.focus();
+            if (qrContentInput.setSelectionRange) {
+                const len = qrContentInput.value.length;
+                qrContentInput.setSelectionRange(len, len);
+            }
+        }
+        
+        const generatorSection = document.querySelector('.qr-generator-section');
+        if (generatorSection) {
+            generatorSection.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' 
+            });
+        }
+    }
+
   initializeHistoryPage() {
     console.log('🔄 Initialisiere Verlaufsseite...');
     

@@ -5863,6 +5863,24 @@ async downloadQRCode(format = 'png') {
     }
 }
 
+// Temporäres Canvas mit weißem Hintergrund
+createTempCanvas(sourceCanvas) {
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d');
+    
+    tempCanvas.width = sourceCanvas.width;
+    tempCanvas.height = sourceCanvas.height;
+    
+    // Weißer Hintergrund für JPG
+    tempCtx.fillStyle = '#FFFFFF';
+    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    
+    // QR Code drauf zeichnen
+    tempCtx.drawImage(sourceCanvas, 0, 0);
+    
+    return tempCanvas;
+}
+
 // Download Event Listeners
 attachDownloadEventListeners() {
     // Format-Auswahl Handler

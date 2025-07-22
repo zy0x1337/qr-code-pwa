@@ -59,9 +59,25 @@ class QRProApp {
             `
         };
 
-        // Event Handler Bindings
-    this.updateContentBasedPreview = this.updateContentBasedPreview.bind(this);
-    this.updatePreview = this.updatePreview.bind(this);
+        // Arrow Functions - automatisches Binding
+        this.focusGenerator = () => {
+            const qrContentInput = document.getElementById('qr-content');
+            if (qrContentInput) {
+                qrContentInput.focus();
+                if (qrContentInput.setSelectionRange) {
+                    const len = qrContentInput.value.length;
+                    qrContentInput.setSelectionRange(len, len);
+                }
+            }
+            
+            const generatorSection = document.querySelector('.qr-generator-section');
+            if (generatorSection) {
+                generatorSection.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
+            }
+        };
     
     this.init();
   }
